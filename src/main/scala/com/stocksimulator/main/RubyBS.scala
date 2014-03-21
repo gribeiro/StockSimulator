@@ -119,9 +119,6 @@ object RBSFactory {
 
 }
 
-class RBSFactory {
-
-}
 
 class PreRubyBSAdapter[T <: RubyBSAdapter](val myFilename: String, val date: String, klass: Class[T]) {
   def unroll = klass.getConstructor(classOf[RubyString], classOf[RubyString]).newInstance(myFilename, date)
@@ -132,43 +129,26 @@ object RubyBSAdapter {
 
 
 }
-@serializable
-abstract class RubyBSAdapter(val myFilename: String, val date: String) {
+
+trait RubyStrategyTypes  {
+  def strategyTypes = Map("RubyRatioAdapter" -> classOf[RubyRatioStrategy],
+      "RubyDoubleRatioAdapter" -> classOf[RubyDoubleRatioStrategy],
+      "TestStrategy" -> classOf[TestStrategy])
+  def generic = classOf[RubyStdStrategy]
+}
+abstract class RubyBSAdapter(val myFilename: String, val date: String) extends BSAdapter with RubyStrategyTypes {
  val excludedHours = new ArrayBuffer[(String, String)]
- def getBS[T <: Strategy] = {
-    val BS = this.strategyType match {
-      case "RubyRatioAdapter" =>
-        val rubyBS = new RubyBS[RubyRatioStrategy](this, classOf[RubyRatioStrategy])
-        rubyBS
-      case "RubyDoubleRatioAdapter" =>
-        val rubyBS = new RubyBS[RubyDoubleRatioStrategy](this, classOf[RubyDoubleRatioStrategy])
-        rubyBS
-      case "TestStrategy" =>
-        val rubyBS = new RubyBS[TestStrategy](this, classOf[TestStrategy])
-        rubyBS
-        
-      case _ =>
-        val rubyBS = new RubyBS[RubyStdStrategy](this, classOf[RubyStdStrategy])
-        rubyBS
+  def getBS[T <: Strategy] = {
+    strategyTypes.get(this.strategyType) match {
+      case Some(klass) => new RubyBS(this, klass)
+      case None => new RubyBS(this, generic)
     }
-  BS
   }
+ 
+ 
   val datetime = RubyBSAdapter.dateFormat.parseDateTime(date)
 
-  def mConfig: MongoConfig
-  def name: String
-  def actorsQtd: Int
-  def myInst: Set[Stock]
-  def bookOrder: Int
-  def watchSymbol: Array[String]
-  def rbFilename: String
-  def rbKlass: String
-  def varParam: Array[Parameters]
-  def from: String
-  def to: String
-  def strategyType: String
-  def replace: Boolean
-  def postRun(): Unit
+
   def instMaker(values: Array[String]) = {
     val preInst = for (v <- values) yield Stock(v)
     preInst.toSet
