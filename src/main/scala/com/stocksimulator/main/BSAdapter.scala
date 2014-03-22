@@ -8,7 +8,7 @@ import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.java.TestStrategy
 import com.stocksimulator.common_strategies.RubyStdStrategy
 
-abstract class BSAdapter[T, U] {
+abstract class BSAdapter {
   def mConfig: MongoConfig
   def name: String
   def actorsQtd: Int
