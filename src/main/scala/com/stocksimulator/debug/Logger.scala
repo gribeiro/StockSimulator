@@ -30,7 +30,7 @@ import LogLevel._
 
 object Log {
     val config = ConfigFactory.parseString("" +
-      "akka.loglevel=DEBUG\n" +
+      "akka.loglevel=INFO\n" +
       "akka.debug.lifecycle=on\n" +
       "akka.debug.receive=on\n" +
       "akka.debug.event-stream=on\n" +

@@ -48,8 +48,8 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
 
          // val mod = (pos / maxPos) * (spread_max - spread_entrada)
           val spread = spread_entrada
-          val spreadVenda = if(pos >0) 0 else spread 
-          val spreadCompra = if(pos <0) 0 else spread
+          val spreadVenda = if(pos > 0) 0 else spread 
+          val spreadCompra = if(pos < 0) 0 else spread
 
           val buyPrice = roundDown(Math.min(a.bid.price, precoTeoricoA - spreadCompra))
           val sellPrice = roundUp(Math.max(a.ask.price, precoTeoricoA + spreadVenda));

@@ -141,7 +141,11 @@ class MasterRemoteActor extends Actor {
       }
 
     case JobAckSmall(job) =>
-      jobMap(job) match {
+      val jobStatus = jobMap.get(job) match {
+        case Some(jS) => jS
+        case None => jobMap(job) = JobSent(false)
+      }
+      jobStatus match {
         case JobSent(true) => jobMap(job) = JobRunning(sender, true)
         case _ => jobMap(job) = JobRunning(sender, false)
       }

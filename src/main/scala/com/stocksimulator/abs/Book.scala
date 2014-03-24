@@ -17,7 +17,7 @@ class Book(var initFeed: Int = 0) {
  def incompleteFeed(qtd: Int) = {
    //feed(qtd)
    if(userCurPos > 0) {
-	   if(userCurPos - qtd < 2) userCurPos = 1 else feed(qtd)
+	   if(userCurPos - qtd < 1) userCurPos = 1 else feed(qtd)
    }
  }
  def canExecute = userCurPos <= 0

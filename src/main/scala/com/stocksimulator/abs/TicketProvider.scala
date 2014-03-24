@@ -7,6 +7,9 @@ import com.stocksimulator.debug._
 import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.helpers.ImplicitClasses._
 import com.stocksimulator.macros._
+
+
+
 class TicketProvider(defaultAfterCancel: (Ticket) => () => Unit) {
 
   

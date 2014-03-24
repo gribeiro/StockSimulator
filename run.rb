@@ -20,7 +20,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = [Variables.symbolB, Variables.symbolA] #INDc1
-		self.setOutputName("mini3".to_java)
+		self.setOutputName("mini322".to_java)
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
