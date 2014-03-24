@@ -88,9 +88,9 @@ object RBSFactory {
 	 val teste:Array[String] = withYear(2013).withMonth(2).withDays(List(1, 2, 3, 4))*/
 
   val symbols = ArrayBuffer.empty[String]
-  var mongoOutputSymbol = Stock("")
+  var mongoOutputSymbol:Stock = ""
   var outputName = ""
-  var log = false
+  var log = true
   var delay = 100
   def setOutputName(s: String) = {
     outputName = s
@@ -185,7 +185,7 @@ abstract class RubyBSAdapter(val myFilename: String, val date: String) {
 }
 
 class RubyBS[T <: Strategy](rb: RubyBSAdapter, val klass: Class[T]) extends BSSet[T] {
-  Log.setActive(true)
+  Log.setActive(RBSFactory.log)
   rb.postRun()
   val hourFormat = DateTimeFormat.forPattern("HH:mm:ss")
   val from = hourFormat.parseDateTime(rb.from).plus(rb.datetime.getMillis())

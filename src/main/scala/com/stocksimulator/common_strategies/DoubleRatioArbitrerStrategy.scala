@@ -17,8 +17,8 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
  // val elapsed: Int = ParamMaker("elapsed")
-  val ratio: Double = ParamMaker("ratio")
-  val spread_entrada: Int = ParamMaker("spread_entrada")
+  val ratio: Double = p"ratio"
+  val spread_entrada: Int = p"spread_entrada"
   //val spread_max: Int = ParamMaker("spread_max")
   val timeToExit: Int = 0//par"time_exit"
 

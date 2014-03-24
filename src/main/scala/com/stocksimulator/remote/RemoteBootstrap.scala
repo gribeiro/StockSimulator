@@ -21,13 +21,15 @@ object CommonBootstrap {
 
 }
 class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameters], cStrat: Class[T], date: String) {
-  val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
+ 
   val workers = new Workers(conf.localWorkers, createBundle, conf.name)
   
   def terminated = workers.terminated
   
-  def loadMongo() = sharedMongo
+  def loadMongo() = new SharedMongo(conf.mongoConfig, conf.filter)
+  
   def createBundle(param: Parameters) = {
+     val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
     val feed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
     val market = new ReutersMarket(feed, conf.components)
     val strategy = cStrat.getConstructor(classOf[Market], classOf[Parameters]).newInstance(market, param)
