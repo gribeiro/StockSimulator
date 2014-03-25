@@ -1,11 +1,8 @@
 name := "StockSimulator"
 
+git.baseVersion := "1.0"
 
 versionWithGit
-
-git.baseVersion := "0.1"
-
-version := "0.01"
 
 scalaVersion := "2.10.3"
 
