@@ -127,7 +127,7 @@ class DelayedTicketProvider(defaultAfterCancel: (Ticket) => () => Unit, delay: I
   }
 
   private def updateHashMap[T](hm: LinkedHashMap[T, Long], updateFun: (Long) => Long) = {
-    hm.par.foreach {
+    hm.foreach {
       case (key, timePassed) =>
         hm.update(key, updateFun(timePassed))
     }

@@ -1,0 +1,15 @@
+*.csv
+*.csv.gz
+*.sc
+*.jar
+*.txt
+.cache
+.classpath
+.metadata/
+.project
+mapRed.js
+mapReduce.js
+project/build.properties
+target/*
+project/project/*
+/StockSimulator

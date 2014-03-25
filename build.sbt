@@ -63,5 +63,3 @@ ProguardKeys.options in Proguard += ProguardOptions.keepMain("com.stocksimulator
 
 
 
-
-

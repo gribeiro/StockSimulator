@@ -95,7 +95,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
   
   infoFarm.register("sortino", SortinoGenerator)
   infoFarm.register("sharpe", SharpeGenerator)
-  Log(outContent)
+ // Log(outContent)
  
   var date = "N/A"
   val mongoOBJs = {
@@ -113,7 +113,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
     val md5 = outContent.get("md5").orElse(Some("N/A")).get.asInstanceOf[String]
 
     val inputStr = in.inputStr
-    Log(RBSFactory.mongoOutputSymbol)
+    //Log(RBSFactory.mongoOutputSymbol)
     val tempStock = outContent.get("marketLast").get.asInstanceOf[Map[Stock, StockInfo]].get(RBSFactory.mongoOutputSymbol).get
     
     val PNLStock = RBSFactory.mongoOutputSymbol

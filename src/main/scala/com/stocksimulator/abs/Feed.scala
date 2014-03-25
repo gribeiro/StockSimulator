@@ -12,3 +12,16 @@ trait Feed {
 	
 	def unary_! = next()
 }
+
+trait CloneFeed extends Feed {
+  def cloneContent(): Array[Map[Stock, StockInfo]]
+}
+
+class FeedFromClone(clone: CloneFeed) extends Feed {
+  val iterator = clone.cloneContent().iterator
+  
+  val instruments = clone.instruments
+  def next() = iterator.next()
+  def hasNext() = iterator.hasNext
+  
+}

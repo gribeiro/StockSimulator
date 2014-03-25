@@ -16,8 +16,8 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
- // val elapsed: Int = ParamMaker("elapsed")
-  val ratio: Double = p"ratio"
+ val elapsed: Int = p"elapsed"
+  //val ratio: Double = p"ratio"
   val spread_entrada: Int = p"spread_entrada"
   //val spread_max: Int = ParamMaker("spread_max")
   val timeToExit: Int = 0//par"time_exit"
@@ -27,7 +27,7 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   //windows <-- timeExitCallBack
 
 
-  //lazy val mvAvg = createRatioFor2SymbolsMAvg(symbolA, symbolB, symbolC, elapsed / 1000, elapsed);
+  lazy val mvAvg = createRatioFor2SymbolsMAvg(symbolA, symbolB, symbolC, elapsed / 1000, elapsed);
 
   def timeExitCallBackExec(): Unit = {
     //Log("Time is up! Exiting position...")
@@ -38,13 +38,13 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
 
     val pos = getPosition(symbolA).quantity
     //if (Math.abs(pos) >= maxPos) -timeExitCallBack else +timeExitCallBack
-    //if (mvAvg.isAvailable) {
+    if (mvAvg.isAvailable) {
       //Log(this.lastTick)
       val infoPair = (getSymbol(symbolA), getSymbol(symbolB), getSymbol(symbolC))
       infoPair match {
         case (a: Quote, b: Quote, c: Quote) =>
           val midPr = midPrice(b)*midPrice(c)
-          val precoTeoricoA = ratio * midPr//mvAvg.lastVal * midPr
+          val precoTeoricoA = mvAvg.lastVal * midPr
 
          // val mod = (pos / maxPos) * (spread_max - spread_entrada)
           val spread = spread_entrada
@@ -63,7 +63,7 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
 
         case _ => {}
       }
-    //}
+    }
   }
 
 }

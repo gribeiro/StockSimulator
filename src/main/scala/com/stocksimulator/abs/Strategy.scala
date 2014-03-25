@@ -217,7 +217,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     Log("Strategy: Allocating result..")
     putResult("position", position)
     putResult("marketLast", marketLast)
-    Log(marketLast)
+    //Log(marketLast)
     onStop()
     result
   }

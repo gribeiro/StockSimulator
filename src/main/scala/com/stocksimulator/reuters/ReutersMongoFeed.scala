@@ -13,6 +13,7 @@ import org.joda.time.format.DateTimeFormat
 import com.mongodb.casbah.Imports._
 import scala.{ None, Some, Option }
 import com.mongodb.MongoException
+import scala.collection.mutable.ArrayBuffer
 case class MongoConfig(hostname: String, port: Int, dbname: String, filename: String = "")
 
 object MongoClientSingleton {
@@ -25,7 +26,7 @@ object MongoClientSingleton {
       case None => {
         val connection = new ServerAddress(host, port)
 
-        //val tryLocalConn = new ServerAddress("127.0.0.1", 27017)
+        val tryLocalConn = new ServerAddress("127.0.0.1", 27017)
         val mC = MongoClient(List( connection))
         mongoClient = Some(mC)
         mC
@@ -77,7 +78,7 @@ object ReutersMongoLoad {
     }
     Log(condition)
     val iterator = coll.find(condition)
-    Log(iterator)
+    //Log(iterator)
     iterator
   }
 }
@@ -133,10 +134,12 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     }
   }
 
+  val size = loadData().size
   val raw = {
     Log("Loading MongoDB raw data...")
 
-    val load = loadData().toArray
+    val load = loadData()
+    Log(load.size)
     if (load.size <= 0) {
       Log("Database not found, making a new one")
       ReutersMongoSave(config)
@@ -146,14 +149,22 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     }
     
   }
+  
+  val loaded = raw.toArray
+ 
 }
 
 class ReutersMongoFeed(knownInstruments: Set[Stock], config: MongoConfig) extends ReutersCsvFeed("", knownInstruments) {
   val shMongo = new SharedMongo(config)
-  override def getMeRaw() = shMongo.raw
+  override def getMeRaw() = shMongo.raw.toArray
 }
 
 class ReutersSharedMongoFeed(knownInstruments: Set[Stock], shMongo: SharedMongo) extends ReutersCsvFeed("", knownInstruments) {
-  override def getMeRaw() = shMongo.raw
+
+
+  override def getMeRaw() = {
+   val myCopy = shMongo.loaded
+    myCopy//shMongo.raw
+  }
 }
 

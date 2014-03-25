@@ -58,7 +58,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     val (buyTickets, sellTickets) = tickets.buyAndSellPartition
     val newInfo = oldInfo
     var results = new ListBuffer[(Ticket, OrderResult)]
-    Log(newInfo)
+    //Log(newInfo)
     if (buyBook.size != 0 || sellBook.size != 0 || tickets.size != 0) {
       for ((stock, info) <- newInfo) yield {
         if (!info.hasAppeared) {

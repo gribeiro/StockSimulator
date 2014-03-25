@@ -63,7 +63,7 @@ abstract class BSAdapter(val date: String) {
 }
 
 abstract class AdapterBSSet[T <: Strategy](rb: BSAdapter, val klass: Class[T]) extends BSSet[T] {
-  Log.setActive(true)
+  Log.setActive(RBSFactory.log)
   rb.postRun()
   val hourFormat = DateTimeFormat.forPattern("HH:mm:ss")
   val from = hourFormat.parseDateTime(rb.from).plus(rb.datetime.getMillis())

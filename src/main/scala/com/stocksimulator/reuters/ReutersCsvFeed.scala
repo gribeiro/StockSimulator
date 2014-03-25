@@ -5,12 +5,11 @@ import com.github.tototoshi.csv._
 import org.joda.time._
 import java.io.File
 import scala.annotation.tailrec
-import scala.collection.Parallel
-import scala.collection.parallel._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.joda.time.format.DateTimeFormat
 import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.debug._
+import scala.collection.mutable.ArrayBuffer
 
 abstract class GeneralInfo(val ric: String, val date: String, val time: String, val gmt: String, val sType: String, val price: String, val volume: String, val bidPrice: String, val bidSize: String, val askPrice: String, val askSize: String)
 case class LineInfo(ric: String, date: String, time: String, gmt: String, sType: String, price: String, volume: String, bidPrice: String, bidSize: String, askPrice: String, askSize: String)
@@ -20,12 +19,12 @@ case class HourFilter(from: DateTime, to: DateTime) extends Filter
 case class ExtendedHourFilter(include: HourFilter, exclude: Array[HourFilter]) extends Filter
 case object EmptyFilter extends Filter
 
-class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) extends Feed {
+class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) extends CloneFeed {
   lazy val csvReader = CSVReader.open(new File(filename))
-  lazy val rawInfo = getMeRaw()
+  val rawInfo = getMeRaw()
 
-  def getMeRaw() = (csvReader.toStream()).drop(1)
-  lazy val lazyLineInfo = (rawInfo.map(makeLineInfo))
+  def getMeRaw() = (csvReader.toStream().toArray).drop(1)
+  val lazyLineInfo = (rawInfo.map(makeLineInfo))
   val dateFormat = ReutersCommon.dateFormat
   val instruments = if (knownInstruments.size > 0) knownInstruments else readInstruments
 
@@ -46,6 +45,14 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
     lastAskVol.put(i, 0)
   }
 
+  val memory = ArrayBuffer.empty[Map[Stock, StockInfo]]
+  
+  while(this) {
+    memory += !this
+  }
+  
+  def cloneContent = memory.clone().toArray
+  
   private def filters(x: Stock) = {
     (f: LineInfo) =>
       {
@@ -55,7 +62,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
       }
   }
   def hasNext(): Boolean = {
-    val qtd = iterators.par.filter {
+    val qtd = iterators.filter {
       case (_, it) => {
         it.hasNext
       }
@@ -68,7 +75,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
   }
 
   private def nextPerform(): Map[Stock, StockInfo] = {
-    val nextInfo = iterators.par.filter {
+    val nextInfo = iterators.filter {
       case (_, it) => {
         it.hasNext
       }
@@ -108,7 +115,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
 
         val ask = PriceVol(askPrice, askSize)
         val result = if (bidPrice < askPrice) Some(Quote(stock, bid, ask, datetime)) else {
-          Log("BADRESULT: " + Quote(stock, bid, ask, datetime))
+          //Log("BADRESULT: " + Quote(stock, bid, ask, datetime))
           None
           }
         (stock, result)
@@ -151,7 +158,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
   }
 
   def readInstruments(): Set[Stock] = {
-    val first = lazyLineInfo(0).ric
+   /* val first = lazyLineInfo(0).ric
 
     @tailrec
     def readAllInstruments(s: Stream[LineInfo], stock: Set[String]): Set[Stock] = {
@@ -166,7 +173,8 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
         case x: String => readAllInstruments(ns, Set(x).union(stock))
       }
     }
-    Set(Stock(first)).union(readAllInstruments(lazyLineInfo, Set(first)))
+    Set(Stock(first)).union(readAllInstruments(lazyLineInfo, Set(first)))*/
+    Set.empty[Stock]
   }
 
 }
