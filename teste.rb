@@ -20,7 +20,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = [Variables.symbolB, Variables.symbolA] #INDc1
-		self.setOutputName("mini322".to_java)
+		self.setOutputName("testeUnitario".to_java)
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
@@ -36,8 +36,8 @@ class Start < RBSFactory
 		#dates = ["21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014", "18/02/2014", "03/02/2014",  "07/02/2014",  "11/02/2014", "12/02/2014",  "14/02/2014", "25/02/2014", "06/03/2014", "07/03/2014", "10/03/2014"]
 		#puts dates
 		#dates = ["21/02/2014","19/02/2014", "20/02/2014", "18/02/2014"]
-		#dates = ["11/02/2014"]
-		dates = ["17/03/2014", "18/03/2014", "19/03/2014"]
+		dates = ["11/02/2014"]
+		#dates = ["17/03/2014", "18/03/2014", "19/03/2014"]
 		self.setVar()
 
 		ret = []
@@ -68,14 +68,14 @@ class RubyConf < RubyBSAdapter
 
 	end
 	def initialize(filename, date)
-		@from = "09:10:00" #15:10
-		@to = "17:40:00" #15:25
+		@from = "15:10:00" #15:10
+		@to = "15:25:00" #15:25
 		@name = "fireProofR"
-		@dbLookUp = "fireProof2" #dbLookupName
+		@dbLookUp = "miniTest" #dbLookupName
 		@dateRB = date
-		@bookOrder = to_int(30) #Fila
-		@actorsQtd = to_int(4)
-		@replace = false
+		@bookOrder = to_int(40) #Fila
+		@actorsQtd = to_int(1)
+		@replace = true
 		@strategyType = "TestStrategy"
 		@watchSymbol = [Variables.symbolB]
 		@rbFilename = "self"
@@ -83,7 +83,7 @@ class RubyConf < RubyBSAdapter
 	end
 	
 	def mConfig
-		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
+		mongoConfigMaker("192.168.90.15", 27017, @dbLookUp+@dateRB, myFilename)
 	end 
 
 	def myInst
@@ -92,8 +92,8 @@ class RubyConf < RubyBSAdapter
 
 	def varParam()
 		params = []
-		hardLimit_range = (5..10).step(5) #50..500 #50..70
-		spread_range = (20..40).step(5)
+		hardLimit_range = (5..5).step(5) #50..500 #50..70
+		spread_range = (20..20).step(5)
 		for hardLimit in hardLimit_range
 
 			for spread in spread_range

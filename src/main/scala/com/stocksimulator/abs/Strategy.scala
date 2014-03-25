@@ -32,6 +32,7 @@ class Parameters {
   override def toString(): String = mem.toString()
 }
 
+
 trait BuySellAdapter {
   def buy(st: Stock, qt: Int, amount: Double): TunnelTicketStatus
   def sell(st: Stock, qt: Int, amount: Double): TunnelTicketStatus
@@ -55,7 +56,18 @@ abstract class BuySellAdopt(bsAdap: BuySellAdapter) extends BuySellAdapter {
 
 
 object Strategy {
-
+  def midPrice(q: Quote) = {
+    //Log("Bid Price: " + q.bid.price.toString)
+    //Log("Ask Price: " + q.ask.price.toString)
+    (q.bid.price + q.ask.price) / 2
+  }
+  def midPrice(t: Trade) = t.priceVol.price
+  def midPrice(s: StockInfo): Double = {
+    s match {
+      case t: Trade => midPrice(t)
+      case q: Quote => midPrice(q)
+    }
+  }
 }
 
 abstract class Strategy(market: Market, private val param: Parameters) extends BuySellAdapter {
@@ -102,18 +114,8 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   def callback(): Unit
   private val strategyCallback = new SimpleCallBack(5000, callback)
 
-  protected def midPrice(q: Quote) = {
-    //Log("Bid Price: " + q.bid.price.toString)
-    //Log("Ask Price: " + q.ask.price.toString)
-    (q.bid.price + q.ask.price) / 2
-  }
-  protected def midPrice(t: Trade) = t.priceVol.price
-  protected def midPrice(s: StockInfo): Double = {
-    s match {
-      case t: Trade => midPrice(t)
-      case q: Quote => midPrice(q)
-    }
-  }
+ 
+  protected def midPrice(s: StockInfo) = Strategy.midPrice(s)
 
   protected def askPrice(st: Stock): Double = {
     val st2 = getSymbol(st)
@@ -182,7 +184,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
 
     onStart()
 
-    !market
+    //!market
     windows <-- strategyCallback
     while (market) {
 
@@ -202,6 +204,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
         //if(millis > 0) onQuotes() <-- Ja tem o filtro contador, nao precisa mais. <-- Setar WATCH SYMBOL
         sProvideLiquidity.updateAll()
         onQuotes()
+
         marketLast = marketInfo
       }
 

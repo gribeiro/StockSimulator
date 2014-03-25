@@ -12,10 +12,10 @@ abstract class RatioArbitrerStrategy(market: Market, param: Parameters) extends 
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
-  val elapsed: Int = ParamMaker("elapsed")
-  val spread_entrada: Int = ParamMaker("spread_entrada")
-  val spread_max: Int = ParamMaker("spread_max")
-  val timeToExit: Int = ParamMaker("time_exit")
+  val elapsed: Int = p"elapsed"
+  val spread_entrada: Int = p"spread_entrada"
+  val spread_max: Int = p"spread_max"
+  val timeToExit: Int = p"time_exit"
 
   val timeExitCallBack = new SimpleCallBack(timeToExit * 1000, timeExitCallBackExec)
   -timeExitCallBack

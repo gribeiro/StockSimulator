@@ -21,8 +21,8 @@ import java.io._
 import akka.actor.PoisonPill
 import com.stocksimulator.fancy_output._
 import scala.collection.mutable.ArrayBuffer
-
 import scala.{ Some, None }
+import com.stocksimulator.remote.CommonBootstrap
 
 class Workers[T <: ResultActor](n: Int, bundle: (Parameters) => Strategy, sId: String, resultKlass: Class[T] = classOf[MongoResultActor]) {
 
@@ -90,8 +90,10 @@ class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) =>
         resultToBeDone = true
       }
 
-    case a: spResult => {
-      resultA ! a
+    case result: spResult => {
+      CommonBootstrap.parametersAcc += result.a
+      CommonBootstrap.parametersAcc += result.b
+      resultA ! result
       Log("Result was sent!")
 
     }

@@ -47,7 +47,8 @@ class TimeControl(inst: Set[Stock]) {
        var sInfo = sI
        sI match {
          case t: Trade =>
-           sInfo = lastQuoteOcorr(sI.iStock)
+           sInfo = lastQuoteOcorr.getOrElse(sI.iStock, sInfo)
+           
          case _ => {}
        }
        

@@ -15,7 +15,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = ["EWZ", "DOLc1", Variables.symbolA] #INDc1
-		self.setOutputName("ewzRatio".to_java)
+		self.setOutputName("ewzSemLeilao".to_java)
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
@@ -56,9 +56,6 @@ class RubyConf < RubyBSAdapter
 		a.to_java(:int)
 	end
 
-	def to_double(a)
-		a.to_java(:double)
-	end
 	def initialize(filename, date)
 		
 		@from = "10:00:00"
@@ -67,7 +64,7 @@ class RubyConf < RubyBSAdapter
 		@dbLookUp = "EWZ2" #dbLookupName
 		@dateRB = date
 		@bookOrder = to_int(30)
-		@actorsQtd = to_int(5)
+		@actorsQtd = to_int(1)
 		@replace = false
 		@strategyType = "RubyDoubleRatioAdapter"
 		@watchSymbol = ["EWZ", "DOLc1"]
@@ -89,22 +86,23 @@ class RubyConf < RubyBSAdapter
 
 	def varParam()
 		params = []
-		#elapsed_range = (100..500).step(100) #50..500 #50..70
+		elapsed_range = (100..500).step(100) #50..500 #50..70
 		spread_entrada_range = (20..100).step(20) #20..200
-		#spread_max_range = (0..50).step(25)
-		#for preElapsed in elapsed_range
+		spread_max_range = (0..50).step(25)
+		for preElapsed in elapsed_range
 			for entrada in spread_entrada_range
-				#for spread_max in spread_max_range
+				for spread_max in spread_max_range
+				
 						a = Parameters.new
-						#a.set("elapsed", to_int(preElapsed*1000))
-						a.set("ratio", to_double(0.4898445))
+						a.set("elapsed", to_int(preElapsed*1000))
 						a.set("spread_entrada", to_int(entrada))
-						#a.set("spread_max", to_int((spread_max/100.0) * entrada + entrada))
+						a.set("spread_max", to_int((spread_max/100.0) * entrada + entrada))
+				
 						params.push(a)
 			
 				end
-			#end	
-		#end
+			end	
+		end
 		params
 	end
 end

@@ -11,7 +11,7 @@ import com.stocksimulator.helpers.ImplicitClasses._
 import com.stocksimulator.helpers.ImplicitClasses
 import com.stocksimulator.abs.TicketProvider
 
-class ReutersMarket(feed: ReutersCsvFeed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
+class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
 
   var oldInfo: Map[Stock, StockInfo] = Map.empty[Stock, StockInfo]
 

@@ -40,7 +40,10 @@ libraryDependencies += "org.jruby" % "jruby" % "1.7.10"
 
 //libraryDependencies ++= List("org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full)
 
-  
+libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.1.0" % "test"
+
+libraryDependencies +=
+"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
 
 libraryDependencies += "io.jvm" %% "scala-uuid" % "0.1.2"
 
