@@ -56,6 +56,10 @@ class RubyConf < RubyBSAdapter
 		a.to_java(:int)
 	end
 
+	def to_double(b)
+		b.to_java(:double)
+	end
+	
 	def initialize(filename, date)
 		
 		@from = "10:00:00"
@@ -64,8 +68,8 @@ class RubyConf < RubyBSAdapter
 		@dbLookUp = "EWZ2" #dbLookupName
 		@dateRB = date
 		@bookOrder = to_int(30)
-		@actorsQtd = to_int(1)
-		@replace = false
+		@actorsQtd = to_int(4)
+		@replace = true
 		@strategyType = "RubyDoubleRatioAdapter"
 		@watchSymbol = ["EWZ", "DOLc1"]
 		@rbFilename = "self"
@@ -89,19 +93,20 @@ class RubyConf < RubyBSAdapter
 		elapsed_range = (100..500).step(100) #50..500 #50..70
 		spread_entrada_range = (20..100).step(20) #20..200
 		spread_max_range = (0..50).step(25)
-		for preElapsed in elapsed_range
+		#for preElapsed in elapsed_range
 			for entrada in spread_entrada_range
-				for spread_max in spread_max_range
+				#for spread_max in spread_max_range
 				
 						a = Parameters.new
-						a.set("elapsed", to_int(preElapsed*1000))
+						#a.set("elapsed", to_int(preElapsed*1000))
 						a.set("spread_entrada", to_int(entrada))
-						a.set("spread_max", to_int((spread_max/100.0) * entrada + entrada))
+						a.set("ratio", to_double(0.48))
+						#a.set("spread_max", to_int((spread_max/100.0) * entrada + entrada))
 				
 						params.push(a)
 			
-				end
-			end	
+				#end
+			#end	
 		end
 		params
 	end
