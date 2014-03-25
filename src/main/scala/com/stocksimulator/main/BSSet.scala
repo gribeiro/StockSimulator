@@ -29,7 +29,6 @@ trait LogMe {
 @serializable
 abstract class BSSet[T <: Strategy] {
 
-    
 	protected val filename: String
 	val hourFilter:Filter = EmptyFilter
 	protected val mongoConfig: MongoConfig

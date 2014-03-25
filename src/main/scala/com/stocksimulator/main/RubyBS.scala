@@ -33,6 +33,7 @@ import com.stocksimulator.helpers._
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 
+class RBSFactory {}
 object RBSFactory {
 
   /*case class wList(list: List[wSeries]) {
@@ -124,11 +125,6 @@ class PreRubyBSAdapter[T <: RubyBSAdapter](val myFilename: String, val date: Str
   def unroll = klass.getConstructor(classOf[RubyString], classOf[RubyString]).newInstance(myFilename, date)
 }
 
-object RubyBSAdapter {
-  val dateFormat = DateTimeFormat.forPattern("dd/MM/yyyy")
-
-
-}
 
 trait RubyStrategyTypes  {
   def strategyTypes = Map("RubyRatioAdapter" -> classOf[RubyRatioStrategy],
@@ -136,97 +132,26 @@ trait RubyStrategyTypes  {
       "TestStrategy" -> classOf[TestStrategy])
   def generic = classOf[RubyStdStrategy]
 }
-abstract class RubyBSAdapter(val myFilename: String, val date: String) extends BSAdapter with RubyStrategyTypes {
- val excludedHours = new ArrayBuffer[(String, String)]
+abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAdapter(date) with RubyStrategyTypes {
   def getBS[T <: Strategy] = {
     strategyTypes.get(this.strategyType) match {
       case Some(klass) => new RubyBS(this, klass)
       case None => new RubyBS(this, generic)
     }
   }
- 
- 
-  val datetime = RubyBSAdapter.dateFormat.parseDateTime(date)
-
-
-  def instMaker(values: Array[String]) = {
-    val preInst = for (v <- values) yield Stock(v)
-    preInst.toSet
-  }
-
-  def mongoConfigMaker(hostname: String, port: Int, name: String, filename: String) = {
-    MongoConfig(hostname, port, name, filename)
-  }
-  def pushExcludedHour(from: String, to: String):Unit = {
-    val pair = (from, to)
-    excludedHours += pair
-  }
-  
+  def rbFilename: String
+  def rbKlass: String
 }
 
-class RubyBS[T <: Strategy](rb: RubyBSAdapter, val klass: Class[T]) extends BSSet[T] {
-  Log.setActive(true)
-  rb.postRun()
-  val hourFormat = DateTimeFormat.forPattern("HH:mm:ss")
-  val from = hourFormat.parseDateTime(rb.from).plus(rb.datetime.getMillis())
-  val to = hourFormat.parseDateTime(rb.to).plus(rb.datetime.getMillis())
-  val excluded = for((mFrom, mTo) <- rb.excludedHours) yield {
-      val transformedFrom = hourFormat.parseDateTime(mFrom).plus(rb.datetime.getMillis())
-      val transformedTo = hourFormat.parseDateTime(mTo).plus(rb.datetime.getMillis())
-    HourFilter(transformedFrom, transformedTo)
-  }
+class RubyBS[T <: Strategy](rb: RubyBSAdapter, klass: Class[T]) extends AdapterBSSet[T](rb, klass) {
+
   def myFilename: String = rb.myFilename
-  def mConfig: MongoConfig = rb.mConfig
-  def name: String = rb.name + "-" + rb.date.filter(p => p != '/')
-  def actorsQtd: Int = rb.actorsQtd
-  def myInst: Set[Stock] = rb.myInst
-  def bookOrder: Int = rb.bookOrder
-  val tradingSymbol = rb.watchSymbol
-  val date = rb.date
-
-  if(rb.replace) {
-    val mongo = MongoClientSingleton(rb.mConfig)
-    val db = mongo("stockSimulator")
-    val toRemove = MongoDBObject("date" -> Functions.changePatterns(date))
-    Log("It'll remove: " + date)
-    val coll = db(RBSFactory.outputName)
-    val removeResult = coll.remove(toRemove)
-  }
-  // val from = new DateTime(rb.from)
-  //val to = new DateTime(rb.to)
-
-  val miniHourFilter = HourFilter(from, to)
-  override val hourFilter:Filter = if(excluded.size == 0) miniHourFilter else ExtendedHourFilter(miniHourFilter, excluded.toArray)
-
+  val filename = myFilename
   def rbFilename: String = rb.rbFilename
   def rbKlass: String = rb.rbKlass
-  def varParam: Array[Parameters] = rb.varParam
-
   RubyStrategyLoader.filename = rbFilename
   RubyStrategyLoader.klass = rbKlass
 
-  val filename = myFilename
-  val inst = myInst
-  val logActive = true
-  val mongoConfig = mConfig
-  override lazy val sharedMongo = new SharedMongo(mongoConfig, hourFilter)
-
-  val mc = new ListBuffer[MarketComponent]
-  if(tradingSymbol.size == 1) {
-	  mc += ReutersMarketComponents.counterComponent(tradingSymbol.head)
-  	}
-  else if(tradingSymbol.size > 1) {
-    val multArg = tradingSymbol.map(tS => Stock(tS)).toSet 
-    mc += ReutersMarketComponents.multiCounterComponent(multArg)
-  }
-  mc += ReutersMarketComponents.standardBookOrder(bookOrder)
-
-  val varParamSz = varParam.size
-  Log(s"It'll run $varParamSz simulations...")
-  val conf = BootstrapConf(filename, mongoConfig, actorsQtd, name, inst, mc.toList, hourFilter)
-  val varParamList = varParam.toList
-
-  Log("Starting bootstrap...")
 }
 
 
