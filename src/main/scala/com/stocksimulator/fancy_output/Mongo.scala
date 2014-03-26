@@ -96,8 +96,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
   infoFarm.register("sortino", SortinoGenerator)
   infoFarm.register("sharpe", SharpeGenerator)
  // Log(outContent)
- 
-  var date = "N/A"
+  var date = outContent("date").asInstanceOf[String]
   val mongoOBJs = {
     val list = for ((oStr, oVal) <- outContent) yield {
       oVal match {

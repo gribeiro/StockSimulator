@@ -57,7 +57,15 @@ class SpreadDinamico(strategy: Strategy, spread: Double, stock: Stock, flag: Spr
       if(position < 0) spread + ratio*(spread - params.spreadMin) else spreadDefault.buySpread
     }
     
+    private def mixedBuy = () => {
+      if(position > 0) spread + ratio*(params.spreadMax - spread) 
+      else if(position < 0) spread + ratio*(spread - params.spreadMin) else spreadDefault.buySpread
+    }
     
+    private def mixedSell = () => {
+      if(position < 0) spread - ratio*(params.spreadMax - spread) 
+      else if(position > 0) spread - ratio*(spread - params.spreadMin) else spreadDefault.sellSpread
+    }
     private def callNext(value: Double)(fun1: () => Double, fun2: () => Double)  = () => {
       val f = fun1()
       if(f == value) fun2() else f
@@ -71,9 +79,9 @@ class SpreadDinamico(strategy: Strategy, spread: Double, stock: Stock, flag: Spr
       case AjusteEntradaFlag => new SpreadUpdateGenerator(ajusteEntradaBuy, ajusteEntradaSell)
       case AjusteSaidaFlag => new SpreadUpdateGenerator(ajusteSaidaBuy, ajusteSaidaSell)
       case AjusteEntradaSaidaFlag =>
-        val buyPart = callNextBuy(ajusteEntradaBuy, ajusteSaidaBuy)
-        val sellPart = callNextSell(ajusteEntradaSell, ajusteSaidaSell)
-        new SpreadUpdateGenerator(buyPart, sellPart)
+        //val buyPart = callNextBuy(ajusteEntradaBuy, ajusteSaidaBuy)
+        //val sellPart = callNextSell(ajusteEntradaSell, ajusteSaidaSell)
+        new SpreadUpdateGenerator(mixedBuy, mixedSell)
       case NoneFlag => spreadDefault
     }
     

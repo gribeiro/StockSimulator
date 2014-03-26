@@ -218,6 +218,9 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     Log("Strategy: Allocating result..")
     putResult("position", position)
     putResult("marketLast", marketLast)
+    val partA = lastTick
+    val dateStr = (List(partA.dayOfMonth().get(), partA.monthOfYear().get(), partA.year().get()).mkString("/"))
+    putResult("date", dateStr)
     //Log(marketLast)
     onStop()
     result

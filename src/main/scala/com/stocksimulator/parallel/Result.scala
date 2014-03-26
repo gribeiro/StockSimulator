@@ -154,12 +154,12 @@ class MongoResultActor(sId: String) extends ResultActor(sId) {
       val uuid_local = this.uuid
      
       val mongOO = (new MongoOutput(a, b, uuid_local, sId))
-      //val chk = ResultUtils.checkResult(conf, sId, a, mongOO.date)
-      //if(!chk) {
+      val chk = ResultUtils.checkResult(conf, sId, a, mongOO.date)
+      if(!chk) {
     	  val what = mongOO.output
     	Log("Requested to write: " + what)
       ResultUtils.writeMongo(conf, what)
-      //}
+      }
       in -= a
       out -= b
       
