@@ -66,13 +66,14 @@ class SpreadDinamico(strategy: Strategy, spread: Double, stock: Stock, flag: Spr
       if(position < 0) spread - ratio*(params.spreadMax - spread) 
       else if(position > 0) spread - ratio*(spread - params.spreadMin) else spreadDefault.sellSpread
     }
+    /*
     private def callNext(value: Double)(fun1: () => Double, fun2: () => Double)  = () => {
       val f = fun1()
       if(f == value) fun2() else f
     }
     private val callNextBuy = callNext(spreadDefault.buySpread) _
     
-    private val callNextSell = callNext(spreadDefault.sellSpread) _
+    private val callNextSell = callNext(spreadDefault.sellSpread) _*/
     
     
     private val generator:SpreadUpdate = flag match {

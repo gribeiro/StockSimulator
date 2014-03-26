@@ -23,12 +23,24 @@ import com.stocksimulator.reuters.ExtendedHourFilter
 import com.stocksimulator.abs.MarketComponent
 import com.stocksimulator.reuters.ReutersMarketComponents
 
+import scala.collection.mutable.MutableList
+
 object BSAdapter {
   val dateFormat = DateTimeFormat.forPattern("dd/MM/yyyy")
 
 }
 
 abstract class BSAdapter(val date: String) {
+import com.stocksimulator.helpers.ParamGen
+import com.stocksimulator.helpers.ParamGen._
+  private val paramHelperStorage = MutableList.empty[(Int, Int, Int, String)]
+
+  def addParam(from: Int, to: Int, by: Int, name: String) = {
+    val newElem = (from, to, by, name)
+    paramHelperStorage += newElem
+  }
+
+  def generateParams = paramHelperStorage.toList.getParamArray
   def mConfig: MongoConfig
   def name: String
   def actorsQtd: Int

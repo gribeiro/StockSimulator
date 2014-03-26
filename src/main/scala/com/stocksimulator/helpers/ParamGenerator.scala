@@ -4,6 +4,7 @@ import com.stocksimulator.abs.Parameters
 import scala.collection.mutable.ArrayBuffer
 
 object ParamGen {
+  
   implicit class ParamGenerator(options: List[(Int, Int, Int, String)]) {
 
     def getParamArray: Array[Parameters] = {
