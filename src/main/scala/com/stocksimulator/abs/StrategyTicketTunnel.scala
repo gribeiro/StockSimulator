@@ -12,7 +12,7 @@ case class Wait(id: Int, ticket: Ticket) extends TunnelTicketStatus {
   def appendReplace(order: Order) = myOrder = Some(order)
   
 }
-case class Killed extends TunnelTicketStatus
+case class Killed() extends TunnelTicketStatus
 
 class StrategyTicketTunnel(market: Market) {
   private var lID = 0

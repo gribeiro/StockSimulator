@@ -1,7 +1,7 @@
 import com.stocksimulator.abs._
 import com.stocksimulator.common_strategies._
 import org.scalatest._
-import org.scalamock.scalatest.MockFactory
+
 import Matchers._
 import org.joda.time.DateTime
 import scala.util.Random

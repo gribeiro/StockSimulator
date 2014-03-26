@@ -16,24 +16,19 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
- val elapsed: Int = p"elapsed"
-  //val ratio: Double = p"ratio"
-  val spread_entrada: Int = p"spread_entrada"
-  //val spread_max: Int = ParamMaker("spread_max")
-  val timeToExit: Int = 0//par"time_exit"
-
- // val timeExitCallBack = new SimpleCallBack(timeToExit * 1000, timeExitCallBackExec)
- // -timeExitCallBack
-  //windows <-- timeExitCallBack
-
+  val elapsed: Int = p"elapsed"
+  val spread: Int = p"spread"
+  val spreadMax: Int = p"spread_max"
+  val spreadMin: Int = p"spread_min"
+  val flag: String = p"flag"
+  
+  val spreadParams = SpreadParams(maxPos, spreadMax, spreadMin)
+  val spreadDinamico = new SpreadDinamico(this, spread, symbolA, flag, spreadParams)
+  
 
   lazy val mvAvg = createRatioFor2SymbolsMAvg(symbolA, symbolB, symbolC, elapsed / 1000, elapsed);
 
-  def timeExitCallBackExec(): Unit = {
-    //Log("Time is up! Exiting position...")
-    //exitPosition(symbolA, 50.0)
-    //-timeExitCallBack
-  }
+
   def onQuotes() = {
 
     val pos = getPosition(symbolA).quantity
@@ -46,10 +41,9 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
           val midPr = midPrice(b)*midPrice(c)
           val precoTeoricoA = mvAvg.lastVal * midPr
 
-         // val mod = (pos / maxPos) * (spread_max - spread_entrada)
-          val spread = spread_entrada
-          val spreadVenda = if(pos > 0) 0 else spread 
-          val spreadCompra = if(pos < 0) 0 else spread
+    
+          val spreadVenda = spreadDinamico.buySpread
+          val spreadCompra = spreadDinamico.sellSpread
 
           val buyPrice = roundDown(Math.min(a.bid.price, precoTeoricoA - spreadCompra))
           val sellPrice = roundUp(Math.max(a.ask.price, precoTeoricoA + spreadVenda));

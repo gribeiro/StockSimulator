@@ -1,7 +1,6 @@
 package com.stocksimulator.reuters
 
 import com.stocksimulator.abs._
-import com.github.tototoshi.csv._
 import org.joda.time._
 import java.io.File
 import scala.annotation.tailrec
@@ -20,10 +19,10 @@ case class ExtendedHourFilter(include: HourFilter, exclude: Array[HourFilter]) e
 case object EmptyFilter extends Filter
 
 class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) extends CloneFeed {
-  lazy val csvReader = CSVReader.open(new File(filename))
+  val csvReader:Stream[List[String]] = Stream.empty[List[String]]
   val rawInfo = getMeRaw()
 
-  def getMeRaw() = (csvReader.toStream().toArray).drop(1)
+  def getMeRaw() = (csvReader.toArray).drop(1)
   val lazyLineInfo = (rawInfo.map(makeLineInfo))
   val dateFormat = ReutersCommon.dateFormat
   val instruments = if (knownInstruments.size > 0) knownInstruments else readInstruments

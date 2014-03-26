@@ -29,6 +29,7 @@ object htmlCommon  {
   
   
   def numericPnl(param: Parameters) = {
+    if(param.size > 0) {
     val unwrapped = param.unwrap
     val position = unwrapped("position").asInstanceOf[HashMap[Stock, Position]]
     val marketLast = unwrapped("marketLast").asInstanceOf[Map[Stock, StockInfo]]
@@ -52,6 +53,7 @@ object htmlCommon  {
     }
    
     nInfo.sum
+    } else 0
   }
   
   def pnl(param: Parameters) = { 

@@ -64,9 +64,9 @@ object ResultUtils {
     } finally fw.close()
   }
   def writeXML(a: Parameters, b: Parameters, id: String, sId: String) = {
-    val json = new XMLFormat(a, b, id, sId)
+    /*val json = new XMLFormat(a, b, id, sId)
     val output = json.output
-    fileWriter("output\\res_" + id + "_" + sId + ".xml", output)
+    fileWriter("output\\res_" + id + "_" + sId + ".xml", output)*/
   }
 
   def writerHTML(a: Parameters, b: Parameters, id: String, sId: String) = {
@@ -75,7 +75,8 @@ object ResultUtils {
   }
   
   def nameFactory(dbName: String) = if (RBSFactory.outputName == "") dbName + "Output" else RBSFactory.outputName
-  def checkResult(conf: MongoConfig, sId: String, in: Parameters, date: String) = {
+  def checkResult(conf: MongoConfig, sId: String, in: Parameters, date: String):Boolean = {
+    //if(date == "N/A") return false
     val mongoClient = MongoClientSingleton(conf.hostname, conf.port)
     val cDB = mongoClient("stockSimulator")
     val coll = cDB(nameFactory(sId))
@@ -113,7 +114,7 @@ class FileResultActor(sId: String) extends ResultActor(sId) with SaveParam {
   def saveParameters(a: Parameters, b: Parameters) = {
     val uuid_local = this.uuid
     ResultUtils.writeXML(a, b, uuid_local, sId)
-    done
+    done()
   }
 
 }

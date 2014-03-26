@@ -26,7 +26,7 @@ trait LogMe {
   Log("Starting bootstrap...")
   
 }
-@serializable
+
 abstract class BSSet[T <: Strategy] {
 
 	protected val filename: String

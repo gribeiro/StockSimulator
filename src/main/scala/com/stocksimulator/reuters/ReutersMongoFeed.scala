@@ -1,7 +1,6 @@
 package com.stocksimulator.reuters
 
 import com.stocksimulator.abs._
-import com.github.tototoshi.csv._
 import com.stocksimulator.debug._
 import org.joda.time._
 import java.io.File
@@ -55,6 +54,11 @@ object ReutersMongoLoad {
     val mongoClient = MongoClientSingleton(host, port)
     val cDB = mongoClient(dbColName)
     cDB(dbName)
+  }
+  
+  def findOne(host: String, port: Int, dbName: String) = {
+    val coll = preApply(host, port, dbName)
+    coll.findOne()
   }
   def apply(host: String, port: Int, dbName: String) = {
     val coll = preApply(host, port, dbName)
@@ -134,8 +138,9 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     }
   }
 
-  val size = loadData().size
-  val raw = {
+  lazy val size = loadData().size
+  val haveData = ReutersMongoLoad.findOne(config.hostname, config.port, config.dbname).size > 0
+  lazy val raw = {
     Log("Loading MongoDB raw data...")
 
     val load = loadData()
@@ -150,7 +155,7 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     
   }
   
-  val loaded = raw.toArray
+  lazy val loaded = raw.toArray
  
 }
 

@@ -15,7 +15,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = ["EWZ", "DOLc1", Variables.symbolA] #INDc1
-		self.setOutputName("ewzRatioCerto".to_java)
+		self.setOutputName("ewzFlags".to_java)
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
@@ -26,7 +26,7 @@ class Start < RBSFactory
 	
 	def self.run()
 		#
-		dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014", "18/02/2014", "03/02/2014",  "07/02/2014",  "11/02/2014", "12/02/2014",  "14/02/2014", "25/02/2014", "06/03/2014", "07/03/2014", "10/03/2014", "11/03/2014", "12/03/2014", "13/03/2014"]
+		dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014"]
 		#puts dates
 		#dates = []
 		#dates = ["19/03/2014"]
@@ -88,24 +88,37 @@ class RubyConf < RubyBSAdapter
 		instMaker(["EWZ", "DOLc1", Variables.symbolA])
 	end
 
+
 	def varParam()
 		params = []
 		elapsed_range = (1500..1500).step(100) #50..500 #50..70
-		spread_entrada_range = (20..50).step(10) #20..200
-		spread_max_range = (0..50).step(25)
+		spread_range = (25..35).step(5) #20..200
+		spread_max_range = (0..30).step(30)
+		spread_min_range = (0..50).step(50)
+		flags = ["entrada", "saida", "entrada_saida", "off"]
 		for preElapsed in elapsed_range
-			for entrada in spread_entrada_range
-				#for spread_max in spread_max_range
-				
+			for spread in spread_range
+				for spread_max in spread_max_range
+					for spread_min in spread_min_range
+					for flag in flags
 						a = Parameters.new
 						a.set("elapsed", to_int(preElapsed*1000))
-						a.set("spread_entrada", to_int(entrada))
-						#a.set("ratio", to_double(0.4898445))
-						#a.set("spread_max", to_int((spread_max/100.0) * entrada + entrada))
-				
+						a.set("spread", to_int(spread))
+						if flag == "entrada" or flag == "entrada_saida"
+							a.set("spread_max", to_int((spread_max/100.0) * spread + spread))
+						else
+							a.set("spread_max", to_int(0))
+						end
+						if flag == "saida" or flag == "entrada_saida"
+							a.set("spread_min", to_int(spread - (spread_min/100.0) * spread))
+						else
+							a.set("spread_min", to_int(0))
+						end
+						a.set("flag", flag)
 						params.push(a)
-			
-				#end
+					end
+					end
+				end
 			end	
 		end
 		params

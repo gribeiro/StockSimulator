@@ -9,7 +9,7 @@ case class Job(filename: String, date: String, fs: String) extends RemoteProtoco
 case class MasterJob(fs: String) extends RemoteProtocol
 case class Idle(jobDone: Job) extends RemoteProtocol
 case object QueueStatus extends RemoteProtocol
-case class Register extends RemoteProtocol
+case class Register() extends RemoteProtocol
 case class Master(actor: ActorSelection) extends RemoteProtocol
 case class MasterJobSender(actor: ActorSelection, j: MasterJob) extends RemoteProtocol
 case object Ping extends RemoteProtocol

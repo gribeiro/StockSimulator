@@ -33,19 +33,17 @@ val dbColName = MongoClientSingleton.dbName
     val coll = cDB(dbName)
     val rawInfo = openFile(filename)
     //coll.drop()
-    val builder = coll.initializeUnorderedBulkOperation
+    
 
-    val mongos = rawInfo.par.map {
-      elem => MongoDBObject("key" -> rawInfo.indexOf(elem)) ++ createMongoObj(elem)
+ rawInfo.par.foreach {      
+      elem => 
+      val builder = coll.initializeUnorderedBulkOperation  
+      val mObj = MongoDBObject("key" -> rawInfo.indexOf(elem)) ++ createMongoObj(elem)
+      builder.insert(mObj)
+      builder.execute()
     }
 
-    mongos.toList.foreach {
-      mObj =>
-        builder.insert(mObj)
-        //Log(mObj)
-    }
-
-    builder.execute()
+    
     coll.createIndex(MongoDBObject("key" -> 1, "datetime" -> 1))
     Log("Finished...")
     mongoClient.close

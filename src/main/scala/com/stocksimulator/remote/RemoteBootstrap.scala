@@ -21,9 +21,9 @@ object CommonBootstrap {
 
 }
 class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameters], cStrat: Class[T], date: String) {
- val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
-  val workers = new Workers(conf.localWorkers, createBundle, conf.name)
-  val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
+  lazy val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
+  lazy val workers = new Workers(conf.localWorkers, createBundle, conf.name)
+  lazy val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
   def terminated = workers.terminated
   
   def loadMongo() = sharedMongo

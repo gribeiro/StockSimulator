@@ -24,7 +24,7 @@ class Parameters {
 
   def keys = mem.keySet
   def unwrap = mem
-
+  def size = mem.size
   def inputStr = {
     val memOne = for ((k, v) <- mem) yield k + "=" + v.toString()
     memOne.mkString("_")
@@ -56,6 +56,7 @@ abstract class BuySellAdopt(bsAdap: BuySellAdapter) extends BuySellAdapter {
 
 
 object Strategy {
+  val a = 2
   def midPrice(q: Quote) = {
     //Log("Bid Price: " + q.bid.price.toString)
     //Log("Ask Price: " + q.ask.price.toString)
@@ -115,9 +116,9 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   private val strategyCallback = new SimpleCallBack(5000, callback)
 
  
-  protected def midPrice(s: StockInfo) = Strategy.midPrice(s)
+   def midPrice(s: StockInfo) = Strategy.midPrice(s)
 
-  protected def askPrice(st: Stock): Double = {
+   def askPrice(st: Stock): Double = {
     val st2 = getSymbol(st)
     st2 match {
       case t: Trade => t.priceVol.price
@@ -125,7 +126,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     }
   }
 
-  protected def bidPrice(st: Stock): Double = {
+   def bidPrice(st: Stock): Double = {
     val st2 = getSymbol(st)
     st2 match {
       case t: Trade => t.priceVol.price

@@ -68,6 +68,7 @@ class RemoteJobActor extends Actor {
   }
 }
 
+
 class MasterRemoteActor extends Actor {
 
   var router = Router(RoundRobinRoutingLogic())
@@ -122,7 +123,8 @@ class MasterRemoteActor extends Actor {
       val allAdapters = loadRubyObj(fs)
 
       for (adapter <- allAdapters) {
-        adapter.getBS.sharedMongo.raw
+        if(!adapter.getBS.sharedMongo.haveData)
+        	adapter.getBS.sharedMongo.raw
         val filename = adapter.myFilename
         val date = adapter.date
         jobMap += Job(filename, date, fs) -> JobToDo
