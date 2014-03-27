@@ -32,7 +32,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.stocksimulator.helpers._
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
-
+import com.stocksimulator.java_loader._
 class RBSFactory {}
 object RBSFactory {
 
@@ -86,7 +86,7 @@ object RBSFactory {
 	   result.toArray
 	 }
 	// 
-	 val teste:Array[String] = withYear(2013).withMonth(2).withDays(List(1, 2, 3, 4))*/
+  val teste:Array[String] = withYear(2013).withMonth(2).withDays(List(1, 2, 3, 4))*/
 
   val symbols = ArrayBuffer.empty[String]
   var mongoOutputSymbol:Stock = ""
@@ -128,17 +128,27 @@ class PreRubyBSAdapter[T <: RubyBSAdapter](val myFilename: String, val date: Str
 
 trait RubyStrategyTypes  {
   def strategyTypes = Map("RubyRatioAdapter" -> classOf[RubyRatioStrategy],
-      "RubyDoubleRatioAdapter" -> classOf[RubyDoubleRatioStrategy],
-      "TestStrategy" -> classOf[TestStrategy])
+    "RubyDoubleRatioAdapter" -> classOf[RubyDoubleRatioStrategy],
+    "TestStrategy" -> classOf[TestStrategy])
   def generic = classOf[RubyStdStrategy]
 }
 abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAdapter(date) with RubyStrategyTypes {
   def getBS[T <: Strategy] = {
-    strategyTypes.get(this.strategyType) match {
-      case Some(klass) => new RubyBS(this, klass)
-      case None => new RubyBS(this, generic)
+    if(javaFilename == "") {
+      strategyTypes.get(this.strategyType) match {
+        case Some(klass) => new RubyBS(this, klass)
+        case None => new RubyBS(this, generic)
+      }
+    }
+    else {
+      val fileSrc:String = scala.io.Source.fromFile(javaFilename, "utf-8").mkString
+      //println(fileSrc)
+      MemoryCompiler("ExampleStrategy", fileSrc)
+
+      new RubyBS(this, classOf[JavaStdStrategy])
     }
   }
+  def javaFilename: String
   def rbFilename: String
   def rbKlass: String
 }

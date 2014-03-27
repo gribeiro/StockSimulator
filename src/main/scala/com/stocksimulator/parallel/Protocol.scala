@@ -38,6 +38,7 @@ object ParCommon {
       "akka.actor.provider=\"akka.remote.RemoteActorRefProvider\"\n" +
       "akka.remote.enabled-transports=[\"akka.remote.netty.tcp\"]\n" +
       "akka.remote.netty.tcp.hostname=\""+hostname+"\"\n" +
+      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=600s\n" +
       "akka.remote.netty.tcp.port="+port+"\n" +
     "")
     
@@ -49,7 +50,7 @@ object ParCommon {
       "akka.debug.unhandled=on\n" +
       "akka.actor.provider=\"akka.remote.RemoteActorRefProvider\"\n" +
       "akka.remote.enabled-transports=[\"akka.remote.netty.tcp\"]\n" +
-   
+      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=600s\n" +
       "akka.remote.netty.tcp.port=0\n" +
 
     "")
