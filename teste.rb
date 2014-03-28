@@ -58,7 +58,7 @@ class RubyConfFactory
 end
 
 class RubyConf < RubyBSAdapter
-	attr_reader :from, :to, :name,  :bookOrder, :actorsQtd, :strategyType, :watchSymbol, :rbFilename, :rbKlass, :replace
+	attr_reader :from, :to, :name,  :bookOrder, :actorsQtd, :strategyType, :watchSymbol, :rbFilename, :rbKlass, :replace, :javaFilename
 
 	def to_int(a)
 		a.to_java(:int)
@@ -76,14 +76,15 @@ class RubyConf < RubyBSAdapter
 		@bookOrder = to_int(40) #Fila
 		@actorsQtd = to_int(1)
 		@replace = true
-		@strategyType = "TestStrategy"
+		@strategyType = "JavaStdStrategy"
 		@watchSymbol = [Variables.symbolB]
 		@rbFilename = "self"
+		@javaFilename = "ExampleStrategy.strategy"
 		@rbKlass = "RubyStrategy"  
 	end
 	
 	def mConfig
-		mongoConfigMaker("192.168.90.15", 27017, @dbLookUp+@dateRB, myFilename)
+		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
 	end 
 
 	def myInst

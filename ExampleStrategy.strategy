@@ -8,7 +8,7 @@ public class ExampleStrategy extends JavaAdapter {
 		super();
 		// TODO Auto-generated constructor stub
 		System.out.println("Strategy loaded...");
-		strat = new
+
 	}
 	public final String name = "Example";
 	private Stock winc1, indc1;
@@ -20,12 +20,9 @@ public class ExampleStrategy extends JavaAdapter {
 	private Boolean canExec;
 	public JavaStdStrategy strat;
 
-	public void setStrategy(JavaStdStrategy strat) {
-		this.strat = strat;
-	}
 	@Override
 	public void onStart() {
-		System.out.println("Aqui2");
+		strat = strategy();
 		winc1 = new Stock("WINc1");
 		indc1 = new Stock("INDc1");
 		spread = (Integer) strat.getParam("spread");
