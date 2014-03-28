@@ -13,3 +13,5 @@ project/build.properties
 target/*
 project/project/*
 /StockSimulator
+*.class
+.settings/*

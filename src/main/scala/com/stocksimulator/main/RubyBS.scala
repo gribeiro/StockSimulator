@@ -1,5 +1,6 @@
 package com.stocksimulator.main
 
+import java.io.File
 import com.github.nscala_time.time.Imports._
 import com.stocksimulator.reuters._
 import com.stocksimulator.abs._
@@ -33,6 +34,7 @@ import com.stocksimulator.helpers._
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.java_loader._
+
 class RBSFactory {}
 object RBSFactory {
 
@@ -143,7 +145,14 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
     }
     else {
       MongoClientSingleton(mConfig)
+      val fileExistence = new File(javaFilename).exists
+      
       val fileSrc:String = scala.io.Source.fromFile(javaFilename, "utf-8").mkString
+      
+      if(fileExistence) {
+        MongoClientSingleton.saveFile(javaFilename)
+      }
+      
       val tryOnBank = MongoClientSingleton.openFile(javaFilename)
       tryOnBank match {
     	  case Some(file) =>

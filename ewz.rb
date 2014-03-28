@@ -15,7 +15,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = ["EWZ", "DOLc1", Variables.symbolA] #INDc1
-		self.setOutputName("ewzFlags".to_java)
+		self.setOutputName("ewzFino".to_java)
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
@@ -93,10 +93,11 @@ class RubyConf < RubyBSAdapter
 	def varParam()
 		params = []
 		elapsed_range = (1500..1500).step(100) #50..500 #50..70
-		spread_range = (25..35).step(5) #20..200
-		spread_max_range = (0..30).step(30)
-		spread_min_range = (0..50).step(50)
-		flags = ["entrada", "saida", "entrada_saida", "off"]
+		spread_range = (27..33).step(1) #20..200
+		spread_max_range = (0..10).step(1)
+		spread_min_range = (40..60).step(1)
+		flags = ["entrada_saida"]
+		#flags = ["entrada", "saida", "entrada_saida", "off"]
 		for preElapsed in elapsed_range
 			for spread in spread_range
 				for spread_max in spread_max_range

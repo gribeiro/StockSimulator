@@ -2,7 +2,6 @@ package com.stocksimulator.reuters
 
 import com.stocksimulator.abs._
 import com.stocksimulator.debug._
-import org.joda.time._
 import java.io.File
 import scala.annotation.tailrec
 import scala.collection.Parallel
@@ -14,6 +13,7 @@ import scala.{ None, Some, Option }
 import com.mongodb.MongoException
 import scala.collection.mutable.ArrayBuffer
 import java.io.FileInputStream
+import java.io.OutputStream
 case class MongoConfig(hostname: String, port: Int, dbname: String, filename: String = "")
 
 object MongoClientSingleton {
@@ -28,6 +28,7 @@ object MongoClientSingleton {
     GridFS(client("files"))
   }
   def saveFile(filename: String) = {
+    println(s"Saving $filename to gridFS")
     val gridfs = gridFS
     val file = new FileInputStream(filename)
     val id = gridfs(file) {f =>
@@ -37,24 +38,24 @@ object MongoClientSingleton {
   
   def openFile(filename: String):Option[String] = {
 	  val gridfs = gridFS
-	  val maybeFile = gridfs.findOne(filename)
-	
-	  maybeFile match {
-	    case Some(file) =>
-	      val byteArrayOutputStream = new java.io.ByteArrayOutputStream()
-	      val str = file.source.mkString
-	      Some(str)
-	    case None => None
-	      
-	  }
+	  val fileList = gridfs.find(filename)
+	  if(fileList.size > 0) {
+	    val file = fileList.maxBy(f => f.getUploadDate())
+	    println("File " + filename + " found in database, last date: " + file.getUploadDate())
+	    val byteArrayOutputStream = new java.io.ByteArrayOutputStream()
+	    file.writeTo(byteArrayOutputStream)
+	    val byteArray =  byteArrayOutputStream.toByteArray()
+	    Some(new String(byteArray))
+	  }  else None
+
   }
   def apply(host: String, port: Int) = {
     mongoClient match {
       case Some(m) => m
       case None => {
         val connection = new ServerAddress(host, port)
-
-        val tryLocalConn = new ServerAddress("127.0.0.1", 27017)
+        
+        //val tryLocalConn = new ServerAddress("127.0.0.1", 27017)
         val mC = MongoClient(List( connection))
         mongoClient = Some(mC)
         mC
@@ -68,6 +69,7 @@ object MongoClientSingleton {
 }
 
 object ReutersMongoLoad {
+  import org.joda.time._
   val dbColName = MongoClientSingleton.dbName
   def getOffset(host: String, port: Int, dbName: String) = {
     val it = ReutersMongoLoad(host, port, dbName)
@@ -126,6 +128,7 @@ object SharedMongo {
 }
 
 class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
+  import org.joda.time._
   val dateFormat = ReutersCommon.dateFormat
   private val now = new DateTime(DateTimeZone.getDefault())
   private val localOffset = now.getZone().getStandardOffset(0) / 1000 / 60 / 60
