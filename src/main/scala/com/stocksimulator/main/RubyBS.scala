@@ -133,6 +133,7 @@ trait RubyStrategyTypes  {
   def generic = classOf[RubyStdStrategy]
 }
 abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAdapter(date) with RubyStrategyTypes {
+  
   def getBS[T <: Strategy] = {
     if(javaFilename == "") {
       strategyTypes.get(this.strategyType) match {
@@ -141,9 +142,20 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
       }
     }
     else {
+      MongoClientSingleton(mConfig)
       val fileSrc:String = scala.io.Source.fromFile(javaFilename, "utf-8").mkString
-      //println(fileSrc)
-      MemoryCompiler("ExampleStrategy", fileSrc)
+      val tryOnBank = MongoClientSingleton.openFile(javaFilename)
+      tryOnBank match {
+    	  case Some(file) =>
+    	    MemoryCompiler("ExampleStrategy", file) 
+    	  case None =>
+    	     MongoClientSingleton.saveFile(javaFilename)
+    	     val recentlySaved = MongoClientSingleton.openFile(javaFilename).get
+    	      MemoryCompiler("ExampleStrategy", recentlySaved)
+    	}
+      
+       
+      
 
       new RubyBS(this, classOf[JavaStdStrategy])
     }

@@ -13,12 +13,41 @@ import com.mongodb.casbah.Imports._
 import scala.{ None, Some, Option }
 import com.mongodb.MongoException
 import scala.collection.mutable.ArrayBuffer
+import java.io.FileInputStream
 case class MongoConfig(hostname: String, port: Int, dbname: String, filename: String = "")
 
 object MongoClientSingleton {
+  import com.mongodb.casbah.Imports._
+  import com.mongodb.casbah.gridfs.Imports._
   val dbName = "sRemote"
   var mongoClient: Option[MongoClient] = None
-
+  
+  
+  private def gridFS = {
+     val client = mongoClient.get
+    GridFS(client("files"))
+  }
+  def saveFile(filename: String) = {
+    val gridfs = gridFS
+    val file = new FileInputStream(filename)
+    val id = gridfs(file) {f =>
+      f.filename = filename
+    }
+  }
+  
+  def openFile(filename: String):Option[String] = {
+	  val gridfs = gridFS
+	  val maybeFile = gridfs.findOne(filename)
+	
+	  maybeFile match {
+	    case Some(file) =>
+	      val byteArrayOutputStream = new java.io.ByteArrayOutputStream()
+	      val str = file.source.mkString
+	      Some(str)
+	    case None => None
+	      
+	  }
+  }
   def apply(host: String, port: Int) = {
     mongoClient match {
       case Some(m) => m
