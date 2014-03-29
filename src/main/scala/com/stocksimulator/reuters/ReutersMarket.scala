@@ -13,7 +13,7 @@ import com.stocksimulator.abs.TicketProvider
 
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
 
-  var oldInfo: Map[Stock, StockInfo] = Map.empty[Stock, StockInfo]
+  var oldInfo: Map[Stock, StockInfoHA] = Map.empty[Stock, StockInfoHA]
 
   val processed: HashSet[UUID] = HashSet.empty[UUID]
   val filters = mc.collect {
@@ -35,7 +35,9 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
   while(feed) { 
     val infoToFeed = !feed
     //Log(infoToFeed)
-    timeControl <-- infoToFeed 
+    timeControl <-- infoToFeed.map {
+      case (key, value) => key -> new StockInfoHA(value)
+    }
   }
   Log("Time feed created!")
   def childBeforeTick() = {
@@ -62,8 +64,8 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     if (buyBook.size != 0 || sellBook.size != 0 || tickets.size != 0) {
       for ((stock, info) <- newInfo) yield {
         if (!info.hasAppeared) {
-          info.hasAppeared = true
-          info match {
+          info.setHasAppeared(true)
+          info.unfold match {
             case q: Quote =>
               for (t <- updateTicketsOnQuote(q, stock)) {
                 results += t
@@ -79,17 +81,22 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     }
 
     oldInfo = !timeControl
+     val sendInfo = newInfo.map {
+      case (stock, stockInfoHA) =>
+        stock -> stockInfoHA.unfold
+    }
     if(results.size > 0) {		
-    
+
     def ticketVal(t: Iterable[Ticket]) = t.head.order.value
-    Log("Tick atual:" + newInfo, true)
+    Log("Tick atual:" + sendInfo, true)
     if(buyTickets.size > 0) Log("Ordem de compra: " + ticketVal(buyTickets), true)
     if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets), true)
     Log("Order Result: "+  results, true)
     Log("\n", true)
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true
-    if (filterResult) (newInfo, results) else (emptyInfo, results)
+  
+    if (filterResult) (sendInfo, results) else (emptyInfo, results)
   }
 
   private def updateTicketsOnQuote(quote: Quote, stock: Stock) = {

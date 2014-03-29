@@ -22,11 +22,23 @@ object StockInfo {
     }
   }
 }
+
+class StockInfoHA (stockInfo: StockInfo) extends Ordered[StockInfoHA] {
+  var _hasAppeared = false
+  
+  def hasAppeared = _hasAppeared
+  def setHasAppeared(b: Boolean) = {
+    _hasAppeared = b
+  }
+  def unfold = stockInfo
+  
+  def compare(that:StockInfoHA) = stockInfo.compare(that.unfold) 
+}
 abstract class StockInfo(_stock: Stock, _datetime: DateTime) extends Ordered[StockInfo] {
   val iStock = _stock
   val iDatetime = _datetime
   val uuid = UUID.random
-  var hasAppeared = false
+  
   def compare(that:StockInfo) = {
     (iDatetime compare that.iDatetime) * (-1)
   }

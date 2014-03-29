@@ -129,6 +129,7 @@ class PreRubyBSAdapter[T <: RubyBSAdapter](val myFilename: String, val date: Str
 
 
 trait RubyStrategyTypes  {
+ 
   def strategyTypes = Map("RubyRatioAdapter" -> classOf[RubyRatioStrategy],
     "RubyDoubleRatioAdapter" -> classOf[RubyDoubleRatioStrategy],
     "TestStrategy" -> classOf[TestStrategy])
@@ -147,7 +148,7 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
       MongoClientSingleton(mConfig)
       val fileExistence = new File(javaFilename).exists
       
-      val fileSrc:String = scala.io.Source.fromFile(javaFilename, "utf-8").mkString
+      
       
       if(fileExistence) {
         MongoClientSingleton.saveFile(javaFilename)
@@ -169,7 +170,7 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
       new RubyBS(this, classOf[JavaStdStrategy])
     }
   }
-  def javaFilename: String
+  def javaFilename: String = ""
   def rbFilename: String
   def rbKlass: String
 }

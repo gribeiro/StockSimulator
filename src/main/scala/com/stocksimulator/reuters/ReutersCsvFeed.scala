@@ -9,6 +9,7 @@ import org.joda.time.format.DateTimeFormat
 import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.debug._
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.MutableList
 
 abstract class GeneralInfo(val ric: String, val date: String, val time: String, val gmt: String, val sType: String, val price: String, val volume: String, val bidPrice: String, val bidSize: String, val askPrice: String, val askSize: String)
 case class LineInfo(ric: String, date: String, time: String, gmt: String, sType: String, price: String, volume: String, bidPrice: String, bidSize: String, askPrice: String, askSize: String)
@@ -19,7 +20,7 @@ case class ExtendedHourFilter(include: HourFilter, exclude: Array[HourFilter]) e
 case object EmptyFilter extends Filter
 
 class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) extends CloneFeed {
-  val csvReader:Stream[List[String]] = Stream.empty[List[String]]
+  val csvReader:Stream[Array[String]] = Stream.empty[Array[String]]
   val rawInfo = getMeRaw()
 
   def getMeRaw() = (csvReader.toArray).drop(1)
@@ -50,12 +51,12 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
     memory += !this
   }
   
-  def cloneContent = memory.clone().toArray
+  def cloneContent = memory.toArray
   
   private def filters(x: Stock) = {
     (f: LineInfo) =>
       {
-        val filterList = ((f.sType == "Trade" && f.price != "0") || (f.sType == "Quote" && f.askPrice != "0" && f.bidPrice != "0")) :: List(f.ric == x.name)
+        val filterList = ((f.sType == "Trade" && f.price != "0") || (f.sType == "Quote" && f.askPrice != "0" && f.bidPrice != "0")) +: MutableList(f.ric == x.name)
         val res = filterList.reduceRight(_ && _)
         res
       }
@@ -151,7 +152,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
 
   }
 
-  def makeLineInfo(list: List[String]) = {
+  def makeLineInfo(list: Array[String]) = {
     val vect = list.to[Vector]
     LineInfo(vect(0), vect(1), vect(2), vect(3), vect(4), vect(5), vect(6), vect(7), vect(8), vect(9), vect(10))
   }

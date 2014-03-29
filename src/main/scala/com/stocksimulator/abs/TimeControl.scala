@@ -15,8 +15,8 @@ object TimeControl {
 }
 class TimeControl(inst: Set[Stock]) {
 
-  private val buffer: PriorityQueue[StockInfo] = PriorityQueue.empty[StockInfo]
-  private var lastMup: Map[Stock, StockInfo] = Map.empty[Stock, StockInfo]
+  private val buffer: PriorityQueue[StockInfoHA] = PriorityQueue.empty[StockInfoHA]
+  private var lastMup: Map[Stock, StockInfoHA] = Map.empty[Stock, StockInfoHA]
  private val lastQuoteOcorr: HashMap[Stock, Quote] = HashMap.empty[Stock, Quote]
   private val currentDelay = RBSFactory.delay
   private var lastTick:Option[DateTime] = None
@@ -35,7 +35,7 @@ class TimeControl(inst: Set[Stock]) {
 
    nextTime = if(buffer.size > 0) {
 	   val peekNext = buffer.head
-	   val nextPeriod = new Period(cCurrent, peekNext.iDatetime)
+	   val nextPeriod = new Period(cCurrent, peekNext.unfold.iDatetime)
 	    nextPeriod.getMillis()
    } else 0   
    
@@ -52,7 +52,7 @@ class TimeControl(inst: Set[Stock]) {
          case _ => {}
        }
        
-         val newSINfo = StockInfo(sInfo, sInfo.iDatetime.plusMillis(currentDelay))
+         val newSINfo = new StockInfoHA(StockInfo(sInfo, sInfo.iDatetime.plusMillis(currentDelay)))
          this <-- Map(sI.iStock -> newSINfo)
      }
    }
@@ -67,22 +67,22 @@ class TimeControl(inst: Set[Stock]) {
   }
 
   private def receiveWithoutMup() = {
-    val temp = LinkedHashMap.empty[Stock, StockInfo]
+    val temp = LinkedHashMap.empty[Stock, StockInfoHA]
     val earlierInfo = buffer.dequeue()
-    earlierInfo match {
+    earlierInfo.unfold match {
       case q: Quote =>
         lastQuoteOcorr(q.stock) = q
       case _ => {}
     }
-    val eiSt = earlierInfo.iStock
+    val eiSt = earlierInfo.unfold.iStock
     
-    calculateTime(earlierInfo)
+    calculateTime(earlierInfo.unfold)
     temp.put(eiSt, earlierInfo)
 
     for (stock <- inst; if (stock != eiSt)) {
       lastMup.get(stock) match {
         case Some(s) => temp.put(stock, s)
-        case None => temp.put(stock, buffer.filter(si => si.iStock == stock).minBy(si => si.iDatetime))
+        case None => temp.put(stock, buffer.filter(si => si.unfold.iStock == stock).minBy(si => si.unfold.iDatetime))
       }
     }
 
@@ -90,8 +90,8 @@ class TimeControl(inst: Set[Stock]) {
     
     lastMup
   }
-  def <-- (mup: Map[Stock, StockInfo]) = save(mup) // Alias
-  def save(mup: Map[Stock, StockInfo]) = {
+  def <-- (mup: Map[Stock, StockInfoHA]) = save(mup) // Alias
+  def save(mup: Map[Stock, StockInfoHA]) = {
      for (sinfo <- mup.values) {
       buffer.enqueue(sinfo)
     }

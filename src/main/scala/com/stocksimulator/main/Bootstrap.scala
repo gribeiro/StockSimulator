@@ -27,7 +27,7 @@ import com.stocksimulator.common_strategies.RubyStdStrategy
 import java.io.File
 
 object Bootstrap {
-
+  var localWorkerQtd: Option[Int] = None
   def loadRuby(filename: String) = {
     val manager = new ScriptEngineManager
     val engine = manager.getEngineByName("jruby")
@@ -60,13 +60,14 @@ object Bootstrap {
       } else if (nodeType == "worker") {
         val masterIP = args(2)
         val masterPort: Int = args(3).toInt
-
+        localWorkerQtd = if(args.size >4) Some(args(4).toInt) else None
         rWorkers.localWorker(masterIP, masterPort)
       }
     } else if (iType == "job") {
       println("Sending remote job..")
       val masterIP = args(1)
       val masterPort: Int = args(2).toInt
+      
       val fileContents = scala.io.Source.fromFile(args(3)).mkString
       val masterJob = MasterJob(fileContents)
       rWorkers.emitWork(masterIP, masterPort, masterJob)

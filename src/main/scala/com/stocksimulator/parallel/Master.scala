@@ -23,13 +23,17 @@ import com.stocksimulator.fancy_output._
 import scala.collection.mutable.ArrayBuffer
 import scala.{ Some, None }
 import com.stocksimulator.remote.CommonBootstrap
-
+import com.stocksimulator.main.Bootstrap
 class Workers[T <: ResultActor](n: Int, bundle: (Parameters) => Strategy, sId: String, resultKlass: Class[T] = classOf[MongoResultActor]) {
 
   val config = ParCommon.config
   val system = ActorSystem("spSystem" + sId, config)
   def terminated = system.isTerminated
-  val master = system.actorOf(Props(new MasterActor(n, bundle, resultKlass, sId)), "spManager")
+  val newWorkerNumber:Int = Bootstrap.localWorkerQtd match {
+    case Some(newN) => newN
+    case _ => n
+  }
+  val master = system.actorOf(Props(new MasterActor(newWorkerNumber, bundle, resultKlass, sId)), "spManager")
 }
 
 class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) => Strategy, resultActor: Class[T], sId: String) extends Actor {

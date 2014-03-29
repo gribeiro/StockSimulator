@@ -122,8 +122,12 @@ object SharedMongo {
   def getList(a: DBObject) = {
 
     val ret = (a.get("data")).asInstanceOf[com.mongodb.BasicDBList].toArray().toList.asInstanceOf[List[String]]
+    val arrBuffer = ArrayBuffer.empty[String]
+    ret.foreach { f =>
+      arrBuffer += f
+    }
     //Log(ret)
-    ret
+    arrBuffer.toArray
   }
 }
 
