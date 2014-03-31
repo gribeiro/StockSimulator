@@ -33,7 +33,7 @@ class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy
     }
     def apply(qtd: Int, price: Double):Unit = {
       update()
-      if(lastPrice == price || price <= 0) return
+      if(lastPrice == price && lastQtd == qtd) return
       lastPrice = price
       lastQtd = qtd
     
