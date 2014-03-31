@@ -59,7 +59,7 @@ return new SecureClassLoader() {
 public JavaFileObject getJavaFileForOutput(Location location,
 String className, Kind kind, FileObject sibling)
     throws IOException {
-	System.out.println("sddd");
+
     jclassObject = new JavaClassObject(className, kind);
 return jclassObject;
 }

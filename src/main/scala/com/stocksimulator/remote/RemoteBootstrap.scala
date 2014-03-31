@@ -21,22 +21,35 @@ object CommonBootstrap {
 
 }
 class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameters], cStrat: Class[T], date: String) {
-  lazy val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
-  lazy val workers = new Workers(conf.localWorkers, createBundle, conf.name)
-  lazy val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
+  val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
+  val workers = new Workers(conf.localWorkers, createBundle, conf.name)
+  
+  
+  private var instruments: Option[Set[Stock]] = None
+  private var memory: Option[Array[Map[Stock, StockInfo]]] = None
+  
+  private def createFeed():Feed = {
+		  new FeedFromClone(memory.get, instruments.get)
+  }
+ 
   def terminated = workers.terminated
   
   def loadMongo() = sharedMongo
   
   def createBundle(param: Parameters) = {
      
-    val feed = new FeedFromClone(sharedFeed)
+    val feed = createFeed()
     val market = new ReutersMarket(feed, conf.components)
     val strategy = cStrat.getConstructor(classOf[Market], classOf[Parameters]).newInstance(market, param)
     strategy
   }
   
   def run() = {
+    
+    val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
+    memory = Some(sharedFeed.cloneContent)
+    instruments = Some(sharedFeed.instruments)
+    
     workers.master ! spMongoConfig(conf.mongoConfig)
     val uniqueParams = params.toArray.distinct
     Log("Job count after filter: " +uniqueParams.length) 

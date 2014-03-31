@@ -18,8 +18,6 @@ import scala.util.Success
 import scala.util.Failure
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
 
-  var oldInfo: Future[Map[Stock, StockInfoHA]] = future {Map.empty[Stock, StockInfoHA]}
-
   val processed: HashSet[UUID] = HashSet.empty[UUID]
   val filters = mc.collect {
     case a: MarketComponentFilter => a
@@ -56,8 +54,8 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
   }
   def childTick() = {
    // Log("childTick Awaiting...")
-   val newTick = Await.result(oldInfo, scala.concurrent.duration.Duration(1,"seconds"))    
-   if (feed || timeControl) performTick(newTick) else throw new Exception
+ 
+   if (feed || timeControl) performTick(!timeControl) else throw new Exception
     
   }
 
@@ -67,7 +65,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
 
     val (buyTickets, sellTickets) = tickets.buyAndSellPartition
     val newInfo = oldInfo2
-    var results = new ListBuffer[(Ticket, OrderResult)]
+    val results = new ListBuffer[(Ticket, OrderResult)]
     //Log(newInfo)
     if (buyBook.size != 0 || sellBook.size != 0 || tickets.size != 0) {
       for ((stock, info) <- newInfo) yield {
@@ -88,15 +86,13 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
       emptyResult
     }
 
-    oldInfo = future { 
-      !timeControl
-    }
+   
      val sendInfo = newInfo.map {
       case (stock, stockInfoHA) =>
         stock -> stockInfoHA.unfold
     }
-    if(results.size > 0 && false) {		
-future {
+    if(results.size > 0) {		
+
 	val arg = false
     def ticketVal(t: Iterable[Ticket]) = t.head.order.value
     Log("Tick atual:" + sendInfo, arg)
@@ -104,7 +100,7 @@ future {
     if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets), arg)
     Log("Order Result: "+  results, arg)
     Log("\n", arg)
-}
+
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true
   

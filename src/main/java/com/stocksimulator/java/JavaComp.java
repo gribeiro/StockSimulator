@@ -42,7 +42,6 @@ public class JavaComp {
         // running its toString() method
         Object instance = fileManager.getClassLoader(null)
             .loadClass(fullName).newInstance();
-        System.out.println(instance);
         return instance;
     }
 }

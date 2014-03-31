@@ -20,10 +20,11 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = [Variables.symbolB, Variables.symbolA] #INDc1
-		self.setOutputName("testeUnitario".to_java)
+		self.setOutputName("testeUnitario")
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()
+
 		for paper in papers
 			pushSymbol(paper)
 		end
@@ -75,7 +76,7 @@ class RubyConf < RubyBSAdapter
 		@dateRB = date
 		@bookOrder = to_int(40) #Fila
 		@actorsQtd = to_int(1)
-		@replace = true
+		@replace = false
 		@strategyType = "JavaStdStrategy"
 		@watchSymbol = [Variables.symbolB]
 		@rbFilename = "self"
@@ -84,7 +85,7 @@ class RubyConf < RubyBSAdapter
 	end
 	
 	def mConfig
-		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
+		mongoConfigMaker("192.168.90.15", 27017, @dbLookUp+@dateRB, myFilename)
 	end 
 
 	def myInst

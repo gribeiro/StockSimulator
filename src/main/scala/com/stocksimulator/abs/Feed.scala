@@ -17,10 +17,9 @@ trait CloneFeed extends Feed {
   def cloneContent(): Array[Map[Stock, StockInfo]]
 }
 
-class FeedFromClone(clone: CloneFeed) extends Feed {
-  private val iterator = clone.cloneContent().iterator
+class FeedFromClone(content: Array[Map[Stock, StockInfo]], val instruments:Set[Stock]) extends Feed {
+  private val iterator = content.iterator
   
-  val instruments = clone.instruments
   def next() = iterator.next()
   def hasNext() = iterator.hasNext
   
