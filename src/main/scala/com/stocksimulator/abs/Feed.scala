@@ -18,7 +18,7 @@ trait CloneFeed extends Feed {
 }
 
 class FeedFromClone(clone: CloneFeed) extends Feed {
-  val iterator = clone.cloneContent().iterator
+  private val iterator = clone.cloneContent().iterator
   
   val instruments = clone.instruments
   def next() = iterator.next()

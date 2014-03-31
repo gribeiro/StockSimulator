@@ -34,7 +34,9 @@ import com.stocksimulator.helpers._
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.common_strategies.RubyDoubleRatioStrategy
 import com.stocksimulator.java_loader._
-
+import scala.concurrent._
+import scala.concurrent.duration._
+import ExecutionContext.Implicits.global
 class RBSFactory {}
 object RBSFactory {
 
@@ -91,6 +93,7 @@ object RBSFactory {
   val teste:Array[String] = withYear(2013).withMonth(2).withDays(List(1, 2, 3, 4))*/
 
   val symbols = ArrayBuffer.empty[String]
+  val futureDays = ArrayBuffer.empty[Future[String]]
   var mongoOutputSymbol:Stock = ""
   var outputName = ""
   var log = true
@@ -117,9 +120,21 @@ object RBSFactory {
   def getFile(date: String) = {
     // val javaSymbols = symbols.toArray(new Array[String](symbols.size()))
     //val javaDate = date.asJavaString()
-    hcReuters.apply(symbols.toArray, date)
+    val futureResult = Future {
+    	hcReuters.apply(symbols.toArray, date)
+    }
+    
+    futureDays += futureResult
   }
-
+  
+  def waitForFiles = {
+    
+    futureDays.foreach {
+      futureString =>
+        val filename = Await.result(futureString, scala.concurrent.duration.Duration(500,"seconds"))
+        Log(filename)
+    }
+  }
 }
 
 

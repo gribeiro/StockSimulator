@@ -38,7 +38,9 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
   
   def run() = {
     workers.master ! spMongoConfig(conf.mongoConfig)
-    params.foreach {
+    val uniqueParams = params.toArray.distinct
+    Log("Job count after filter: " +uniqueParams.length) 
+    uniqueParams.foreach {
       p => workers.master ! spWork(p, date)
     }
     workers.master ! spLast

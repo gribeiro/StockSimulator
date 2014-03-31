@@ -25,6 +25,16 @@ class Parameters {
   def keys = mem.keySet
   def unwrap = mem
   def size = mem.size
+ override def equals(obj: Any) = {
+    obj match {
+      case p: Parameters => p.inputStr == inputStr
+      case _ => false
+    }
+  }
+  
+  override def hashCode(): Int ={
+    inputStr.hashCode()
+  }
   def inputStr = {
     val memOne = for ((k, v) <- mem) yield k + "=" + v.toString()
     memOne.mkString("_")

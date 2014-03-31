@@ -9,7 +9,10 @@ import com.stocksimulator.debug._
 import scala.collection.mutable.PriorityQueue
 import com.stocksimulator.main.RBSFactory
 import scala.collection.mutable.HashMap
+import scala.concurrent._
+import scala.concurrent.duration._
 
+import ExecutionContext.Implicits.global
 object TimeControl {
  implicit def timeControl2Boolean(t: TimeControl): Boolean = t()
 }

@@ -42,9 +42,9 @@ class Start < RBSFactory
 
 		ret = []
 		for date in dates
-			alloc = getFile(date)
-			puts alloc
-			ret.push(RubyConf.new(alloc, date))
+			getFile(date)
+			waitForFiles()
+			ret.push(RubyConf.new("", date))
 		end
 		ret.to_java RubyBSAdapter
 	end

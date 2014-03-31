@@ -8,12 +8,15 @@ abstract class LogProtocol
 case class LogMessage(s: Any, noTime:Boolean) extends LogProtocol
 case object LogBye
 class LogWorker extends Actor {
+  var lastTime = new DateTime(0)
   def receive = {
     case LogMessage(s, noTime) =>
          val tNow = DateTime.now
+         val tDiff = (new Period(lastTime, tNow)).toString()
+         lastTime = tNow
          val elapsed = new Period(Log.startTime, tNow).toString()
          val sStr = if (null == s) "null" else s.toString()
-         val message = if(!noTime)  s"[$tNow] - $s - Elapsed Total: $elapsed" else s"$s"
+         val message = if(!noTime)  s"[$tNow] - $s - Elapsed Total: $elapsed - Partial [$tDiff]" else s"$s"
          println(message)
     case `LogBye` =>
       context.system.shutdown()

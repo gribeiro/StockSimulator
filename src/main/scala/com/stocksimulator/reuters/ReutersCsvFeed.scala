@@ -51,7 +51,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) ext
     memory += !this
   }
   
-  def cloneContent = memory.toArray
+  val cloneContent = memory.toArray
   
   private def filters(x: Stock) = {
     (f: LineInfo) =>

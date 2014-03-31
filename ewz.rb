@@ -26,18 +26,18 @@ class Start < RBSFactory
 	
 	def self.run()
 		#
-		dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014"]
-
-		puts dates
+		#dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014"]
+		#dates = ["14/03/2014"]
+		#puts dates
 		#dates = []
-		#dates = ["19/03/2014"]
+		dates = ["19/03/2014"]
 		self.setVar()
 
 		ret = []
 		for date in dates
-			alloc = getFile(date)
-			puts alloc
-			ret.push(RubyConf.new(alloc, date))
+			getFile(date)
+			waitForFiles()
+			ret.push(RubyConf.new("", date))
 		end
 		ret.to_java RubyBSAdapter
 	end
@@ -69,7 +69,7 @@ class RubyConf < RubyBSAdapter
 		@dbLookUp = "EWZ2" #dbLookupName
 		@dateRB = date
 		@bookOrder = to_int(30)
-		@actorsQtd = to_int(5)
+		@actorsQtd = to_int(2)
 		@replace = false
 		@strategyType = "RubyDoubleRatioAdapter"
 		@watchSymbol = ["EWZ", "DOLc1"]

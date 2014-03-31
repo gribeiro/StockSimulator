@@ -37,10 +37,10 @@ val dbColName = MongoClientSingleton.dbName
 
  rawInfo.par.foreach {      
       elem => 
-      val builder = coll.initializeUnorderedBulkOperation  
+      //val builder = coll.initializeUnorderedBulkOperation  
       val mObj = MongoDBObject("key" -> rawInfo.indexOf(elem)) ++ createMongoObj(elem)
-      builder.insert(mObj)
-      builder.execute()
+      coll.insert(mObj)
+      //builder.execute()
     }
 
     

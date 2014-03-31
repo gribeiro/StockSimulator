@@ -176,7 +176,7 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
 
   lazy val size = loadData().size
   val haveData = ReutersMongoLoad.findOne(config.hostname, config.port, config.dbname).size > 0
-  lazy val raw = {
+  def raw = {
     Log("Loading MongoDB raw data...")
 
     val load = loadData()
@@ -191,7 +191,7 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     
   }
   
-  lazy val loaded = raw.toArray
+  def loaded = raw.toArray
  
 }
 
