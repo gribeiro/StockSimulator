@@ -15,6 +15,7 @@ case class Position(quantity: Int, pnl: Double)
 class Parameters {
   val mem = new LinkedHashMap[String, Object]
   def set(s: String, obj: Object) = {
+    
     mem.put(s, obj)
   }
 
@@ -66,7 +67,6 @@ abstract class BuySellAdopt(bsAdap: BuySellAdapter) extends BuySellAdapter {
 
 
 object Strategy {
-  val a = 2
   def midPrice(q: Quote) = {
     //Log("Bid Price: " + q.bid.price.toString)
     //Log("Ask Price: " + q.ask.price.toString)

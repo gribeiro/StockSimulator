@@ -20,7 +20,7 @@ class TimeControl(inst: Set[Stock]) {
 
   private val buffer: PriorityQueue[StockInfoHA] = PriorityQueue.empty[StockInfoHA]
   private var lastMup: Map[Stock, StockInfoHA] = Map.empty[Stock, StockInfoHA]
- private val lastQuoteOcorr: HashMap[Stock, Quote] = HashMap.empty[Stock, Quote]
+  private val lastQuoteOcorr: HashMap[Stock, Quote] = HashMap.empty[Stock, Quote]
   private val currentDelay = RBSFactory.delay
   private var lastTick:Option[DateTime] = None
   private var time: Int = 0

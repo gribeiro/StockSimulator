@@ -37,61 +37,14 @@ import com.stocksimulator.java_loader._
 import scala.concurrent._
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
+import com.stocksimulator.helpers._
+import com.stocksimulator.helpers.DateComposable._
+
 class RBSFactory {}
 object RBSFactory {
 
-  /*case class wList(list: List[wSeries]) {
-       
-     }
-     
-     trait wSeries {
-       def aggregator(subNum: Int):wSeries
-     }
-     
-     object wNull extends wSeries {
-       def aggregator(subNum: Int):wSeries = this
-     }
-     
-  	 case class wYear(year: Int) extends wSeries {
-  	   
-  	   def withMonth(month: Int):wMonth = {
-  	     wMonth(year, month)
-  	   }
-  	   
-  	   def withMonths(months: List[Int]) = {
-  	    val cont =  months.map(f => { wMonth(year, f)})
-  	    wList(cont)
-  	   }
-  	   
-  	 }
-  	 case class wMonth(year: Int, month: Int) extends wSeries {
-  	   def withDay(day: Int) = {
-  	     wDay(year, month, day)
-  	   }
-  	   
-  	   def withDays(days: List[Int]) = {
-  	     days.map {f =>
-  	     wDay(year, month, f)  
-  	     }
-  	   }
-  	 }
-  	 case class wDay(year: Int, month: Int, day: Int) extends wSeries {
-  	   def get(): String = {
-  	     List(year, month, day).mkString("/")
-  	   }
-  	 }
-	 def withYear(year: Int) = wYear(year)
-	 
-	 implicit def wDayList2Strings(w: List[wDay]):Array[String] = {
-	   val result = w.map {
-	     f =>
-	       f.get()
-	   }
-	   result.toArray
-	 }
-	// 
-  val teste:Array[String] = withYear(2013).withMonth(2).withDays(List(1, 2, 3, 4))*/
-
+  
+  
   val symbols = ArrayBuffer.empty[String]
   val futureDays = ArrayBuffer.empty[Future[String]]
   var mongoOutputSymbol:Stock = ""
@@ -120,20 +73,21 @@ object RBSFactory {
   def getFile(date: String) = {
     // val javaSymbols = symbols.toArray(new Array[String](symbols.size()))
     //val javaDate = date.asJavaString()
-    val futureResult = Future {
-    	hcReuters.apply(symbols.toArray, date)
-    }
+    val symb = symbols.toArray
+    //val futureResult = //Future {
+    	hcReuters.apply(symb, date)
+    //}
     
-    futureDays += futureResult
+    //futureDays += futureResult
   }
   
   def waitForFiles = {
-    
+    /*
     futureDays.foreach {
       futureString =>
         val filename = Await.result(futureString, scala.concurrent.duration.Duration(500,"seconds"))
         Log(filename)
-    }
+    }*/
   }
 }
 
@@ -168,7 +122,7 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
       if(fileExistence) {
         MongoClientSingleton.saveFile(javaFilename)
       }
-      
+       
       val tryOnBank = MongoClientSingleton.openFile(javaFilename)
       tryOnBank match {
     	  case Some(file) =>

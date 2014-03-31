@@ -82,7 +82,7 @@ class RubyConf < RubyBSAdapter
 	end
 	
 	def mConfig
-		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
+		mongoConfigMaker("25.107.105.157", 27017, @dbLookUp+@dateRB, myFilename)
 	end 
 
 	def myInst

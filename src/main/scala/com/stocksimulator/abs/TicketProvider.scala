@@ -30,22 +30,27 @@ class TicketProvider(defaultAfterCancel: (Ticket) => () => Unit) {
   
   protected def hasTicket(ticket: Ticket): Boolean = snapshot has ticket
   
+  private def dullTicket = {
+    val dullTicket = Ticket(idCounter, null)
+          tickets += dullTicket
+          dullTicket
+  }
+  
   protected def sendOrderDefault(order: Order): Ticket = {
     idCounter += 1
     order match {
       case replaceOrder: ReplaceOrder =>
         val lastTicket = replaceOrder.ticketToReplace
-        if (hasTicket(lastTicket)) {
+        if (hasTicket(lastTicket) && replaceOrder.value > 0) {
           val newOrder = replaceOrder.newOrder
           val getNewOrder = sendOrder(newOrder)
           replace += lastTicket.id -> getNewOrder.id
           cancelOrder(lastTicket, defaultAfterCancel(lastTicket))
           getNewOrder
-        } else {
-          val dullTicket = Ticket(idCounter, null)
-          tickets += dullTicket
+        } else if(hasTicket(lastTicket)) {
+          cancelOrder(lastTicket, defaultAfterCancel(lastTicket))
           dullTicket
-        }
+        } else dullTicket
       case _ =>
         val newTicket = Ticket(idCounter, order)
         tickets += newTicket
