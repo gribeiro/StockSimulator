@@ -11,15 +11,16 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   val symbolC: Stock
   
   val gran: Int
+  
   val maxPos: Int
   val step: Int
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
   val elapsed: Int = p"elapsed"
-  val spread: Int = p"spread"
-  val spreadMax: Int = p"spread_max"
-  val spreadMin: Int = p"spread_min"
+  val spread: Double = p"spread"
+  val spreadMax: Double = p"spread_max"
+  val spreadMin: Double = p"spread_min"
   val flag: String = p"flag"
   
   val spreadParams = SpreadParams(maxPos, spreadMax, spreadMin)

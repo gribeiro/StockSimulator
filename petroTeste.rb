@@ -7,7 +7,7 @@ java_import 'com.stocksimulator.common_strategies.RubyDoubleRatioAdapter'
 
 class Variables
 	def self.symbolA 
-		"WINc1"
+		"PETR4.SA"
 	end
 end
 class Start < RBSFactory
@@ -26,18 +26,18 @@ class Start < RBSFactory
 	
 	def self.run()
 		#
-		dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014"]
+		#dates = ["14/03/2014","17/03/2014","18/03/2014","19/03/2014", "21/01/2014", "22/01/2014", "23/01/2014", "24/01/2014", "27/01/2014", "28/01/2014","29/01/2014", "30/01/2014","06/02/2014", "05/02/2014", "27/02/2014", "04/02/2014", "26/02/2014", "20/02/2014", "13/02/2014", "10/02/2014", "31/01/2014", "21/02/2014","19/02/2014"]
 		#dates = ["14/03/2014"]
 		#puts dates
 		#dates = []
-		#dates = ["19/03/2014"]
+		dates = ["19/03/2014"]
 		self.setVar()
 
 		ret = []
 		for date in dates
-			getFile(date)
+			file = getFile(date)
 			waitForFiles()
-			ret.push(RubyConf.new("", date))
+			ret.push(RubyConf.new(file, date))
 		end
 		ret.to_java RubyBSAdapter
 	end
@@ -65,8 +65,8 @@ class RubyConf < RubyBSAdapter
 		
 		@from = "09:10:00"
 		@to = "17:00:00"
-		@name = "EWZ-Remote"
-		@dbLookUp = "EWZ2" #dbLookupName
+		@name = "Georges"
+		@dbLookUp = "epi" #dbLookupName
 		@dateRB = date
 		@bookOrder = to_int(30)
 		@actorsQtd = to_int(2)
@@ -93,8 +93,8 @@ class RubyConf < RubyBSAdapter
 	def varParam()
 		params = []
 		elapsed_range = (1500..1500).step(100) #50..500 #50..70
-		spread_range = (25..35).step(1) #20..200
-		spread_max_range = (0..10).step(5)
+		spread_range = (1..100).step(1) #20..200
+		spread_max_range = (0..50).step(5)
 		spread_min_range = (40..60).step(5)
 		#flags = ["entrada_saida"]
 		flags = ["entrada", "saida", "entrada_saida", "off"]
@@ -104,16 +104,16 @@ class RubyConf < RubyBSAdapter
 					for spread_min in spread_min_range
 					for flag in flags
 						a = Parameters.new
-						realSpread = spread/1.0
+						validSpread = spread/100.0
 						a.set("elapsed", to_int(preElapsed*1000))
-						a.set("spread", realSpread)
+						a.set("spread", validSpread)
 						if flag == "entrada" or flag == "entrada_saida"
-							a.set("spread_max", (spread_max/100.0) * realSpread + realSpread)
+							a.set("spread_max", (spread_max/100.0) * validSpread + validSpread)
 						else
 							a.set("spread_max", 0.0)
 						end
 						if flag == "saida" or flag == "entrada_saida"
-							a.set("spread_min", realSpread - (spread_min/100.0) * realSpread)
+							a.set("spread_min", validSpread - (spread_min/100.0) * validSpread)
 						else
 							a.set("spread_min", 0.0)
 						end

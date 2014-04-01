@@ -44,12 +44,16 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
     strategy
   }
   
-  def run() = {
-    
-    val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
+  
+  private def bulkLoad = {
+     val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
     memory = Some(sharedFeed.cloneContent)
     instruments = Some(sharedFeed.instruments)
+  }
+  def run() = {
     
+   
+    bulkLoad
     workers.master ! spMongoConfig(conf.mongoConfig)
     val uniqueParams = params.toArray.distinct
     Log("Job count after filter: " +uniqueParams.length) 

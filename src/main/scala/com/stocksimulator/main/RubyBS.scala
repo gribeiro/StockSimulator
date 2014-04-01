@@ -105,7 +105,7 @@ trait RubyStrategyTypes  {
   def generic = classOf[RubyStdStrategy]
 }
 abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAdapter(date) with RubyStrategyTypes {
-  
+  private def javaFilenameExt = javaFilename + ".java"
   def getBS[T <: Strategy] = {
     if(javaFilename == "") {
       strategyTypes.get(this.strategyType) match {
@@ -115,22 +115,22 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
     }
     else {
       MongoClientSingleton(mConfig)
-      val fileExistence = new File(javaFilename).exists
+      val fileExistence = new File(javaFilenameExt).exists
       
       
       
       if(fileExistence) {
-        MongoClientSingleton.saveFile(javaFilename)
+        MongoClientSingleton.saveFile(javaFilenameExt)
       }
        
-      val tryOnBank = MongoClientSingleton.openFile(javaFilename)
+      val tryOnBank = MongoClientSingleton.openFile(javaFilenameExt)
       tryOnBank match {
     	  case Some(file) =>
-    	    MemoryCompiler("ExampleStrategy", file) 
+    	    MemoryCompiler(javaFilename, file) 
     	  case None =>
     	     MongoClientSingleton.saveFile(javaFilename)
-    	     val recentlySaved = MongoClientSingleton.openFile(javaFilename).get
-    	      MemoryCompiler("ExampleStrategy", recentlySaved)
+    	     val recentlySaved = MongoClientSingleton.openFile(javaFilenameExt).get
+    	      MemoryCompiler(javaFilename, recentlySaved)
     	}
       
        

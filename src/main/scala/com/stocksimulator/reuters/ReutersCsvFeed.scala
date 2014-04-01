@@ -19,7 +19,7 @@ case class HourFilter(from: DateTime, to: DateTime) extends Filter
 case class ExtendedHourFilter(include: HourFilter, exclude: Array[HourFilter]) extends Filter
 case object EmptyFilter extends Filter
 
-class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set()) extends CloneFeed {
+class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set(), discardData: Array[DiscardData] = Array.empty[DiscardData]) extends CloneFeed {
   val csvReader:Stream[Array[String]] = Stream.empty[Array[String]]
   val rawInfo = getMeRaw()
 

@@ -87,6 +87,7 @@ class RubyDoubleRatioStrategy(market: Market, param: Parameters) extends DoubleR
   val symbolB: Stock = adapter.symbolB
   val symbolC: Stock = adapter.symbolC
   val gran = adapter.gran
+  
   val maxPos = adapter.maxPos
   val step = adapter.step
 

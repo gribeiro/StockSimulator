@@ -4,6 +4,8 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import com.stocksimulator.debug._
 import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.LinkedHashSet
 
 
 object Market {
@@ -13,12 +15,12 @@ abstract class Market(val components: List[MarketComponent] = List.empty[MarketC
   //Ticket id
   type tickResult = (Map[Stock, StockInfo], ListBuffer[(Ticket, OrderResult)])
   
-  protected var tickets = new ListBuffer[Ticket]
-  private var ticketsBeforeProcessing = new ListBuffer[Ticket]
+  protected var tickets = new LinkedHashSet[Ticket]
+  private var ticketsBeforeProcessing = new LinkedHashSet[Ticket]
   protected val buyBook = new LinkedHashMap[Ticket, Book]
   protected val sellBook = new LinkedHashMap[Ticket, Book]
   protected val tProvider = new TicketProvider(afterCancel)
-  protected val emptyResult = ListBuffer.empty[(Ticket, OrderResult)]
+  protected val emptyResult = LinkedHashSet.empty[(Ticket, OrderResult)]
   protected val emptyInfo = Map.empty[Stock, StockInfo]
 
   

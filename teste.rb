@@ -74,7 +74,7 @@ class RubyConf < RubyBSAdapter
 		@from = "15:10:00" #15:10
 		@to = "15:25:00" #15:25
 		@name = "fireProofR"
-		@dbLookUp = "miniTest2" #dbLookupName
+		@dbLookUp = "IND_WIN" #dbLookupName
 		@dateRB = date
 		@bookOrder = to_int(40) #Fila
 		@actorsQtd = to_int(1)
@@ -82,7 +82,7 @@ class RubyConf < RubyBSAdapter
 		@strategyType = "JavaStdStrategy"
 		@watchSymbol = [Variables.symbolB]
 		@rbFilename = "self"
-		@javaFilename = "ExampleStrategy.strategy"
+		@javaFilename = "ExampleStrategy"
 		@rbKlass = "RubyStrategy"  
 	end
 	
@@ -96,9 +96,8 @@ class RubyConf < RubyBSAdapter
 
 	def varParam()
 
-		addParam(5,8,1,"hardLimit")
-		addParam(20,25,5,"spread")
-		addParam(1,10,1,"fake")
+		addParam(5,5,1,"hardLimit")
+		addParam(20,20,5,"spread")
 		generateParams
 	end
 end

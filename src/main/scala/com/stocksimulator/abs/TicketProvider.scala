@@ -7,14 +7,17 @@ import com.stocksimulator.debug._
 import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.helpers.ImplicitClasses._
 import com.stocksimulator.macros._
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.DoubleLinkedList
+import scala.collection.mutable.LinkedHashSet
 
 
 
 class TicketProvider(defaultAfterCancel: (Ticket) => () => Unit) {
 
   
-  protected val tickets = new ListBuffer[Ticket]
-  protected val replace = new LinkedHashMap[Int, Int]
+  protected val tickets = LinkedHashSet.empty[Ticket]
+  protected val replace = LinkedHashMap.empty[Int, Int]
  
   protected var idCounter = 0;
   protected var lId = 0
@@ -88,8 +91,10 @@ class DelayedTicketProvider(defaultAfterCancel: (Ticket) => () => Unit, delay: I
 
     
     for (idToCheck <- replace.keys; if (!tickets.exists(t => t.id == idToCheck))) {
+      if(tickets.size > 0) {
       for (ticket <- tickets; if (ticket.id == replace(idToCheck))) {
         removeOrder(ticket, defaultAfterCancel(ticket))
+      }
       }
     }
 

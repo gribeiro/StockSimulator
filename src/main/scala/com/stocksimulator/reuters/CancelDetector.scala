@@ -2,12 +2,12 @@ package com.stocksimulator.reuters
 
 import scala.collection.mutable.HashMap
 import com.stocksimulator.abs.Stock
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 
 class CancelDetector {
-  type AllSeries = HashMap[(Stock, Double), ListBuffer[Int]]
-  private val allQuoteSeries = new HashMap[(Stock, Double), ListBuffer[Int]]
-  private val allTradeSeries = new HashMap[(Stock, Double), ListBuffer[Int]]
+  type AllSeries = HashMap[(Stock, Double), ArrayBuffer[Int]]
+  private val allQuoteSeries = new HashMap[(Stock, Double), ArrayBuffer[Int]]
+  private val allTradeSeries = new HashMap[(Stock, Double), ArrayBuffer[Int]]
 
   private val allSwitch = new HashMap[(Stock, Double), Boolean]
 
@@ -15,12 +15,12 @@ class CancelDetector {
     allSeries.get(query) match {
       case Some(qs) => qs
       case None =>
-        val newS = new ListBuffer[Int]
+        val newS = new ArrayBuffer[Int]
         allSeries(query) = newS
         newS
     }
   }
-  private def seriesGet(allSeries: AllSeries, st: Stock, pr: Double): ListBuffer[Int] = seriesGet(allSeries, (st, pr))
+  private def seriesGet(allSeries: AllSeries, st: Stock, pr: Double): ArrayBuffer[Int] = seriesGet(allSeries, (st, pr))
   private def getQuoteSeries(st: Stock, pr: Double) = seriesGet(allQuoteSeries, st, pr)
   private def getTradeSeries(st: Stock, pr: Double) = seriesGet(allTradeSeries, st, pr)
 
@@ -37,8 +37,9 @@ class CancelDetector {
   }
 
   def check(st: Stock, pr: Double) = {
-    if (allSwitch.getOrElse((st, pr), false)) {
-      allSwitch((st, pr)) = false
+    val stPR = (st, pr)
+    if (allSwitch.getOrElse(stPR, false)) {
+      allSwitch(stPR) = false
       val currentQuoteSeries = getQuoteSeries(st, pr)
       val currentTradeSeries = getTradeSeries(st, pr)
       val zipped = (currentQuoteSeries zip (currentQuoteSeries.drop(1)))
@@ -47,7 +48,6 @@ class CancelDetector {
       }
       val summedQuote = quotePositiveDiff.sum
       val summedTrades = currentTradeSeries.sum
-      val ok = 1
       if (summedQuote > summedTrades) {
         //allQuoteSeries -= ((st, pr))
         //allTradeSeries -= ((st, pr))
