@@ -1,11 +1,26 @@
+import aether.Aether._
+
+import AssemblyKeys._ // put this at the top of the file
+
+assemblySettings
+
+// Import default settings. This changes `publishTo` settings to use the Sonatype repository and add several commands for publishing.
+
 name := "StockSimulator"
 
 version := "1.1"
 
 scalaVersion := "2.10.3"
 
-resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+publishMavenStyle := true
 
+pomIncludeRepository := { x => false }
+
+seq(aetherPublishSettings: _*)
+
+resolvers += "Sonatype Nexus Repository Manager" at "http://apps.fiveware.com.br/nexus/content/repositories/releases/"
+
+resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 resolvers += "Sonatype releases" at "https://oss.sonatype.org/content/repositories/releases"
 
@@ -24,11 +39,11 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.10.0-M5"
 )
 
-libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10+"
+//libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10+"
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "0.8.0"
 
-libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.0.0"
+//libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.0.0"
 
 libraryDependencies += "org.mongodb" % "casbah_2.10" % "2.7.0-RC0"
 
@@ -59,10 +74,32 @@ ProguardKeys.options in Proguard += ProguardOptions.keepMain("com.stocksimulator
 
 //addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
 
-publishTo := Some("Fiveware Nexus" at "http://apps.fiveware.com.br/nexus/content/groups/public")
+publishMavenStyle := true
 
-credentials += Credentials("Fiveware Nexus", "nexus", "admin", "five2013")
+//publishTo := Some("Sonatype Nexus Repository Manager" at "http://apps.fiveware.com.br/nexus/content/repositories/releases")
+
+publishTo := {
+  val nexus = "http://apps.fiveware.com.br/nexus/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "content/repositories/releases")
+}
+
+credentials += Credentials("Sonatype Nexus Repository Manager", "apps.fiveware.com.br", "georges.ribeiro", "robo123")
 
 publishArtifact in (Compile, packageDoc) := false
 
 mainClass in Compile := Some("com.stocksimulator.main.Bootstrap")
+
+mainClass in assembly := Some("com.stocksimulator.main.Bootstrap")
+
+artifact in (Compile, assembly) ~= { art =>
+  art.copy(`classifier` = Some("assembly"))
+}
+
+addArtifact(artifact in (Compile, assembly), assembly)
+
+assemblyOption in assembly ~= { _.copy(includeScala = true) }
+
+assemblyOption in assembly ~= { _.copy(includeBin = true) }

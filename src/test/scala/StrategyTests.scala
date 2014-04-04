@@ -73,7 +73,7 @@ var price = 0.0
  this.price = price
   }
 }
-class StrategyTests extends FlatSpec  {
+/*class StrategyTests extends FlatSpec  {
 Log.stopActor
 var midPrice: Double = 0.0
   "A Empty Strategy" should "end normally" in {
@@ -150,4 +150,4 @@ var midPrice: Double = 0.0
       htmlCommon.numericPnl(last) should be (255.0)
    }
 
-}
+}*/

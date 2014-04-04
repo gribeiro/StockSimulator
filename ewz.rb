@@ -30,7 +30,7 @@ class Start < RBSFactory
 		#dates = ["14/03/2014"]
 		#puts dates
 		#dates = []
-		dates = ["10/03/2014"]
+		dates = ["03/04/2014"]
 		self.setVar()
 
 		ret = []

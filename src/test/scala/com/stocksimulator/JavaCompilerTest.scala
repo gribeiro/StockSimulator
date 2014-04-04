@@ -3,18 +3,25 @@ import com.stocksimulator.java_loader._
 import com.stocksimulator.debug.Log
 import org.scalatest._
 import Matchers._
+
 class CompilerTest extends FlatSpec { 
  
   "A MemoryCompiler" should "Compile a hello world" in {
     val stringToCompile = """
       public class HelloWorld {
-    	public static void main(String args[]) {
+        private class B {
+    		
+      }
+    	public int main() {
     	System.out.println("It Worked");
+        B teste = new B();
+      System.out.println(teste);
+      return 23;
        }
       }
       """
-     
-     //val (_, success) = MemoryCompiler("HelloWorld", stringToCompile)
-     //success should equal (true)
+    val teste = MemoryCompiler("HelloWorld", stringToCompile)
+    val klass = Class.forName("HelloWorld")
+    val method = klass.getDeclaredMethod("main", null);
   }
 }

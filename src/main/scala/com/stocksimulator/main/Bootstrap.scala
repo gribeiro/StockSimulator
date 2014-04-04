@@ -67,8 +67,12 @@ object Bootstrap {
       println("Sending remote job..")
       val masterIP = args(1)
       val masterPort: Int = args(2).toInt
-      
-      val fileContents = scala.io.Source.fromFile(args(3)).mkString
+      val file = args(3)
+      val rubyBSAdapters = loadRuby(file)
+      val jobs = for (rubyBSAdapter <- rubyBSAdapters) yield {
+        rubyBSAdapter.getBS
+      }
+      val fileContents = scala.io.Source.fromFile(file).mkString
       val masterJob = MasterJob(fileContents)
       rWorkers.emitWork(masterIP, masterPort, masterJob)
 

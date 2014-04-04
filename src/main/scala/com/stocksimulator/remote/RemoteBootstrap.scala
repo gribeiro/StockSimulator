@@ -21,7 +21,7 @@ object CommonBootstrap {
 
 }
 class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameters], cStrat: Class[T], date: String) {
-  val sharedMongo = new SharedMongo(conf.mongoConfig, conf.filter)
+  val sharedMongo = new SharedMongo(conf.mongoConfig, date, conf.filter)
   val workers = new Workers(conf.localWorkers, createBundle, conf.name)
   
   
@@ -49,7 +49,7 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
      val optionInst = conf.inst.map {
        inst => inst.checkOption(date)
      }
-     val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
+     val sharedFeed = new ReutersSharedMongoFeed(optionInst, sharedMongo)
     memory = Some(sharedFeed.cloneContent)
     instruments = Some(sharedFeed.instruments)
   }

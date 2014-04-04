@@ -45,6 +45,8 @@ object MemoryCompiler {
 	
 		
 }
+	
+	
 	def apply(name: String, source: String):Object = {
 		savedName = name
 		savedSource = source

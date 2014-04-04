@@ -135,7 +135,7 @@ object SharedMongo {
   }
 }
 
-class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
+class SharedMongo(config: MongoConfig, date: String, hourFilter: Filter = EmptyFilter ) {
   import org.joda.time._
   val dateFormat = ReutersCommon.dateFormat
   private val now = new DateTime(DateTimeZone.getDefault())
@@ -187,10 +187,12 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
     Log(load.size)
     if (load.size <= 0) {
       Log("Database not found, making a new one")
-      ReutersMongoSave(config)
-      for (a <- loadData().toStream; val b = SharedMongo.getList(a)) yield b
+      ReutersMongoSave(config, date)
+      val stream =  loadData().toStream
+      for (a <- stream; val b = SharedMongo.getList(a)) yield b
     } else {
-      for (a <- load.toStream; val b = SharedMongo.getList(a)) yield b
+      val stream = load.toStream
+      for (a <- stream; val b = SharedMongo.getList(a)) yield b
     }
     
   }
@@ -199,8 +201,8 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
  
 }
 
-class ReutersMongoFeed(knownInstruments: Set[Stock], config: MongoConfig) extends ReutersCsvFeed("", knownInstruments) {
-  val shMongo = new SharedMongo(config)
+class ReutersMongoFeed(knownInstruments: Set[Stock], config: MongoConfig, date: String) extends ReutersCsvFeed("", knownInstruments) {
+  val shMongo = new SharedMongo(config, date)
   val sorted =  shMongo.raw.sortBy {
     case (key, value) => key
   }

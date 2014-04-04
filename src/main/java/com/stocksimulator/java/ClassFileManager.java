@@ -2,6 +2,7 @@ package com.stocksimulator.java;
 
 import java.io.IOException;
 import java.security.SecureClassLoader;
+import java.util.HashMap;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -15,7 +16,7 @@ ForwardingJavaFileManager {
 * Instance of JavaClassObject that will store the
 * compiled bytecode of our class
 */
-public JavaClassObject jclassObject;
+public HashMap<String, JavaClassObject> jclassObject;
 
 /**
 * Will initialize the manager with the specified
@@ -28,6 +29,7 @@ standardManager) {
 
 super(standardManager);
 
+jclassObject = new HashMap<String, JavaClassObject>();
 }
 
 /**
@@ -44,8 +46,11 @@ return new SecureClassLoader() {
     @Override
     protected Class<?> findClass(String name)
         throws ClassNotFoundException {
-        byte[] b = jclassObject.getBytes();
-        return super.defineClass(name, jclassObject
+    	JavaClassObject klassObject = jclassObject.get(name);
+    	
+        byte[] b = klassObject.getBytes();
+        
+        return super.defineClass(name, klassObject
             .getBytes(), 0, b.length);
     }
 };
@@ -59,9 +64,9 @@ return new SecureClassLoader() {
 public JavaFileObject getJavaFileForOutput(Location location,
 String className, Kind kind, FileObject sibling)
     throws IOException {
-
-    jclassObject = new JavaClassObject(className, kind);
-return jclassObject;
+	JavaClassObject toBeInserted = new JavaClassObject(className, kind);
+	jclassObject.put(className, toBeInserted);
+return toBeInserted;
 }
 }
 

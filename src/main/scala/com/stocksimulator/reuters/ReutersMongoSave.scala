@@ -13,6 +13,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import com.stocksimulator.main.RBSFactory
+import com.stocksimulator.data_manger._
 object ReutersMongoSave {
   val dbColName = MongoClientSingleton.dbName
   def openFile(f: String) = {
@@ -29,7 +31,18 @@ object ReutersMongoSave {
 
   }
 
-  def apply(host: String, port: Int, filename: String, dbName: String): Unit = {
+  def apply(host: String, port: Int, protoFilename: String, dbName: String, date: String): Unit = {
+     val symb = RBSFactory.symbols.toArray
+    //val futureResult = //Future {
+
+   
+    val all = symb.map {
+      str => Stock(str).checkOption(date).name
+    }
+    all.foreach {
+      str => println(str)
+    }
+    val filename = hcReuters.apply(all, date)
     val mongoClient = MongoClient(host, port)
     val cDB = mongoClient(dbColName)
     val coll = cDB(dbName)
@@ -89,8 +102,8 @@ object ReutersMongoSave {
     mongoClient.close
   }
 
-  def apply(config: MongoConfig): Unit = {
-    apply(config.hostname, config.port, config.filename, config.dbname)
+  def apply(config: MongoConfig, date: String): Unit = {
+    apply(config.hostname, config.port, config.filename, config.dbname, date: String)
   }
 }
 

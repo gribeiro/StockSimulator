@@ -79,7 +79,7 @@ object RBSFactory {
   def getFile(date: String) = {
     // val javaSymbols = symbols.toArray(new Array[String](symbols.size()))
     //val javaDate = date.asJavaString()
-    val symb = symbols.toArray
+  /*  val symb = symbols.toArray
     //val futureResult = //Future {
 
    
@@ -90,9 +90,12 @@ object RBSFactory {
       str => println(str)
     }
     hcReuters.apply(all, date)
+    
+    */
     //}
     
     //futureDays += futureResult
+    ""
   }
   
   def waitForFiles = {

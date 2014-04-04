@@ -118,7 +118,7 @@ abstract class AdapterBSSet[T <: Strategy](rb: BSAdapter, val klass: Class[T]) e
   val inst = myInst
   val logActive = true
   val mongoConfig = mConfig
-  override lazy val sharedMongo = new SharedMongo(mongoConfig, hourFilter)
+  override lazy val sharedMongo = new SharedMongo(mongoConfig, date, hourFilter)
 
   val mc = new ListBuffer[MarketComponent]
   if(tradingSymbol.size == 1) {
