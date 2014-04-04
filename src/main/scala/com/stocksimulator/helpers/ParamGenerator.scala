@@ -5,11 +5,11 @@ import scala.collection.mutable.ArrayBuffer
 
 object ParamGen {
   
-  implicit class ParamGenerator(options: List[(Int, Int, Int, String)]) {
+  implicit class ParamGenerator(options: List[(Double, Double, Double, String)]) {
 
     def getParamArray: Array[Parameters] = {
       val params = ArrayBuffer.empty[Parameters]
-      def recursiveFor(list: List[(Int, Int, Int, String)], fun: (Parameters) => Unit): Unit = {
+      def recursiveFor(list: List[(Double, Double, Double, String)], fun: (Parameters) => Unit): Unit = {
 
         list match {
           case List(x) =>

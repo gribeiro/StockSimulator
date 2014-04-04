@@ -1,8 +1,6 @@
 name := "StockSimulator"
 
-git.baseVersion := "1.0"
-
-versionWithGit
+version := "1.1"
 
 scalaVersion := "2.10.3"
 
@@ -61,5 +59,10 @@ ProguardKeys.options in Proguard += ProguardOptions.keepMain("com.stocksimulator
 
 //addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
 
+publishTo := Some("Fiveware Nexus" at "http://apps.fiveware.com.br/nexus/content/groups/public")
 
+credentials += Credentials("Fiveware Nexus", "nexus", "admin", "five2013")
 
+publishArtifact in (Compile, packageDoc) := false
+
+mainClass in Compile := Some("com.stocksimulator.main.Bootstrap")

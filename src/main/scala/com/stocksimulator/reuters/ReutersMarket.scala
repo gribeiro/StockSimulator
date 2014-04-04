@@ -12,7 +12,7 @@ import com.stocksimulator.helpers.ImplicitClasses
 import com.stocksimulator.abs.TicketProvider
 import scala.concurrent._
 import scala.concurrent.duration._
-
+import com.stocksimulator.abs.AutoDemotion._
 import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
@@ -39,7 +39,9 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     val infoToFeed = !feed
     //Log(infoToFeed)
     timeControl <-- infoToFeed.map {
-      case (key, value) => key -> new StockInfoHA(value)
+    
+      case (stockKey, stockInfo) => 
+        stockKey -> stockInfo.promoteTo[StockInfoHA]
     }
   }
   Log("Time feed created!")
@@ -87,9 +89,9 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     }
 
    
-     val sendInfo = newInfo.map {
+     val sendInfo: Map[Stock, StockInfo] = newInfo.map {
       case (stock, stockInfoHA) =>
-        stock -> stockInfoHA.unfold
+        stock -> stockInfoHA.demote
     }
     if(results.size > 0) {		
 

@@ -2,6 +2,9 @@ package com.stocksimulator.common_strategies
 
 object StrategyUtils {
   
+
+ 
+
   private def integerUp(gran: Int)(n: Double) = {
       val rounded = Math.ceil(n).toInt
       if (rounded % gran != 0) rounded + (gran - rounded % gran) else rounded

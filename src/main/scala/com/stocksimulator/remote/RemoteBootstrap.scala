@@ -46,6 +46,9 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
   
   
   private def bulkLoad = {
+     val optionInst = conf.inst.map {
+       inst => inst.checkOption(date)
+     }
      val sharedFeed = new ReutersSharedMongoFeed(conf.inst, sharedMongo)
     memory = Some(sharedFeed.cloneContent)
     instruments = Some(sharedFeed.instruments)

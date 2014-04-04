@@ -8,7 +8,7 @@ java_import 'com.stocksimulator.common_strategies.RubyRatioAdapter'
 class Variables
 	
 	def self.symbolA 
-		"WINc1"
+		"PETR4$16"
 	end
 
 	def self.symbolB

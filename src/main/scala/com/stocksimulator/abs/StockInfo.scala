@@ -2,9 +2,55 @@ package com.stocksimulator.abs
 import com.github.nscala_time.time.Imports._
 import scala.math.Ordered
 import io.jvm.uuid._
+import com.stocksimulator.reuters.ReutersCommon
 
 
-case class Stock(name: String)
+
+class OptionStock(stock: Stock) extends Promotion[Stock](stock) {
+  val preStock: String = stock
+  
+  
+  val dollarPos = preStock.indexOf("$")
+  val strike:Option[Int] = if(dollarPos != -1) Some(preStock.substring(dollarPos+1, preStock.length()).toInt) else None
+
+  
+  def getSymbol(stdStrike: Int, dueMonth: Int) = {
+    val letter = OptionInstrument.reverseLetterTable(dueMonth)
+    preStock.substring(0, dollarPos) + letter + stdStrike.toString + ".SA"
+  }
+  
+  def getSymbol(stdStrike: Int, date: DateTime): String = {
+    val year = date.year().get()
+    val month = date.monthOfYear().get()
+    val day = date.dayOfMonth().get()
+    
+    val vencimento = OptionInstrument.vencimento(year, month)
+    
+    val vencimentoAtual = if(day <= vencimento) month else month - 1
+    getSymbol(stdStrike, vencimentoAtual)
+  }
+  var date: Option[DateTime] = None
+  
+  def setDate(dat: DateTime) = {
+    date = Some(dat)
+    this
+  }
+  
+  override def demote:Stock = {
+    (date, strike) match {
+      case (Some(dt), Some(str)) =>
+        getSymbol(str, dt)
+      case (_, _) => stock
+    }
+  }
+} 
+case class Stock(name: String) extends Promotable[Stock] {
+  def checkOption(date: String): Stock = {
+    val formater = ReutersCommon.microDateFormat
+    val dateObj = formater.parseDateTime(date)
+    this.promoteTo[OptionStock].setDate(dateObj).demote
+  }
+}
 
 case object Stock {
   implicit def string2stock(s: String):Stock = Stock(s)
@@ -23,18 +69,18 @@ object StockInfo {
   }
 }
 
-class StockInfoHA (stockInfo: StockInfo) extends Ordered[StockInfoHA] {
+class StockInfoHA (stockInfo:StockInfo) extends Promotion[StockInfo](stockInfo) with Ordered[StockInfoHA] {
   var _hasAppeared = false
   
   def hasAppeared = _hasAppeared
   def setHasAppeared(b: Boolean) = {
     _hasAppeared = b
   }
-  def unfold = stockInfo
+  def unfold = demote
   
-  def compare(that:StockInfoHA) = stockInfo.compare(that.unfold) 
+  def compare(that:StockInfoHA) = unfold.compare(that.unfold) 
 }
-abstract class StockInfo(_stock: Stock, _datetime: DateTime) extends Ordered[StockInfo] {
+abstract class StockInfo(_stock: Stock, _datetime: DateTime) extends Promotable[StockInfo] with Ordered[StockInfo]  {
   val iStock = _stock
   val iDatetime = _datetime
   val uuid = UUID.random

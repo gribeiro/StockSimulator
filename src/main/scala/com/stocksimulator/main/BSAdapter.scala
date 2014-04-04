@@ -33,9 +33,9 @@ object BSAdapter {
 abstract class BSAdapter(val date: String) {
 import com.stocksimulator.helpers.ParamGen
 import com.stocksimulator.helpers.ParamGen._
-  private val paramHelperStorage = MutableList.empty[(Int, Int, Int, String)]
+  private val paramHelperStorage = MutableList.empty[(Double, Double, Double, String)]
 
-  def addParam(from: Int, to: Int, by: Int, name: String) = {
+  def addParam(from: Double, to: Double, by: Double, name: String) = {
     val newElem = (from, to, by, name)
     paramHelperStorage += newElem
   }

@@ -10,6 +10,8 @@ import scala.collection.mutable.HashSet
 import com.stocksimulator.macros._
 import com.stocksimulator.macros.PMaker._
 import com.stocksimulator.helpers.ImplicitClasses._
+import com.stocksimulator.utils.BlackScholes
+
 case class Position(quantity: Int, pnl: Double)
 
 class Parameters {
@@ -80,7 +82,7 @@ object Strategy {
     }
   }
 }
-
+ 
 abstract class Strategy(market: Market, private val param: Parameters) extends BuySellAdapter {
   implicit def ParamMaker2AnyT[T](pm: ParamMaker): T = this.getParam(pm.name).asInstanceOf[T]
   type report = (Ticket, OrderResult) => Unit
@@ -90,13 +92,19 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   private val result = new Parameters
   private val tunnel = new StrategyTicketTunnel(market)
 
-  protected def getParam(s: String) = {
+  def getParam(s: String) = {
     param.get(s) match {
       case Some(a) => a
       case None => None
     }
   }
-
+  
+  def getIntParam(s: String):Int = getParam(s).asInstanceOf[Double].intValue()
+  def getDoubleParam(s: String):Double = getParam(s).asInstanceOf[Double]
+  
+  def bsVolCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BlackScholes.bsVolCall(spot, strike, r, optionPrice, timeToExpiry)
+  def priceEuropeanBlackScholesCall(spot: Double, strike: Double, r: Double, timeToExpiry: Double, volatility: Double) = BlackScholes.priceEuropeanBlackScholesCall(spot, strike, r, timeToExpiry, volatility)
+  
   protected def putResult(key: String, obj: Object) {
     result.set(key, obj)
   }

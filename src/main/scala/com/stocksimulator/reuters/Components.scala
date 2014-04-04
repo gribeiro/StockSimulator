@@ -8,6 +8,7 @@ import com.stocksimulator.helpers.ImplicitClasses._
 
 object ReutersCommon {
   val dateFormat = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss.SSS")
+  val microDateFormat = DateTimeFormat.forPattern("dd/MM/yyyy")
 }
 
 object ReutersMarketComponents {

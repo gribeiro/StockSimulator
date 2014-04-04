@@ -39,6 +39,7 @@ import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 import com.stocksimulator.helpers._
 import com.stocksimulator.helpers.DateComposable._
+import com.stocksimulator.abs.AutoDemotion._
 
 class RBSFactory {}
 object RBSFactory {
@@ -51,6 +52,7 @@ object RBSFactory {
   var outputName = ""
   var log = true
   var delay = 100
+  
   def setOutputName(s: String) = {
     outputName = s
   }
@@ -67,15 +69,27 @@ object RBSFactory {
   }
   
   def cleanSymbols = symbols.clear
+  
+  
   def pushSymbol(s: String) = {
     symbols += s
   }
+  
+  
   def getFile(date: String) = {
     // val javaSymbols = symbols.toArray(new Array[String](symbols.size()))
     //val javaDate = date.asJavaString()
     val symb = symbols.toArray
     //val futureResult = //Future {
-    	hcReuters.apply(symb, date)
+
+   
+    val all = symb.map {
+      str => Stock(str).checkOption(date).name
+    }
+    all.foreach {
+      str => println(str)
+    }
+    hcReuters.apply(all, date)
     //}
     
     //futureDays += futureResult
@@ -126,6 +140,7 @@ abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAda
       val tryOnBank = MongoClientSingleton.openFile(javaFilenameExt)
       tryOnBank match {
     	  case Some(file) =>
+    	   // println(file)
     	    MemoryCompiler(javaFilename, file) 
     	  case None =>
     	     MongoClientSingleton.saveFile(javaFilename)

@@ -16,6 +16,7 @@ abstract class JavaAdapter {
   def strategy = _strat
   def onQuotes()
   def onStart()
+  def callback()
   def setStrategy(strat: JavaStdStrategy) = {
     _strat = strat
   }
@@ -25,6 +26,7 @@ class JavaStdStrategy(market: Market, param: Parameters) extends QuoteOnlyStrate
   val adapter = MemoryCompiler.loadAgain.asInstanceOf[JavaAdapter]
   adapter.setStrategy(this)
   def onQuotes = adapter.onQuotes()
+  override def callback = adapter.callback()
   override def onStart  = adapter.onStart()
 }
 

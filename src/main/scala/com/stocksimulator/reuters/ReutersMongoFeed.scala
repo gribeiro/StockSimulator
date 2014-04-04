@@ -56,7 +56,7 @@ object MongoClientSingleton {
         val connection = new ServerAddress(host, port)
         
         //val tryLocalConn = new ServerAddress("127.0.0.1", 27017)
-        val mC = MongoClient(List( connection))
+        val mC = MongoClient(host, port)
         mongoClient = Some(mC)
         mC
       }
@@ -76,7 +76,7 @@ object ReutersMongoLoad {
 
     if (it.size > 0) {
       val dataElem = SharedMongo.getList(it.drop(1).next)
-      dataElem(3).toInt
+      dataElem._2(3).toInt
     } else 0
 
   }
@@ -94,12 +94,15 @@ object ReutersMongoLoad {
   def apply(host: String, port: Int, dbName: String) = {
     val coll = preApply(host, port, dbName)
     val iterator = coll.find()
+    iterator.sort(MongoDBObject("key" -> 1))
     iterator
   }
 
   def apply(host: String, port: Int, dbName: String, from: DateTime, to: DateTime) = {
     val coll = preApply(host, port, dbName)
     val iterator = coll.find($and("datetime" $gte from.getMillis(), "datetime" $lte to.getMillis()))
+    iterator.sort(MongoDBObject("key" -> 1))
+    
     iterator
   }
   
@@ -114,20 +117,21 @@ object ReutersMongoLoad {
     Log(condition)
     val iterator = coll.find(condition)
     //Log(iterator)
+    iterator.sort(MongoDBObject("key" -> 1))
     iterator
   }
 }
 
 object SharedMongo {
   def getList(a: DBObject) = {
-
+    val key = a.get("key").asInstanceOf[Int]
     val ret = (a.get("data")).asInstanceOf[com.mongodb.BasicDBList].toArray().toList.asInstanceOf[List[String]]
     val arrBuffer = ArrayBuffer.empty[String]
     ret.foreach { f =>
       arrBuffer += f
     }
     //Log(ret)
-    arrBuffer.toArray
+    key -> arrBuffer.toArray
   }
 }
 
@@ -197,7 +201,13 @@ class SharedMongo(config: MongoConfig, hourFilter: Filter = EmptyFilter) {
 
 class ReutersMongoFeed(knownInstruments: Set[Stock], config: MongoConfig) extends ReutersCsvFeed("", knownInstruments) {
   val shMongo = new SharedMongo(config)
-  override def getMeRaw() = shMongo.raw.toArray
+  val sorted =  shMongo.raw.sortBy {
+    case (key, value) => key
+  }
+  val valueArr = sorted.map {
+    case (key, value) => value
+  }
+  override def getMeRaw() = valueArr.toArray
 }
 
 class ReutersSharedMongoFeed(knownInstruments: Set[Stock], shMongo: SharedMongo) extends ReutersCsvFeed("", knownInstruments) {
@@ -205,7 +215,13 @@ class ReutersSharedMongoFeed(knownInstruments: Set[Stock], shMongo: SharedMongo)
 
   override def getMeRaw() = {
    val myCopy = shMongo.loaded
-    myCopy//shMongo.raw
+    val sorted =  myCopy.sortBy {
+    case (key, value) => key
+  }
+  val valueArr = sorted.map {
+    case (key, value) => value
+  }
+  valueArr.toArray
   }
 }
 
