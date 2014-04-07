@@ -186,6 +186,37 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   }
   
   
+  def createRatioMAvgForOption(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
+
+	  val optionInfoB = stock2.optionInfo.get
+    val volWin = new MovingAvg(windowSize, elapsed, () => {
+      val precoA:Double = marketLast.get(stock1)
+      val precoB:Double = marketLast.get(stock2)
+
+      bsVolCall(precoA, optionInfoB.strike, optionInfoB.r, precoB, optionInfoB.ratio)
+    })
+    windows <-- volWin
+    val newWin = new MovingAvg(windowSize, elapsed, () => {
+      
+      if(volWin.isAvailable) {
+      val mediaVol = volWin.lastVal()
+      val precoA:Double = marketLast.get(stock1)
+      val precoB:Double = marketLast.get(stock2)
+       
+      
+      val precoTeorico = priceEuropeanBlackScholesCall(precoA, optionInfoB.strike, optionInfoB.r, optionInfoB.ratio, mediaVol)
+      
+      
+
+      val result = precoA over precoTeorico
+
+      result
+      } else 0
+    })
+    windows <-- newWin
+    newWin
+  }
+  
   def createRatioMAvg(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
 
 

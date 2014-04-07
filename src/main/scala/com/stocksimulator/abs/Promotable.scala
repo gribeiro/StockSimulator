@@ -8,7 +8,9 @@ object AutoDemotion {
   }
 }
 
+trait PromotionInfo {
 
+}
 
 
 abstract class Promotion[U](baseElement: Promotable[U]) {
@@ -16,9 +18,9 @@ abstract class Promotion[U](baseElement: Promotable[U]) {
 }
 
 abstract class Promotable[U](implicit uManifest: Manifest[U]) {
-	val _promotions = ArrayBuffer.empty[Promotion[U]]
+	val _promotions = ArrayBuffer.empty[PromotionInfo]
 	
-	def addPromotion(promo: Promotion[U]):Unit = { 
+	def addPromotionInfo(promo: PromotionInfo):Unit = { 
 	  _promotions += promo
 	}
 	

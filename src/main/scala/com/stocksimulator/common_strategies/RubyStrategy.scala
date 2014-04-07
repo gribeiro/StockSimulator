@@ -81,6 +81,18 @@ class RubyRatioStrategy(market: Market, param: Parameters) extends RatioArbitrer
   putResult("md5", hash)
 }
 
+class RubyOptionSimpleStrategy(market: Market, param: Parameters) extends OptionSimpleStrategy(market, param) {
+  val (adapter, hash) = RubyStrategyLoader[RubyRatioAdapter, RubyOptionSimpleStrategy](this)
+  val symbolA: Stock = adapter.symbolA
+  val symbolB: Stock = adapter.symbolB
+  val gran = adapter.gran
+  val maxPos = adapter.maxPos
+  val step = adapter.step
+
+  putResult("md5", hash)
+}
+
+
 class RubyDoubleRatioStrategy(market: Market, param: Parameters) extends DoubleRatioArbitrerStrategy(market, param) {
   val (adapter, hash) = RubyStrategyLoader[RubyDoubleRatioAdapter, RubyDoubleRatioStrategy](this)
   val symbolA: Stock = adapter.symbolA

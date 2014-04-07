@@ -165,9 +165,9 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
     //Log(RBSFactory.mongoOutputSymbol)
 
     val position = outContent.get("position").get.asInstanceOf[HashMap[Stock, Position]]
-    val marketLast = outContent.get("marketLast")
 
-    val results = List("Orders" -> list, "sID" -> sId, "simID" -> id, "Input" -> inContent, "PNL" -> pnl2, "marketLast" -> marketLast, "md5" -> md5, "inputHash" -> inputHash, "inputStr" -> inputStr, "date" -> date) ++ infoFarm.get()
+
+    val results = List("Orders" -> list, "sID" -> sId, "simID" -> id, "Input" -> inContent, "PNL" -> pnl2, "md5" -> md5, "inputHash" -> inputHash, "inputStr" -> inputStr, "date" -> date) ++ infoFarm.get()
     MongoDBObject(results)
   }
 
