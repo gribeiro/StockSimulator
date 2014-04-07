@@ -184,6 +184,8 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     windows <-- newWin
     newWin
   }
+  
+  
   def createRatioMAvg(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
 
 

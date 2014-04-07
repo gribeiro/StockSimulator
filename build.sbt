@@ -8,17 +8,17 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.1"
+version := "1.1.1"
 
 scalaVersion := "2.10.3"
 
 publishMavenStyle := true
 
-pomIncludeRepository := { x => false }
+pomIncludeRepository := { x => true }
 
 seq(aetherPublishSettings: _*)
 
-resolvers += "Sonatype Nexus Repository Manager" at "http://apps.fiveware.com.br/nexus/content/repositories/releases/"
+resolvers += "Sonatype Nexus Manager Repository" at "http://apps.fiveware.com.br/nexus/content/repositories/releases/"
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
@@ -53,7 +53,7 @@ libraryDependencies += "org.jruby" % "jruby" % "1.7.10"
 
 //libraryDependencies ++= List("org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full)
 
-libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.1.0" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 
 libraryDependencies +=
 "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
@@ -86,7 +86,7 @@ publishTo := {
     Some("releases"  at nexus + "content/repositories/releases")
 }
 
-credentials += Credentials("Sonatype Nexus Repository Manager", "apps.fiveware.com.br", "georges.ribeiro", "robo123")
+credentials += Credentials("Sonatype Nexus Repository Manager", "apps.fiveware.com.br", "admin", "five2013")
 
 publishArtifact in (Compile, packageDoc) := false
 

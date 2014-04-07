@@ -42,7 +42,6 @@ object MemoryCompiler {
 		val name = savedName
 		val source = savedSource
 		JavaComp.load(name, source)
-	
 		
 }
 	

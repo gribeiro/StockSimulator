@@ -17,22 +17,15 @@ abstract class RatioArbitrerStrategy(market: Market, param: Parameters) extends 
   val spread_max: Int = p"spread_max"
   val timeToExit: Int = p"time_exit"
 
-  val timeExitCallBack = new SimpleCallBack(timeToExit * 1000, timeExitCallBackExec)
-  -timeExitCallBack
-  windows <-- timeExitCallBack
+
 
 
   lazy val mvAvg = createRatioMAvg(symbolA, symbolB, elapsed / 1000, elapsed);
 
-  def timeExitCallBackExec(): Unit = {
-    Log("Time is up! Exiting position...")
-    exitPosition(symbolA, 50.0)
-    -timeExitCallBack
-  }
+
   def onQuotes() = {
 
     val pos = getPosition(symbolA).quantity
-    if (Math.abs(pos) >= maxPos) -timeExitCallBack else +timeExitCallBack
     if (mvAvg.isAvailable) {
       val infoPair = (getSymbol(symbolA), getSymbol(symbolB))
       infoPair match {

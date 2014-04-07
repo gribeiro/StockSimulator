@@ -163,19 +163,10 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
 
     val inputStr = in.inputStr
     //Log(RBSFactory.mongoOutputSymbol)
-    val tempStock = outContent.get("marketLast").get.asInstanceOf[Map[Stock, StockInfo]].get(RBSFactory.mongoOutputSymbol).get
 
-    val PNLStock = RBSFactory.mongoOutputSymbol
     val position = outContent.get("position").get.asInstanceOf[HashMap[Stock, Position]]
-    val marketLast = (tempStock, position.get(PNLStock).get.quantity) match {
-      case (a: Quote, pos) => if (pos >= 0) a.bid.price else a.ask.price
-      case (t: Trade, _) => t.priceVol.price
-    }
+    val marketLast = outContent.get("marketLast")
 
-    val qtd = position.get(PNLStock).get.quantity
-    val caixa = position.get(PNLStock).get.pnl
-    val acc = if (qtd <= 0) qtd * marketLast else qtd * marketLast
-    val pnl = caixa + acc
     val results = List("Orders" -> list, "sID" -> sId, "simID" -> id, "Input" -> inContent, "PNL" -> pnl2, "marketLast" -> marketLast, "md5" -> md5, "inputHash" -> inputHash, "inputStr" -> inputStr, "date" -> date) ++ infoFarm.get()
     MongoDBObject(results)
   }

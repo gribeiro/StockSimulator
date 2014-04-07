@@ -37,13 +37,17 @@ class OptionStock(stock: Stock) extends Promotion[Stock](stock) {
   }
   
   override def demote:Stock = {
-    (date, strike) match {
+    val demoteToStock = (date, strike) match {
       case (Some(dt), Some(str)) =>
-        getSymbol(str, dt)
+        Stock(getSymbol(str, dt))
       case (_, _) => stock
     }
+    demoteToStock.addPromotion(this)
+    demoteToStock
   }
 } 
+
+
 case class Stock(name: String) extends Promotable[Stock] {
   def checkOption(date: String): Stock = {
     val formater = ReutersCommon.microDateFormat

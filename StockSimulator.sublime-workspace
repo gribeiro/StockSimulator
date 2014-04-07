@@ -1,0 +1,1197 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"java",
+				"javaFilename"
+			],
+			[
+				"sym",
+				"symbolC"
+			],
+			[
+				"Sy",
+				"symbolB"
+			],
+			[
+				"sy",
+				"symbolC"
+			],
+			[
+				"symbol",
+				"symbolB"
+			],
+			[
+				"JAva",
+				"JavaStdStrategy"
+			],
+			[
+				"cur",
+				"currentStrat"
+			],
+			[
+				"Java",
+				"JavaStdStrategy"
+			],
+			[
+				"stra",
+				"strategy"
+			],
+			[
+				"saved",
+				"savedSource"
+			],
+			[
+				"sa",
+				"savedName"
+			],
+			[
+				"sav",
+				"savedSource"
+			],
+			[
+				"save",
+				"savedName"
+			],
+			[
+				"sc",
+				"scriptToLoad"
+			],
+			[
+				"new",
+				"newStrat"
+			],
+			[
+				"ne",
+				"newStrat"
+			],
+			[
+				"toU",
+				"toURL"
+			],
+			[
+				"toUR",
+				"toURI"
+			],
+			[
+				"opt",
+				"optionList"
+			],
+			[
+				"Ruby",
+				"RubyBS"
+			],
+			[
+				"file",
+				"fileSrc"
+			],
+			[
+				"s",
+				"stocksimulator"
+			],
+			[
+				"imp",
+				"import"
+			],
+			[
+				"Arra",
+				"ArrayBuffer"
+			],
+			[
+				"mixed",
+				"mixedSell"
+			],
+			[
+				"spre",
+				"spread_max"
+			],
+			[
+				"en",
+				"entrada_saida"
+			],
+			[
+				"entr",
+				"entrada"
+			],
+			[
+				"sprea",
+				"spread_min"
+			],
+			[
+				"entra",
+				"entrada_saida"
+			],
+			[
+				"tim",
+				"time_exit"
+			],
+			[
+				"time",
+				"time_exit_range"
+			],
+			[
+				"to",
+				"to_int"
+			],
+			[
+				"symb",
+				"symbolA"
+			],
+			[
+				"sai",
+				"saida_range"
+			],
+			[
+				"ela",
+				"elapsed_range"
+			],
+			[
+				"date",
+				"dateRB"
+			],
+			[
+				"rb",
+				"rbKlass"
+			],
+			[
+				"tra",
+				"tradingSymbol"
+			],
+			[
+				"sma",
+				"smaDiff"
+			],
+			[
+				"sm",
+				"smaDiff"
+			],
+			[
+				"__",
+				"__memory"
+			],
+			[
+				"_",
+				"__memory"
+			],
+			[
+				"bar",
+				"bars"
+			],
+			[
+				"getCu",
+				"getCurrentBuyPrice"
+			],
+			[
+				"getCur",
+				"getCurrentBuyPrice"
+			],
+			[
+				"adj",
+				"adjusted_return"
+			],
+			[
+				"is",
+				"isfile"
+			],
+			[
+				"get",
+				"getEquity"
+			],
+			[
+				"__cr",
+				"__crS"
+			],
+			[
+				"buy",
+				"buyquote"
+			],
+			[
+				"bu",
+				"buyquote"
+			],
+			[
+				"enter",
+				"enterLong"
+			],
+			[
+				"SELL",
+				"SELLQUOTE"
+			],
+			[
+				"PET",
+				"PETRStrategy"
+			],
+			[
+				"ac",
+				"actualInstrument"
+			],
+			[
+				"BUY",
+				"BUYQUOTE"
+			],
+			[
+				"buyf",
+				"buyfile"
+			],
+			[
+				"B",
+				"BUYQUOTE"
+			],
+			[
+				"by",
+				"buyquote"
+			],
+			[
+				"sell",
+				"sellquote"
+			],
+			[
+				"sel",
+				"sellfile"
+			],
+			[
+				"wri",
+				"writeRow"
+			],
+			[
+				"fi",
+				"fieldnames"
+			],
+			[
+				"dic",
+				"DictWriter"
+			],
+			[
+				"in",
+				"inputFile"
+			],
+			[
+				"__ask",
+				"__askPrice"
+			],
+			[
+				"ask",
+				"askSize"
+			],
+			[
+				"__bi",
+				"__bidSize"
+			],
+			[
+				"__bid",
+				"__bidSize"
+			],
+			[
+				"bid",
+				"bidPrice"
+			],
+			[
+				"my",
+				"myCSV"
+			],
+			[
+				"sha",
+				"shares_to_buy"
+			],
+			[
+				"__i",
+				"__inc"
+			],
+			[
+				"aj",
+				"adjusted_return"
+			],
+			[
+				"ad",
+				"adjusted_return"
+			],
+			[
+				"use",
+				"used_ds"
+			],
+			[
+				"run",
+				"run_strategy"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/main/scala/com/stocksimulator/parallel/Protocol.scala",
+			"settings":
+			{
+				"buffer_size": 2383,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/main/RubyBS.scala",
+			"settings":
+			{
+				"buffer_size": 5302,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/remote/RemoteBootstrap.scala",
+			"settings":
+			{
+				"buffer_size": 1618,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/common_strategies/RubyStrategy.scala",
+			"settings":
+			{
+				"buffer_size": 2751,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/java_loader/MemoryCompiler.scala",
+			"settings":
+			{
+				"buffer_size": 1356,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/java_loader/JavaLoader.scala",
+			"settings":
+			{
+				"buffer_size": 1198,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "ExampleStrategy.strategy",
+			"settings":
+			{
+				"buffer_size": 2050,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/reuters/ReutersMongoFeed.scala",
+			"settings":
+			{
+				"buffer_size": 6563,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "ewz.rb",
+			"settings":
+			{
+				"buffer_size": 3421,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 62 files for \"::\"\n\nC:\\Users\\FWETP-005\\Dropbox\\GKRIBEIRO\\StockSimulator\\src\\main\\scala\\com\\stocksimulator\\helpers\\ParamGenerator.scala:\n   21                params += param\n   22              }\n   23:           case x :: xs =>\n   24              val (from, to, step, name) = x\n   25              for (i <- from to to by step) {\n\nC:\\Users\\FWETP-005\\Dropbox\\GKRIBEIRO\\StockSimulator\\src\\main\\scala\\com\\stocksimulator\\reuters\\ReutersCsvFeed.scala:\n   56      (f: LineInfo) =>\n   57        {\n   58:         val filterList = ((f.sType == \"Trade\" && f.price != \"0\") || (f.sType == \"Quote\" && f.askPrice != \"0\" && f.bidPrice != \"0\")) :: List(f.ric == x.name)\n   59          val res = filterList.reduceRight(_ && _)\n   60          res\n   ..\n  165        val ns = s.par.filter(li => !stock(li.ric)).toStream\n  166        val newRic = ns match {\n  167:         case x #:: xs => x.ric\n  168          case Stream.Empty => None\n  169        }\n\n3 matches across 2 files\n",
+			"settings":
+			{
+				"buffer_size": 965,
+				"line_ending": "Windows",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "src/main/scala/com/stocksimulator/reuters/ReutersCsvFeed.scala",
+			"settings":
+			{
+				"buffer_size": 5874,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "derived.rb",
+			"settings":
+			{
+				"buffer_size": 3626,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/Y/Simulador/4Workers.bat",
+			"settings":
+			{
+				"buffer_size": 137,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/Y/Simulador/1Worker.bat",
+			"settings":
+			{
+				"buffer_size": 137,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 400.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/.gitignore",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/java/com/stocksimulator/java/JavaSourceFromString.java",
+		"/C/Users/FWETP-005/Downloads/CompileSourceInMemory.java",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/.classpath",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/remote/RemoteWorkers.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/remote/Protocol.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/main/BSAdapter.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/helpers/ParamGenerator.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/main/RubyBS.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/common_strategies/CommonArbitrerStrategy.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/common_strategies/DoubleRatioArbitrerStrategy.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/abs/Strategy.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/common_strategies/SpreadDinamico.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/abs/StockInfo.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/parallel/Master.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/fancy_output/Mongo.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/parallel/Result.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/main/Bootstrap.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/src/main/scala/com/stocksimulator/abs/TimeControl.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/project/plugins.sbt",
+		"/C/Users/FWETP-005/Desktop/EWZ.txt",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/.git/config",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/mapReduce.js",
+		"/C/Users/FWETP-005/Desktop/ScalaWS/ResultReader/build.sbt",
+		"/C/Users/FWETP-005/Desktop/ScalaWS/ResultReader/src/main/scala/Main.scala",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/.git/index",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/.git/refs/heads/master",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/ewz.rb",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/TAQ_EWZDOLc1WINc1_19_03_2014.csv",
+		"/C/Program Files (x86)/sbt/bin/sbt.bat",
+		"/C/Program Files (x86)/sbt/conf/sbtconfig.txt",
+		"/C/Program Files (x86)/sbt/bin/sbt",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/run.rb",
+		"/C/Users/FWETP-005/Desktop/tradesEWZ.txt",
+		"/C/Users/FWETP-005/Desktop/multiComponent.txt",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/TAQ_INDc1WINc1_11_02_2014.csv",
+		"/C/Users/FWETP-005/Desktop/nova_simul.txt",
+		"/C/mongodb-win32-x86_64-2008plus-2.4.9/mongodb-win32-x86_64-2008plus-2.4.9/bin/mong--start.bat",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/estatisticas",
+		"/C/Users/FWETP-005/RubyStrategy.rb",
+		"/C/Users/FWETP-005/Desktop/output2.txt",
+		"/C/Users/FWETP-005/Desktop/tempo_correto.txt",
+		"/C/Users/FWETP-005/Desktop/result.txt",
+		"/C/Users/FWETP-005/Desktop/elapsed=500000_spread_entrada=200_porc_spread_saida=100.txt",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/TAQ_ISPc1WINc1_06_03_2014.csv",
+		"/C/Users/FWETP-005/Desktop/MelhorSharpe.txt",
+		"/C/Users/FWETP-005/Desktop/MelhorPNL.txt",
+		"/C/Users/FWETP-005/Desktop/elapsed=500000_spread_entrada=200_porc_spread_saida=80.txt",
+		"/C/Users/FWETP-005/Desktop/output.txt",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/settings.xml",
+		"/C/Users/FWETP-005/Downloads/TRTHAPIQuickStartPackageJava5.7.22012/TRTH API Quick Start Package Java 5.7.2/TRTHJavaQuickStart/src/com/thomsonreuters/tickhistory/sample/TRTHFTPSample.java",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/JavaWS/rth-connector/rth-connector-core/TAQ_VALE3_SAGGBR4_SA_10_12_2013.csv",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/JavaWS/rth-connector/rth-connector-core/TAQ_VALE3_SA_10_12_2013.csv",
+		"/C/apache-maven-3.2.1/conf/settings.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/JavaWS/rth-connector/rth-connector-core/TAQ_VALE3_SAGGBR4_SA_10_12_2013.csv.gz",
+		"/C/clientdata/SP500.csv",
+		"/C/clientdata/SP500-sexta.csv",
+		"/C/Users/FWETP-005/test.js",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_de0dd31a-2852-4735-a9f3-186967b67f3c_sp500.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_9de4dc97-8d7c-4626-83f8-2d2dcf073e41_sp500.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_7080965b-fe0a-4a28-b66a-3f85ad256c20_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_c8686399-9fdf-4e7d-9c64-be7b944d48a9_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_8af2477c-6ffa-434b-affb-5951035f1038_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_95bf5aba-0c4d-4690-a292-4a9ebf68dee9_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_caf93a06-f2ab-4c33-b3c8-e52ded158ade_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_8b097769-c82a-4466-ba9e-7f06ab38a6b7_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_f9bdb711-805c-440b-951a-bcbf3e710326_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_d3f1aefe-8ddf-44e8-92d2-e9caf8ed86f6_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_8c8b3e0b-1e9d-4f1b-acc0-e23b29553e4b_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_73769c38-4868-4e51-8dc6-4e0e48476d38_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_d8917dd4-183a-4390-b12c-bc971831a6ae_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_1431394a-7af2-491b-8feb-9801855d3f2c_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_e6cb9f35-d5ed-4aa1-b0e2-5248dd012a18_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_a517ac1d-dc3e-4644-aac6-1e23cb7e3652_sp500.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_335ebff8-4b81-43ee-bbff-4618af1d7060_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_8e906105-3ec4-4d92-b5f6-9b939773dff5_FireProof.xml",
+		"/C/Users/FWETP-005/AppData/Roaming/Sublime Text 2/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_e9592acc-d977-427f-8d03-7fe1b13742ed_FireProof.html",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_eaca2a3e-73af-486c-8ccf-c80f8c77417f_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_c83cdf7a-8aeb-4c24-be6b-d94361f75425_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_cda81b92-d2ed-402c-9032-6d35d8c81a89_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_7405683a-facd-4bff-ada5-e5a1ab75ed78_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_d79f0042-a9e1-46ea-a7f9-913118fd157c_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_143f5470-5bb2-4206-a5a2-078fed3688e4_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_1d2f94e1-b1d2-4c66-977a-1648f788a37c_FireProof.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_1f22b9cf-3df7-478a-bc2d-8dd450cf4fa6_sp500.xml",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_c916b59a-3f3b-4a1e-95f2-10207ce5946a_sp500.json",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/StockSimulator/StockSimulator/output/res_28e5c3c0-0669-4b3c-ac2a-1f87d117fd64_sp500.json",
+		"/C/clientdata/teste.csv",
+		"/C/FIXServer/conf/fixserver.cfg",
+		"/C/FIXServer/conf/fixMarketData.cfg",
+		"/C/FIXServer/conf/com/fiveware/simuladorclient/banzai/banzai.cfg",
+		"/C/FIXServer/logs/fixserver/FIX.4.4-EXEC-BANZAI.event.log",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/PairTrade/oldtrade.cpp",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui/FASTMarketDataFULL.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui/FASTMarketDataINC.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui.o/FASTMarketDataINC.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui.o/FASTMarketDataFULL.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui.o/FASTMarketDataSEC.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/mkdata/bookViewer.cfg",
+		"/C/FIXServer/conf/com/fiveware/qfix/server/ui/FASTMarketDataSEC.cfg",
+		"/C/FIXServer/logs/fixserver/FIX.4.4-EXEC-CPP1-ORS.messages.log",
+		"/C/clientdata/simulacro.csv",
+		"/Y/arista.txt",
+		"/C/pythonWS/TAQ_PETR3_SA_03_01_2014.csvS",
+		"/C/pythonWS/myalgotrade/quote.py",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/barfeed/__init__.py",
+		"/C/pythonWS/alpha_strategy.py",
+		"/C/Users/FWETP-005/Downloads/MarketMaker.h",
+		"/C/Users/FWETP-005/Downloads/MarketMaker.cpp",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/strategy/position.py",
+		"/C/Users/FWETP-005/Dropbox/GKRIBEIRO/pythonWS/tutorial_strategy.py",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/broker/backtesting.py",
+		"/C/pythonWS/TAQ_PETR3_SA_03_01_2014.csvB",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/marketsession.py",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/strategy/__init__.py",
+		"/C/pythonWS/pyalgotrade-master/pyalgotrade/broker/__init__.py",
+		"/C/pythonWS/TAQ_PETR3.SA_03_01_2014.csv",
+		"/C/Users/FWETP-005/AppData/Roaming/Sublime Text 2/Packages/Default/Default (Windows).sublime-keymap",
+		"/C/pythonWS/load_csv.py",
+		"/C/pythonWS/server.py",
+		"/C/pythonWS/tutorial_strategy.py",
+		"/C/pythonWS/TAQ_PETR3-pyalgo1.csv",
+		"/C/pythonWS/TAQ_PETR3-pyalgo.csv",
+		"/C/pythonWS/TAQ_PETR3-pyalgo3.csv",
+		"/C/pythonWS/orcl-2000.csv",
+		"/C/pythonWS/TAQ_PETR3-pyalgo2.csv",
+		"/C/Users/FWETP-005/Documents/TAQ_PBR_18_12_2013.csv"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"<open files>,C:\\Users\\FWETP-005\\Dropbox\\GKRIBEIRO\\StockSimulator\\src\\main\\scala",
+			"<open files>",
+			"C:\\FIXServer\\",
+			"C:\\FIXServer\\logs",
+			"<open files>,C:\\FIXServer\\logs",
+			"Y:\\",
+			"W:\\",
+			"Y:\\FIXServer",
+			"C:\\FIXServer"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"::",
+			"strategyType",
+			"date",
+			"N/A",
+			"09:35:22.655",
+			"10:35:22.655",
+			"INDc1",
+			"17:25:00",
+			"17:25:0",
+			"55",
+			"17:10:01.819",
+			"2014-02-11T17:10:01.819-02:0",
+			"9",
+			"MSECO",
+			"IND",
+			"INDc1",
+			"2014-02-21",
+			"2014-02-19",
+			"instMaker",
+			"Writing",
+			"10",
+			"2014-02-11T17:12:45.494",
+			"ISPc1",
+			"NOO",
+			"Noo",
+			"17:12:45",
+			"17:11:31",
+			",",
+			"17:24",
+			"15:24",
+			",",
+			"90.10",
+			"WDOG",
+			"WDOG14",
+			"PETRA",
+			"WINc1",
+			"PETRA17",
+			"15.87",
+			"broker",
+			"exit",
+			"Feed",
+			"Position",
+			"position",
+			"positiobn",
+			"onBars",
+			"__orderUpdatedEvent",
+			"onOrderUpdated",
+			"getOrderUpdatedEvent",
+			"isAcc",
+			"commitOrderExecution",
+			"Broker",
+			"broker",
+			"ident",
+			"reident",
+			"alias",
+			"font"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			",\\n"
+		],
+		"reverse": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 10,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/main/scala/com/stocksimulator/parallel/Protocol.scala",
+					"settings":
+					{
+						"buffer_size": 2383,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1289,
+								1289
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/main/scala/com/stocksimulator/main/RubyBS.scala",
+					"settings":
+					{
+						"buffer_size": 5302,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1710.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/main/scala/com/stocksimulator/remote/RemoteBootstrap.scala",
+					"settings":
+					{
+						"buffer_size": 1618,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1241,
+								1241
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/main/scala/com/stocksimulator/common_strategies/RubyStrategy.scala",
+					"settings":
+					{
+						"buffer_size": 2751,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								211,
+								211
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/main/scala/com/stocksimulator/java_loader/MemoryCompiler.scala",
+					"settings":
+					{
+						"buffer_size": 1356,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1059,
+								1059
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/main/scala/com/stocksimulator/java_loader/JavaLoader.scala",
+					"settings":
+					{
+						"buffer_size": 1198,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "ExampleStrategy.strategy",
+					"settings":
+					{
+						"buffer_size": 2050,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								430,
+								430
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Java/Java.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/main/scala/com/stocksimulator/reuters/ReutersMongoFeed.scala",
+					"settings":
+					{
+						"buffer_size": 6563,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1147,
+								1147
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 90.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "ewz.rb",
+					"settings":
+					{
+						"buffer_size": 3421,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1911,
+								1911
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Ruby/Ruby.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1215.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"settings":
+					{
+						"buffer_size": 965,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										227,
+										229
+									],
+									[
+										636,
+										638
+									],
+									[
+										868,
+										870
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								637,
+								637
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "src/main/scala/com/stocksimulator/reuters/ReutersCsvFeed.scala",
+					"settings":
+					{
+						"buffer_size": 5874,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5036,
+								5036
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Scala/Scala.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "derived.rb",
+					"settings":
+					{
+						"buffer_size": 3626,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1798,
+								1798
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Ruby/Ruby.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 495.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "/Y/Simulador/4Workers.bat",
+					"settings":
+					{
+						"buffer_size": 137,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								137,
+								137
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Batch File/Batch File.tmLanguage"
+						},
+						"translation.x": 74.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/Y/Simulador/1Worker.bat",
+					"settings":
+					{
+						"buffer_size": 137,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								137,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Batch File/Batch File.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"paramgen",
+				"StockSimulator/src/main/scala/com/stocksimulator/helpers/ParamGenerator.scala"
+			],
+			[
+				"plugi",
+				"StockSimulator/project/plugins.sbt"
+			],
+			[
+				"stra",
+				"StockSimulator/src/main/scala/com/stocksimulator/abs/Strategy.scala"
+			],
+			[
+				"mongo",
+				"StockSimulator/src/main/scala/com/stocksimulator/fancy_output/Mongo.scala"
+			],
+			[
+				"bootstrap.scal",
+				"StockSimulator/src/main/scala/com/stocksimulator/main/Bootstrap.scala"
+			],
+			[
+				"timecon",
+				"StockSimulator/src/main/scala/com/stocksimulator/abs/TimeControl.scala"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 203.0,
+	"status_bar_visible": true
+}

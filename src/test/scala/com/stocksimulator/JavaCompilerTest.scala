@@ -21,7 +21,6 @@ class CompilerTest extends FlatSpec {
       }
       """
     val teste = MemoryCompiler("HelloWorld", stringToCompile)
-    val klass = Class.forName("HelloWorld")
-    val method = klass.getDeclaredMethod("main", null);
+
   }
 }
