@@ -8,11 +8,11 @@ java_import 'com.stocksimulator.common_strategies.RubyRatioAdapter'
 class Variables
 	
 	def self.symbolA 
-		"PETR4.SA"
+		"PETR4$16"
 	end
 
 	def self.symbolB
-		"PETR4$16"
+		"INDc1"
 	end
 end
 class Start < RBSFactory
@@ -20,7 +20,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = [Variables.symbolB, Variables.symbolA] #INDc1
-		self.setOutputName("teste")
+		self.setOutputName("testeUnitario")
 		self.setMongoOutputSymbol(Variables.symbolA)
 		self.setLog(true)
 		cleanSymbols()

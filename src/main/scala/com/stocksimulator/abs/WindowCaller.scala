@@ -64,6 +64,7 @@ abstract class Windowable[T : Numeric] extends WindowTimeControl {
 	if(mSecondsAddDecrement <= 0) {
 	
 	  buffer += feeder.next()
+	  
 	  mSecondsAddDecrement = mSecondsToAdd
 	}
   }

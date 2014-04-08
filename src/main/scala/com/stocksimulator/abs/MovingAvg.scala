@@ -16,8 +16,7 @@ abstract class MovingWindow(windowSize: Int, elapsed: Int, update: () => Double)
 
 class MovingAvg(windowSize: Int, elapsed: Int, update: () => Double) extends MovingWindow(windowSize, elapsed, update) {
 	def calculate(): Double = {
-	  val values = getBuffer()
-	  val windowSize = values.size
+	  val values = getBuffer.take(windowSize)
 	  values.sum/windowSize.toDouble
 	}
 

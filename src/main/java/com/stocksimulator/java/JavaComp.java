@@ -67,10 +67,13 @@ public class JavaComp {
             null, jfiles).call();
   
         Class<?> klass = fileManager.getClassLoader(null).loadClass(fullName);
+        System.out.println("Fora do for");
    
         for (Class<?> cls : klass.getDeclaredClasses()) {
+        	System.out.println("Classe:" + cls.getName());
         	fileManager.getClassLoader(null).loadClass(cls.getName());
         }
+        System.out.println("Dps do for");
         // Creating an instance of our compiled class and
         // running its toString() method
         Object instance = klass.newInstance();
