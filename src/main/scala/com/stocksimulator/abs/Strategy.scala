@@ -84,7 +84,10 @@ object Strategy {
 }
  
 abstract class Strategy(market: Market, private val param: Parameters) extends BuySellAdapter {
-  implicit def ParamMaker2AnyT[T](pm: ParamMaker): T = this.getParam(pm.name).asInstanceOf[T]
+  implicit def ParamMaker2Int(pm: ParamMaker): Int = getIntParam(pm.name)
+  implicit def ParamMaker2Double(pm: ParamMaker): Double = this.getParam(pm.name).asInstanceOf[Double]
+  implicit def ParamMaker2String(pm: ParamMaker): String = this.getParam(pm.name).asInstanceOf[String]
+  
   type report = (Ticket, OrderResult) => Unit
   type tInfo = Iterable[(Ticket, OrderResult)]
   type mInfo = Map[Stock, StockInfo]
@@ -117,7 +120,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   def onSellReport(stock: Stock, volume: Int, price: Double)
 
   private val myTickets = new ListBuffer[Ticket]
-
+  val stocks = market.stocks
   private val position = new HashMap[Stock, Position]
   private var marketLast: mInfo = Map.empty[Stock, StockInfo]
   protected var lastTick: DateTime = new DateTime(0)
@@ -193,22 +196,24 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
       val precoA:Double = marketLast.get(stock1)
       val precoB:Double = marketLast.get(stock2)
 
-      bsVolCall(precoA, optionInfoB.strike, optionInfoB.r, precoB, optionInfoB.ratio)
+      val bsVol = bsVolCall(precoA, optionInfoB.strike, optionInfoB.r, precoB, optionInfoB.ratio)
+      
+      bsVol
     })
     windows <-- volWin
     val newWin = new MovingAvg(windowSize, elapsed, () => {
       
       if(volWin.isAvailable) {
       val mediaVol = volWin.lastVal()
+     
       val precoA:Double = marketLast.get(stock1)
       val precoB:Double = marketLast.get(stock2)
        
       
       val precoTeorico = priceEuropeanBlackScholesCall(precoA, optionInfoB.strike, optionInfoB.r, optionInfoB.ratio, mediaVol)
       
-      
 
-      val result = precoA over precoTeorico
+      val result = precoTeorico
 
       result
       } else 0

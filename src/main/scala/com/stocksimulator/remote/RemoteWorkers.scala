@@ -123,8 +123,7 @@ class MasterRemoteActor extends Actor {
       val allAdapters = loadRubyObj(fs)
 
       for (adapter <- allAdapters) {
-        if(!adapter.getBS.sharedMongo.haveData)
-        	adapter.getBS.sharedMongo.raw
+   
         val filename = adapter.myFilename
         val date = adapter.date
         jobMap += Job(filename, date, fs) -> JobToDo

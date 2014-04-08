@@ -43,20 +43,23 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
     val strategy = cStrat.getConstructor(classOf[Market], classOf[Parameters]).newInstance(market, param)
     strategy
   }
-  
-  
+
   private def bulkLoad = {
-     val optionInst = conf.inst.map {
+       val optionInst = conf.inst.map {
        inst => inst.checkOption(date)
      }
-     val sharedFeed = new ReutersSharedMongoFeed(optionInst, sharedMongo)
+       val sharedFeed = new ReutersSharedMongoFeed(optionInst, sharedMongo)
+   instruments = Some(sharedFeed.instruments)
+     
     memory = Some(sharedFeed.cloneContent)
-    instruments = Some(sharedFeed.instruments)
+   
+     
   }
+  bulkLoad
   def run() = {
     
    
-    bulkLoad
+   
     workers.master ! spMongoConfig(conf.mongoConfig)
     val uniqueParams = params.toArray.distinct
     Log("Job count after filter: " +uniqueParams.length) 

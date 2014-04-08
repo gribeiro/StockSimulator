@@ -40,6 +40,7 @@ import ExecutionContext.Implicits.global
 import com.stocksimulator.helpers._
 import com.stocksimulator.helpers.DateComposable._
 import com.stocksimulator.abs.AutoDemotion._
+import com.stocksimulator.common_strategies.RubyOptionSimpleStrategy
 
 class RBSFactory {}
 object RBSFactory {
@@ -118,7 +119,9 @@ trait RubyStrategyTypes  {
  
   def strategyTypes = Map("RubyRatioAdapter" -> classOf[RubyRatioStrategy],
     "RubyDoubleRatioAdapter" -> classOf[RubyDoubleRatioStrategy],
-    "TestStrategy" -> classOf[TestStrategy])
+    "TestStrategy" -> classOf[TestStrategy],
+  "RubyOptionAdapter"  -> classOf[RubyOptionSimpleStrategy]
+  )
   def generic = classOf[RubyStdStrategy]
 }
 abstract class RubyBSAdapter(val myFilename: String, date: String) extends BSAdapter(date) with RubyStrategyTypes {

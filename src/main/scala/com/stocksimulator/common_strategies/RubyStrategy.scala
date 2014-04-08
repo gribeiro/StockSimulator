@@ -51,7 +51,7 @@ abstract class RubyAdapter(val strategy: RubyStdStrategy) {
 abstract class RubyRatioAdapter(strategy: RubyRatioStrategy) {
   def symbolA: String
   def symbolB: String
-  def gran: Int
+  def gran: Double
   def maxPos: Int
   def step: Int
 }
@@ -60,6 +60,14 @@ abstract class RubyDoubleRatioAdapter(strategy: RubyDoubleRatioStrategy) {
   def symbolB: String
   def symbolC: String
   def gran: Int
+  def maxPos: Int
+  def step: Int
+}
+
+abstract class RubyOptionAdapter(strategy: RubyOptionSimpleStrategy) {
+  def symbolA: String
+  def symbolB: String
+  def gran: Double
   def maxPos: Int
   def step: Int
 }
@@ -82,9 +90,20 @@ class RubyRatioStrategy(market: Market, param: Parameters) extends RatioArbitrer
 }
 
 class RubyOptionSimpleStrategy(market: Market, param: Parameters) extends OptionSimpleStrategy(market, param) {
-  val (adapter, hash) = RubyStrategyLoader[RubyRatioAdapter, RubyOptionSimpleStrategy](this)
+ println("Strategy will be playing with " + stocks)
+  val optionSearch:Option[Stock] =  this.stocks.collectFirst {
+    case a:Stock if(a.isOption) => a
+  } 
+  
+  lazy val option = optionSearch match {
+    case Some(a) => a
+    case None => throw new Exception("Option stock not available")
+  }
+  
+  val (adapter, hash) = RubyStrategyLoader[RubyOptionAdapter, RubyOptionSimpleStrategy](this)
+  Log("Found adapter:" + adapter)
   val symbolA: Stock = adapter.symbolA
-  val symbolB: Stock = adapter.symbolB
+  val symbolB: Stock = option
   val gran = adapter.gran
   val maxPos = adapter.maxPos
   val step = adapter.step

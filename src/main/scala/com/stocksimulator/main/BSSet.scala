@@ -41,7 +41,7 @@ abstract class BSSet[T <: Strategy] {
 	protected val klass: Class[T]
 	protected val date: String
 
-	protected lazy val sharedMongo = new SharedMongo(mongoConfig, date, hourFilter)
+
 	lazy val bootstrap = new CommonBootstrap(conf, varParamList, klass, date)
 	
 	

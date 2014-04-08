@@ -5,6 +5,7 @@ import com.stocksimulator.reuters.ReutersCommon
 import org.joda.time.YearMonthDay
 import org.joda.time.DateTime
 import org.joda.time.Period
+import org.joda.time.Days
 
 case class OptionStockInfo(val strike: Int, val vencimento: Int, val mes: Int, val r: Double, val ratio: Double) extends PromotionInfo
 class OptionStock(stock: Stock) extends Promotion[Stock](stock) {
@@ -26,11 +27,11 @@ class OptionStock(stock: Stock) extends Promotion[Stock](stock) {
 
     vencimento = Some(OptionInstrument.vencimento(year, month))
    
-    val proxVenc =  if(month < 12) new YearMonthDay(year,month, OptionInstrument.vencimento(year, month+1)) else new YearMonthDay(year+1,1, OptionInstrument.vencimento(year+1, 1))
+    val proxVenc =  if(month < 12) new YearMonthDay(year,month+1, OptionInstrument.vencimento(year, month+1)) else new YearMonthDay(year+1,1, OptionInstrument.vencimento(year+1, 1))
     val vencAnt = if(month > 1) new YearMonthDay(year, month-1, OptionInstrument.vencimento(year, month-1)) else new YearMonthDay(year-1, 12, OptionInstrument.vencimento(year-1, 12))
-    val falta = (new Period(date.getMillis(), proxVenc.toDateTimeAtMidnight().getMillis())).getDays()
-    val total = (new Period(vencAnt.toDateTimeAtMidnight().getMillis(), proxVenc.toDateTimeAtMidnight().getMillis())).getDays()
-    ratio = Some(falta / total)
+    val falta = Days.daysBetween(date, proxVenc.toDateTimeAtMidnight()).getDays()
+    val total =  Days.daysBetween(vencAnt.toDateTimeAtMidnight(), proxVenc.toDateTimeAtMidnight()).getDays()
+    ratio = Some(falta.toDouble / 365)
     val vencimentoAtual = if (day <= vencimento.get) month else month - 1
     getSymbol(stdStrike, vencimentoAtual)
   }
@@ -44,8 +45,13 @@ class OptionStock(stock: Stock) extends Promotion[Stock](stock) {
   override def demote: Stock = {
     val demoteToStock = (date, strike) match {
       case (Some(dt), Some(str)) =>
-        val promotion = OptionStockInfo(strike.get, vencimento.get, dt.monthOfYear().get(), 0.11, ratio.get)
         val res = Stock(getSymbol(str, dt))
+        val vencimentoGetted = vencimento match {
+          case Some(venc) => venc
+          case None => throw new Exception("Vencimento should be available")
+        }
+        val promotion = OptionStockInfo(strike.get, vencimento.get, dt.monthOfYear().get(), 0.11, ratio.get)
+        
         res.addPromotionInfo(promotion)
         for(pinfos <- stock.promotions) res.addPromotionInfo(pinfos)
         res
@@ -62,8 +68,11 @@ case class Stock(name: String) extends Promotable[Stock] {
     val dateObj = formater.parseDateTime(date)
     this.promoteTo[OptionStock].setDate(dateObj).demote
   }
-
-  val isOption = _promotions.exists(promoInfo => promoInfo.isInstanceOf[OptionStockInfo])
+  
+  lazy val isOption = optionInfo match {
+    case Some(_) =>  true
+    case _ => false
+  }
   def optionInfo: Option[OptionStockInfo] = _promotions.collectFirst {
     case promoI: OptionStockInfo => promoI
   	}

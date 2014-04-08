@@ -14,7 +14,7 @@ object Market {
 abstract class Market(val components: List[MarketComponent] = List.empty[MarketComponent]) {
   //Ticket id
   type tickResult = (Map[Stock, StockInfo], ListBuffer[(Ticket, OrderResult)])
-  
+  val stocks: Set[Stock]
   protected var tickets = new LinkedHashSet[Ticket]
   private var ticketsBeforeProcessing = new LinkedHashSet[Ticket]
   protected val buyBook = new LinkedHashMap[Ticket, Book]

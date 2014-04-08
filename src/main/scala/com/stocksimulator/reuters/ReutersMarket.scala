@@ -17,7 +17,7 @@ import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
-
+  val stocks = feed.instruments
   val processed: HashSet[UUID] = HashSet.empty[UUID]
   val filters = mc.collect {
     case a: MarketComponentFilter => a
