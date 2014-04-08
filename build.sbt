@@ -8,7 +8,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.1.1"
+version := "1.1.3"
 
 scalaVersion := "2.10.3"
 
