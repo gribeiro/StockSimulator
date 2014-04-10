@@ -30,6 +30,26 @@ implicit class extraOperators(x: Double)  {
       })
     }
     
+    def buys = {
+      xs.filter {
+        t =>
+          t.order match {
+            case _: BuyOrder => true
+            case _ => false
+          }
+      }
+    }
+    
+    def sells = {
+      xs.filter {
+        t =>
+          t.order match {
+            case _: SellOrder => true
+            case _ => false
+          }
+      }
+    }
+    
     def getStock(st: Stock) = {
       xs.filter(t => t.order.stock == st)
     }

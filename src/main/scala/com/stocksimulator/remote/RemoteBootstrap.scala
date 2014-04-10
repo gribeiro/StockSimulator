@@ -34,7 +34,7 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
  
   def terminated = workers.terminated
   
-  def loadMongo() = sharedMongo
+  def loadMongo = sharedMongo
   
   def createBundle(param: Parameters) = {
      
@@ -68,6 +68,7 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: List[Parameter
     }
     workers.master ! spLast
     workers.system.awaitTermination()
+    Log("Local worker system terminated...")
   }
   
 }

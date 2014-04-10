@@ -19,7 +19,7 @@ case object spAllWorkDone extends stockSimProtocol
 case object spLast extends stockSimProtocol
 
 object ParCommon {
-     var hostname = "192.168.90.15"
+     var hostname = "BMF3"
      val config = ConfigFactory.parseString("" +
       "akka.loglevel=INFO\n" +
       "akka.debug.lifecycle=on\n" +
@@ -38,7 +38,7 @@ object ParCommon {
       "akka.actor.provider=\"akka.remote.RemoteActorRefProvider\"\n" +
       "akka.remote.enabled-transports=[\"akka.remote.netty.tcp\"]\n" +
       "akka.remote.netty.tcp.hostname=\""+hostname+"\"\n" +
-      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=600s\n" +
+      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=20s\n" +
       "akka.remote.netty.tcp.port="+port+"\n" +
     "")
     
@@ -50,7 +50,7 @@ object ParCommon {
       "akka.debug.unhandled=on\n" +
       "akka.actor.provider=\"akka.remote.RemoteActorRefProvider\"\n" +
       "akka.remote.enabled-transports=[\"akka.remote.netty.tcp\"]\n" +
-      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=600s\n" +
+      "akka.remote.watch-failure-detector.acceptable-heartbeat-pause=20s\n" +
       "akka.remote.netty.tcp.port=0\n" +
 
     "")

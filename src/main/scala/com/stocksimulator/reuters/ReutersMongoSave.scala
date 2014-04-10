@@ -15,6 +15,7 @@ import ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import com.stocksimulator.main.RBSFactory
 import com.stocksimulator.data_manger._
+import com.stocksimulator.helpers.RingBuffer
 object ReutersMongoSave {
   val dbColName = MongoClientSingleton.dbName
   def openFile(f: String) = {
@@ -53,12 +54,13 @@ object ReutersMongoSave {
     //val rawInfo = splitted.toStream
     //coll.drop()
     var i = 0
+    val size = 100000
     lines.drop(1)
-    val futures = ArrayBuffer.empty[Future[Boolean]]
+ 
     while (lines.hasNext) {
      
-      val buffer = new ArrayBuffer[(Int, String)]
-      while (lines.hasNext && buffer.size < 100000) {
+      val buffer = new RingBuffer[(Int, String)](size)
+      while (lines.hasNext && buffer.size < size) {
         val teste = lines.next
         val par = (i, teste)
         buffer += par

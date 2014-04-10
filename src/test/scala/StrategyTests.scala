@@ -14,6 +14,8 @@ import org.joda.time.LocalDate
 import com.stocksimulator.main.Bootstrap._
 import com.stocksimulator.debug.Log
 import com.stocksimulator.remote.CommonBootstrap
+import scalaz._
+import Scalaz._
 
 object TestFeed {
    val sTeste:Stock = "TESTE"
@@ -51,7 +53,7 @@ class TestFeed extends Feed {
      quote(99, 9, 101, 10),
      trade(99, 1)
      )
- 
+ val totalDataSize = infos.size
  val pointer = infos.iterator
  def next(): Map[Stock, StockInfo] = Map(TestFeed.sTeste -> pointer.next) 
 def hasNext(): Boolean	= pointer.hasNext

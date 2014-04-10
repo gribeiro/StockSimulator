@@ -36,7 +36,7 @@ abstract class BSSet[T <: Strategy] {
     
 	protected val inst: Set[Stock]
 	protected val mc: ListBuffer[MarketComponent]
-	protected val varParamList: List[Parameters]
+	protected def varParamList: List[Parameters]
 	protected val conf: BootstrapConf
 	protected val klass: Class[T]
 	protected val date: String
@@ -45,7 +45,7 @@ abstract class BSSet[T <: Strategy] {
 	lazy val bootstrap = new CommonBootstrap(conf, varParamList, klass, date)
 	
 	
-	def loadMongo() = bootstrap.loadMongo()
+	def loadMongo() = bootstrap.loadMongo
 	
 	
 	

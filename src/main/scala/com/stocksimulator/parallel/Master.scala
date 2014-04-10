@@ -40,6 +40,7 @@ class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) =>
   var counter = 0
   var doneCounter = 0
   var resultToBeDone = false
+
   var mongoConfig: Option[MongoConfig] = None
   def workerName() = {
     counter += 1

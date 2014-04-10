@@ -2,10 +2,21 @@ package com.stocksimulator.remote
 
 import akka.actor.ActorSelection
 import akka.actor.ActorRef
+import com.stocksimulator.abs.Parameters
 
 abstract class RemoteProtocol
-case class Job(filename: String, date: String, fs: String) extends RemoteProtocol
 
+case class Job(filename: String, date: String, fs: String, parameter: Array[String], name: String) extends RemoteProtocol {
+  val uuid =  java.util.UUID.randomUUID.toString
+  
+  override def equals(o: Any) = o match {
+    case j: Job => j.uuid == uuid
+    case _ => o.equals(this) 
+  }
+  override def hashCode = uuid.hashCode()
+}
+case object NewJobArrived extends RemoteProtocol
+case object WorkerJobRequest extends RemoteProtocol
 case class MasterJob(fs: String) extends RemoteProtocol
 case class Idle(jobDone: Job) extends RemoteProtocol
 case object QueueStatus extends RemoteProtocol

@@ -108,8 +108,13 @@ abstract class AdapterBSSet[T <: Strategy](rb: BSAdapter, val klass: Class[T]) e
   val miniHourFilter = HourFilter(from, to)
   override val hourFilter:Filter = if(excluded.size == 0) miniHourFilter else ExtendedHourFilter(miniHourFilter, excluded.toArray)
 
-
+  var explicitParameter: ArrayBuffer[Parameters] = ArrayBuffer.empty[Parameters]
+  
+  def addExplicitParameter(param: Parameters) = {
+    explicitParameter += param
+  }
   def varParam: Array[Parameters] = rb.varParam
+  def actualVarParam: Array[Parameters] = if(explicitParameter.size > 0) explicitParameter.toArray else rb.varParam
 
   //RubyStrategyLoader.filename = rbFilename
   //RubyStrategyLoader.klass = rbKlass
@@ -130,10 +135,10 @@ abstract class AdapterBSSet[T <: Strategy](rb: BSAdapter, val klass: Class[T]) e
   }
   mc += ReutersMarketComponents.standardBookOrder(bookOrder)
 
-  val varParamSz = varParam.size
+  def varParamSz = actualVarParam.size
   Log(s"It'll run $varParamSz simulations...")
   val conf = BootstrapConf(filename, mongoConfig, actorsQtd, name, inst, mc.toList, hourFilter)
-  val varParamList = varParam.toList
+  def varParamList = actualVarParam.toList
 
   Log("Starting bootstrap...")
 }

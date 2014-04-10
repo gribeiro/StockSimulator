@@ -2,7 +2,7 @@ package com.stocksimulator.abs
 
 import com.stocksimulator.debug.Log
 
-abstract class MovingWindow(windowSize: Int, elapsed: Int, update: () => Double) extends Windowable[Double] with WindowParam[Double] {
+abstract class MovingWindow(windowSize: Int, elapsed: Int, update: () => Double) extends Windowable[Double](windowSize) with WindowParam[Double] {
 	val mSecondsToRun = elapsed
 	
 	val mSecondsToAdd = elapsed/windowSize
@@ -16,7 +16,7 @@ abstract class MovingWindow(windowSize: Int, elapsed: Int, update: () => Double)
 
 class MovingAvg(windowSize: Int, elapsed: Int, update: () => Double) extends MovingWindow(windowSize, elapsed, update) {
 	def calculate(): Double = {
-	  val values = getBuffer.take(windowSize)
+	  val values = getBuffer
 	  values.sum/windowSize.toDouble
 	}
 

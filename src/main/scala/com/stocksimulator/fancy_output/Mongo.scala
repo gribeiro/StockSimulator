@@ -24,6 +24,7 @@ object PNL {
   tabela("WDOc1") = 10
   tabela("DOLc1") = 50
   def apply(param: Parameters) = {
+
     if (param.size > 0) {
       val unwrapped = param.unwrap
       val position = unwrapped("position").asInstanceOf[HashMap[Stock, Position]]
@@ -136,7 +137,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
   private val inContent = in.unwrap.toMap
   private val outContent = if (out == null) Map.empty[String, Object] else out.unwrap.toMap
 
-  private val pnl2 = PNL(out)
+  private val pnl2 = if(outContent.size > 0) PNL(out) else 0.0
   private val inputHash = Utils.md5Hash(inContent.toString)
   private val infoFarm = new ExtraInfoFarm[Double](in, out)
 

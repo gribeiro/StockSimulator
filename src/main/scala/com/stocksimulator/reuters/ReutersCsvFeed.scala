@@ -10,6 +10,7 @@ import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.debug._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.MutableList
+import com.stocksimulator.helpers.RingBuffer
 
 abstract class GeneralInfo(val ric: String, val date: String, val time: String, val gmt: String, val sType: String, val price: String, val volume: String, val bidPrice: String, val bidSize: String, val askPrice: String, val askSize: String)
 case class LineInfo(ric: String, date: String, time: String, gmt: String, sType: String, price: String, volume: String, bidPrice: String, bidSize: String, askPrice: String, askSize: String, dateTime: DateTime)
@@ -60,7 +61,8 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set(), dis
 
   def intGetter(stock: Stock, s: String, memVector: LinkedHashMap[Stock, Int]) = memoryGetter[Int](s => s.toInt)(stock, s, memVector)
   def doubleGetter(stock: Stock, s: String, memVector: LinkedHashMap[Stock, Double]) = memoryGetter[Double](s => s.toDouble)(stock, s, memVector)
-  val memory = ArrayBuffer.empty[Map[Stock, StockInfo]]
+ val totalDataSize = rawInfo.length
+  val memory = new RingBuffer[Map[Stock, StockInfo]](totalDataSize)//ArrayBuffer.empty[Map[Stock, StockInfo]]
 
   while (this) {
     memory += !this
@@ -71,9 +73,7 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set(), dis
   private def filters(x: Stock) = {
     (f: LineInfo) =>
       {
-        val filterList = ((f.sType == "Trade" && f.price != "0") || (f.sType == "Quote" && f.askPrice != "0" && f.bidPrice != "0")) +: MutableList(f.ric == x.name)
-        val res = filterList.reduceRight(_ && _)
-        res
+       ((f.sType == "Trade" && f.price != "0") || (f.sType == "Quote" && f.askPrice != "0" && f.bidPrice != "0") && f.ric == x.name)
       }
   }
   def hasNext(): Boolean = {
@@ -159,8 +159,8 @@ class ReutersCsvFeed(filename: String, knownInstruments: Set[Stock] = Set(), dis
   }
 
   def makeLineInfo(list: Array[String]) = {
-    val vect = list.to[Vector]
-    val dtime = List(vect(1), vect(2)) mkString " "
+    val vect = list
+    val dtime = Array(vect(1), vect(2)) mkString " "
     val datetime =  try {
       DateTime.parse(dtime, dateFormat)
     }

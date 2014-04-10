@@ -19,7 +19,7 @@ class Start < RBSFactory
 
 	def self.setVar()
 		papers = [Variables.symbolB, Variables.symbolA] #INDc1
-		self.setOutputName("PETROption2".to_java)
+		self.setOutputName("PETROption".to_java)
 		self.setLog(true)
 		cleanSymbols()
 		for paper in papers
@@ -28,8 +28,8 @@ class Start < RBSFactory
 	end
 	
 	def self.run()
-
-		dates = ["02/04/2014","03/04/2014","07/04/2014", "04/04/2014"]
+		#dates = []
+		dates = ["02/04/2014"]
 		self.setVar()
 
 		ret = []
@@ -64,7 +64,7 @@ class RubyConf < RubyBSAdapter
 		
 		@from = "10:10:00"
 		@to = "17:00:00"
-		@name = "OptionPetr"
+		@name = "GeorgesJob"
 		@dbLookUp = "PETROption2"
 		@dateRB = date
 		@bookOrder = to_int(30)
@@ -82,7 +82,7 @@ class RubyConf < RubyBSAdapter
 	end
 	
 	def mConfig
-		mongoConfigMaker("192.168.90.15", 27017, @dbLookUp+@dateRB, myFilename)
+		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
 	end 
 
 	def myInst
@@ -91,7 +91,7 @@ class RubyConf < RubyBSAdapter
 
 
 	def varParam()
-		addParam(50.0,200.0,5.0,"elapsed")
+		addParam(50.0,200.0,50.0,"elapsed")
 		addParam(0.0, 0.2, 0.02, "spread")
 		generateParams
 	end

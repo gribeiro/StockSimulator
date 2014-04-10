@@ -3,6 +3,7 @@ package com.stocksimulator.abs
 import scala.collection.mutable.ArrayBuffer
 import scala.math.Numeric
 import com.stocksimulator.debug.Log
+import com.stocksimulator.helpers.RingBuffer
 
 class WindowCaller[T] {
 	val windows:ArrayBuffer[WindowTimeControl] = ArrayBuffer.empty[WindowTimeControl]
@@ -42,8 +43,8 @@ class SimpleCallBack(mSecondsToRun: Int, callback: () => Unit) extends WindowTim
   }
   }
 }
-abstract class Windowable[T : Numeric] extends WindowTimeControl {
-  private val buffer: ArrayBuffer[T] = ArrayBuffer.empty[T]
+abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T]) extends WindowTimeControl {
+  private val buffer: RingBuffer[T] = new RingBuffer[T](size)
   private var myVal: T = implicitly[Numeric[T]].zero
   val mSecondsToRun: Int
   val mSecondsToAdd: Int

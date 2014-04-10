@@ -31,6 +31,12 @@ import java.util.concurrent.TimeUnit
 import scala.collection.mutable.HashMap
 import akka.actor.Terminated
 import io.jvm.uuid._
+import com.stocksimulator.helpers.RingBuffer
+import com.stocksimulator.helpers.RingBuffer
+import akka.routing.Routee
+import scala.collection.mutable.PriorityQueue
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 class JobSender extends Actor {
   def receive = {
@@ -44,7 +50,7 @@ class JobSender extends Actor {
 }
 
 class RemoteJobActor extends Actor {
-
+	var running = false
   def loadOneAdapter(filename: String, date: String, str: String) = {
     val manager = new ScriptEngineManager
     val engine = manager.getEngineByName("jruby")
@@ -55,23 +61,41 @@ class RemoteJobActor extends Actor {
   }
 
   def receive = {
-    case Job(filename, date, fs) =>
+    case NewJobArrived =>
+      if(!running) sender ! WorkerJobRequest
+    case job: Job =>
+      running = true
       context watch sender
-      sender ! JobAckSmall(Job(filename, date, fs))
-      val adapter = loadOneAdapter(filename, date, fs)
-      adapter.getBS.bootstrap.run
-      sender ! Idle(Job(filename, date, fs))
+      sender ! JobAckSmall(job)
+      val adapter = loadOneAdapter(job.filename, job.date, job.fs)
+      val BS = adapter.getBS
+     val paramToRun = adapter.varParam.filter {
+        p => job.parameter.contains(p.inputStr)
+      }
+      if(paramToRun.size > 0) {
+           paramToRun.foreach(p => BS.addExplicitParameter(p))
+           BS.bootstrap.run
+      }
+        else {
+          println("No param has been sent")
+          BS.bootstrap.run
+      }
+     
+      //.bootstrap.run
+      sender ! Idle(job)
     case Master(m) =>
       m ! Register
     case NoJob =>
+      running = false
     //context.system.shutdown
   }
 }
 
 
 class MasterRemoteActor extends Actor {
-
+   
   var router = Router(RoundRobinRoutingLogic())
+  def broadcast = Router(akka.routing.BroadcastRoutingLogic(), router.routees)
   val jobMap = new HashMap[Job, JobState]
   def loadRubyObj(str: String) = {
     val manager = new ScriptEngineManager
@@ -85,10 +109,19 @@ class MasterRemoteActor extends Actor {
   def getJobsToDo = {
     (for ((job, status) <- jobMap; if (status == JobToDo || status == JobConfirm)) yield job).to[ArrayBuffer]
   }
+  
+  def getJobStats(name: String) = {
+    val jobs = (for ((job, status) <- jobMap; if( job.name == name &&  (status == JobRunning || status == JobDone))) yield job).to[ArrayBuffer]
+    jobs.size
+  }
+  
+  
   def simpleJobSend(sender: ActorRef) = {
-    val jobList: ArrayBuffer[Job] = getJobsToDo
+    val jobList = groupedJobList
     if (jobList.length > 0) {
       val job = jobList.head
+       println("Sending job for name: " + job.name + " parameters: ")
+      job.parameter.foreach(f => println(f))
       sender ! job
       jobList -= job
       jobMap(job) match {
@@ -99,6 +132,37 @@ class MasterRemoteActor extends Actor {
     } else {
       sender ! NoJob
     }
+  }
+  
+  
+    
+  val newStringOrd = new Ordering[String] {
+        def compare(x:String, y: String) = {
+          if(getJobStats(x) < getJobStats(y)) 1
+          else if(getJobStats(x) > getJobStats(y)) -1
+          else 0
+        }
+      }
+  private def groupedJobList = {
+      val prejobList: ArrayBuffer[Job] = getJobsToDo
+      val jobList = new ArrayBuffer[Job](prejobList.size)
+      val grouped = prejobList.groupBy(f => f.name)
+    
+      val keys = grouped.keys
+      val kPriorityQ = new PriorityQueue[String]()(newStringOrd)
+      keys.foreach { key =>
+        kPriorityQ.enqueue(key)
+      }
+      def pickOne = {
+        for(key <- kPriorityQ; elem <- grouped(key); if(prejobList.contains(elem))) yield {
+          prejobList -= elem
+          elem
+        }
+      }
+      while(prejobList.size > 0) {
+        jobList ++= pickOne
+      }
+      jobList
   }
   def receive = {
 
@@ -117,7 +181,9 @@ class MasterRemoteActor extends Actor {
       }
 
       simpleJobSend(sender)
-
+     
+    case WorkerJobRequest =>
+      simpleJobSend(sender)
     case MasterJob(fs) =>
       sender ! JobAck
       val allAdapters = loadRubyObj(fs)
@@ -126,21 +192,20 @@ class MasterRemoteActor extends Actor {
    
         val filename = adapter.myFilename
         val date = adapter.date
-        jobMap += Job(filename, date, fs) -> JobToDo
-      }
-
-      val jobList: ArrayBuffer[Job] = getJobsToDo
-      for (i <- 1 to router.routees.size) {
-        val job = jobList.head
-        val a = router.route(job, self)
-        jobList -= job
-
-        jobMap(job) match {
-          case JobConfirm => jobMap(job) = JobSent(true)
-          case _ => jobMap(job) = JobSent(false)
+        val varParam = adapter.varParam
+        val name = adapter.name
+        future {
+        if(!adapter.getBS.bootstrap.loadMongo.haveData)
+          adapter.getBS.bootstrap.loadMongo.raw
+        val varParamGrouped = varParam.grouped(3)
+        for(paramGroup <- varParamGrouped) {
+          val inputStrs = paramGroup.map(f => f.inputStr).toArray
+          jobMap += Job(filename, date, fs, inputStrs, name) -> JobToDo
+        }
+        broadcast.route(NewJobArrived, self)
         }
       }
-
+      
     case JobAckSmall(job) =>
       val jobStatus = jobMap.get(job) match {
         case Some(jS) => jS

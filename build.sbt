@@ -8,7 +8,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.1.3"
+version := "1.1.4"
 
 scalaVersion := "2.10.3"
 
@@ -43,6 +43,8 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "0.8.0"
 
+libraryDependencies += "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
+
 //libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.0.0"
 
 libraryDependencies += "org.mongodb" % "casbah_2.10" % "2.7.0-RC0"
@@ -50,6 +52,8 @@ libraryDependencies += "org.mongodb" % "casbah_2.10" % "2.7.0-RC0"
 libraryDependencies += "com.typesafe.akka" %% "akka-remote" % "2.3.0"
 
 libraryDependencies += "org.jruby" % "jruby" % "1.7.10"
+
+libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.6"
 
 //libraryDependencies ++= List("org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full)
 

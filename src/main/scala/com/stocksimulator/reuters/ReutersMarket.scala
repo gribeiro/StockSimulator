@@ -18,7 +18,7 @@ import scala.util.Success
 import scala.util.Failure
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
   val stocks = feed.instruments
-  val processed: HashSet[UUID] = HashSet.empty[UUID]
+
   val filters = mc.collect {
     case a: MarketComponentFilter => a
   }
@@ -114,7 +114,8 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     filters.foreach { comp => comp.onQuote(quote, stock) }
     val tickets2 = tickets.getStock(stock)
 
-    val (buyTickets, sellTickets) = tickets2.buyAndSellPartition
+    val buyTickets = tickets2.buys
+    val sellTickets = tickets2.sells
 
     val bidPrice = quote.bid.price
     val askPrice = quote.ask.price
@@ -207,32 +208,26 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
   private def updateTicketsOnTrade(trade: Trade, stock: Stock) = {
     filters.foreach { comp => comp.onTrade(trade, stock) }
     val tickets2 = tickets.getStock(stock)
+    
+    val buyTickets = tickets2.buys
+    val sellTickets = tickets2.sells
+    
+    val price = trade.priceVol.price
+    val vol = trade.priceVol.vol
 
-    val (buyTickets, sellTickets) = tickets2.buyAndSellPartition
-
-    val (price, vol) = trade.priceVol.getPair
     val datetime = trade.datetime
 
-    //Detect Trade
-    /* val actionBuyTickets = buyTickets.filter(t => t.order.value > price)
-    val actionSellTickets = sellTickets.filter(t => t.order.value < price)
 
-    val buyOrderResults = actionBuyTickets.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price))
-    val sellOrderResults = actionSellTickets.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price))
-
-    val combinedResults = buyOrderResults ++ sellOrderResults
-    removeTickets(actionBuyTickets)
-    removeTickets(actionSellTickets)*/
 
     val actionQueueBuy = buyTickets ~== price //buyTickets.filter(t => t.order.value == trade.priceVol.price)
     val actionQueueSell = sellTickets ~== price //sellTickets.filter(t => t.order.value == trade.priceVol.price)
 
     val bidCancelled = cancelDetector.check(stock, price)
     if (bidCancelled > 0) {
-      for ((ticket, book) <- buyBook; actionTicket <- actionQueueBuy; if (ticket == actionTicket)) {
+      for (ticket <- buyBook.keySet; actionTicket <- actionQueueBuy; if (ticket == actionTicket)) {
         buyBook(ticket).incompleteFeed(bidCancelled)
       }
-      for ((ticket, book) <- sellBook; actionTicket <- actionQueueSell; if (ticket == actionTicket)) {
+      for (ticket <- sellBook.keySet; actionTicket <- actionQueueSell; if (ticket == actionTicket)) {
         sellBook(ticket).incompleteFeed(bidCancelled)
       }
     }
@@ -240,11 +235,11 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
     //Book stuff
 
     //Atualiza book
-    for ((ticket, book) <- buyBook; actionTicket <- actionQueueBuy; if (ticket == actionTicket)) {
+    for (ticket <- buyBook.keySet; actionTicket <- actionQueueBuy; if (ticket == actionTicket)) {
       buyBook(ticket).feed(trade.priceVol.vol)
     }
 
-    for ((ticket, book) <- sellBook; actionTicket <- actionQueueSell; if (ticket == actionTicket)) {
+    for (ticket <- sellBook.keySet; actionTicket <- actionQueueSell; if (ticket == actionTicket)) {
       sellBook(ticket).feed(trade.priceVol.vol)
     }
     //*************
