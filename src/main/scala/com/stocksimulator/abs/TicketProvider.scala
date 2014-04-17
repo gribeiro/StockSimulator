@@ -6,7 +6,6 @@ import scala.collection.mutable.HashMap
 import com.stocksimulator.debug._
 import scala.collection.mutable.LinkedHashMap
 import com.stocksimulator.helpers.ImplicitClasses._
-import com.stocksimulator.macros._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.DoubleLinkedList
 import scala.collection.mutable.LinkedHashSet

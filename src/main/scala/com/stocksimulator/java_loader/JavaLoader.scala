@@ -4,12 +4,6 @@ import com.stocksimulator.main._
 import com.stocksimulator.abs._
 import com.stocksimulator.common_strategies._
 
-object JavaStrategyLoader {
-  var javaOBJ: Object = null
-  def apply[T, U] = {
-    javaOBJ.asInstanceOf[T]
-  }
-}
 
 abstract class JavaAdapter {
   protected var _strat: JavaStdStrategy = null
@@ -17,32 +11,48 @@ abstract class JavaAdapter {
   def onQuotes()
   def onStart()
   def callback()
+  def onBuyReport(stock: Stock, volume: Int, price: Double)
+  def onSellReport(stock: Stock, volume: Int, price: Double)
   def setStrategy(strat: JavaStdStrategy) = {
     _strat = strat
   }
 }
 
-class JavaStdStrategy(market: Market, param: Parameters) extends QuoteOnlyStrategy(market, param) {
-  val adapter = MemoryCompiler.loadAgain.asInstanceOf[JavaAdapter]
-  adapter.setStrategy(this)
-  def onQuotes = adapter.onQuotes()
+
+object CreateStrategyForAdapter {
+  def apply(filename: String, fs: String) = {
+    (market: Market, param: Parameters) => {
+      val adapt = MemoryCompiler.apply(filename, fs).asInstanceOf[JavaAdapter]
+      new JavaStdStrategy(market, param) {
+        val adapter = adapt
+      }
+    }
+  }
+}
+
+abstract class JavaStdStrategy(market: Market, param: Parameters) extends QuoteOnlyStrategy(market, param) {
+  val adapter: JavaAdapter
+  
+  def onQuotes = {
+    adapter.onQuotes()
+
+  }
   override def callback = adapter.callback()
-  override def onStart  = adapter.onStart()
+  override def onStart  = { 
+
+  adapter.setStrategy(this)
+    adapter.onStart()
+  }
+  override def onBuyReport(stock: Stock, volume: Int, price: Double) = {
+    adapter.onBuyReport(stock, volume, price)
+  }
+  override def onSellReport(stock: Stock, volume: Int, price: Double) = {
+    adapter.onSellReport(stock, volume, price)
+  }
 }
 
 trait JavaStrategyTypes  {
   def generic = classOf[JavaStdStrategy]
 }
 
-class JavaBS[T <: Strategy](rb: JavaBSAdapter, _klass: Class[T]) extends AdapterBSSet[T](rb, _klass) {
-  val filename = rb.filename
-  JavaStrategyLoader.javaOBJ = rb.javaOBJ
 
-}
-
-abstract class JavaBSAdapter(val javaOBJ: Object, date: String) extends BSAdapter(date) with JavaStrategyTypes {
- def getBS[T <: Strategy] = {
-		 new JavaBS(this, generic)
-  }
- val filename: String
-}

@@ -19,42 +19,30 @@ import akka.routing.ActorRefRoutee
 import akka.actor.Terminated
 import java.io._
 import akka.actor.PoisonPill
-import com.stocksimulator.fancy_output._
+import com.stocksimulator.output._
 import scala.collection.mutable.ArrayBuffer
 import scala.{ Some, None }
-import com.stocksimulator.remote.CommonBootstrap
 import com.stocksimulator.main.Bootstrap
-class Workers[T <: ResultActor](n: Int, bundle: (Parameters) => Strategy, sId: String, resultKlass: Class[T] = classOf[MongoResultActor]) {
+
+
+class Workers(n: Int, bundle: (Parameters) => Strategy, sId: String) {
 
   val config = ParCommon.config
   val system = ActorSystem("spSystem" + sId, config)
   def terminated = system.isTerminated
-  val newWorkerNumber:Int = Bootstrap.localWorkerQtd match {
-    case Some(newN) => newN
-    case _ => n
-  }
-  val master = system.actorOf(Props(new MasterActor(newWorkerNumber, bundle, resultKlass, sId)), "spManager")
+  val newWorkerNumber:Int = 3
+  val master = system.actorOf(Props(new MasterActor(newWorkerNumber, bundle, sId)), "spManager")
 }
 
-class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) => Strategy, resultActor: Class[T], sId: String) extends Actor {
+class MasterActor(nWorkers: Int, createBundle: (Parameters) => Strategy, sId: String) extends Actor {
   var counter = 0
   var doneCounter = 0
   var resultToBeDone = false
 
-  var mongoConfig: Option[MongoConfig] = None
+
   def workerName() = {
     counter += 1
     "Worker_" + counter
-  }
-  val resultA = context.actorOf(Props(resultActor, sId))
-
-  def resultCheck(in: Parameters, date: String): Boolean = {
-    mongoConfig match {
-      case Some(config) =>
-        ResultUtils.checkResult(config, sId, in, date)
-      case None => false
-    }
-
   }
 
   var router = {
@@ -68,18 +56,7 @@ class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) =>
 
   def broadcast = Router(akka.routing.BroadcastRoutingLogic(), router.routees)
   def receive = {
-    case spMongoConfig(conf) => {
-      mongoConfig = Some(conf)
-      Log("Mongo config received!")
-    }
-    case `spRequestMongoConfig` => {
-      mongoConfig match {
-        case Some(conf) => sender ! spMongoConfig(conf)
-        case None =>
-          sender ! spMongoConfigUnavailable
-          Log("Mongo config requested!")
-      }
-    }
+
     case Terminated(worker) => {
       Log("Worker died :(")
       router = router.removeRoutee(worker)
@@ -90,16 +67,16 @@ class MasterActor[T <: ResultActor](nWorkers: Int, createBundle: (Parameters) =>
     }
 
     case w: spWork =>
-      if (!resultCheck(w.bundleInfo, w.date)) {
-        router.route(w, self)
-        resultToBeDone = true
-      }
+       router.route(w, self)
+       resultToBeDone = true
+      
 
     case result: spResult => {
-      CommonBootstrap.parametersAcc += result.a
-      CommonBootstrap.parametersAcc += result.b
-      resultA ! result
-      Log("Result was sent!")
+      val saveParam = (result.a, result.b)
+      CommonBootstrap.parametersAcc += saveParam
+     Log(result)
+      Log("Result received!!")
+      broadcast.route(spMasterChecking, self)
 
     }
     case `spWorkInProgress` => Log("Worker allocated!")

@@ -4,17 +4,14 @@ import com.stocksimulator.java_loader.*;
 
 public class ExampleStrategy extends JavaAdapter {
 
-	private class B {
 
-	};
 	public ExampleStrategy() {
 		super();
 		// TODO Auto-generated constructor stub
-		System.out.println(new B());
 		System.out.println("Strategy loaded...");
 
 	}
-	public final String name = "Example";
+
 	private Stock winc1, indc1;
 	private Integer spread;
 	private Integer hardLimit, myLimit;
@@ -24,7 +21,6 @@ public class ExampleStrategy extends JavaAdapter {
 	private Boolean canExec;
 	public JavaStdStrategy strat;
 
-	@Override
 	public void onStart() {
 
 		strat = strategy();
@@ -65,9 +61,17 @@ public class ExampleStrategy extends JavaAdapter {
 		
 	}
 	@Override
+	public void onSellReport(Stock s, int vol, double price) {
+		
+	}
+	@Override
+	public void onBuyReport(Stock s, int vol, double price) {
+		
+	}
+	@Override
 	public void onQuotes() {
 		StockInfo indcInfo = strat.getSymbol(indc1);
-
+		System.out.println("onQuotes!!!!;");
 		if (indcInfo instanceof Quote) {
 			Quote q = (Quote) indcInfo;
 			Position pos = strat.getPosition(winc1);
@@ -87,6 +91,7 @@ public class ExampleStrategy extends JavaAdapter {
 			}
 
 		}
+		
 	}
 
 

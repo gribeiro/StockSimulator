@@ -35,21 +35,14 @@ import com.stocksimulator.java._
 
 import javax.script._
 object MemoryCompiler {
-	var savedName: String = ""
-	var savedSource: String = ""
-
-	def loadAgain:Object = {
-		val name = savedName
-		val source = savedSource
-		JavaComp.load(name, source)
-		
-}
 	
 	
 	def apply(name: String, source: String):Object = {
-		savedName = name
-		savedSource = source
-		loadAgain
+		JavaComp.load(name, source)
+	}
+	
+	def klass(name: String, source: String) = {
+	  JavaComp.klass(name, source)
 	}
 }
 

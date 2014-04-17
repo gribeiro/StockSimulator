@@ -2,82 +2,156 @@ package com.stocksimulator.main
 import com.github.nscala_time.time.Imports._
 import com.stocksimulator.reuters._
 import com.stocksimulator.abs._
-import scala.util.{ Success, Failure }
-import scala.util.Failure
-import com.stocksimulator.reuters.ReutersMarket
+import scala.util._
 import scala.concurrent._
 import com.stocksimulator.debug._
 import com.stocksimulator.java._
 import scala.concurrent.ExecutionContext.Implicits.global
-import akka.actor.{ Props, ActorSystem, ActorRef, Actor }
+import akka.actor._
 import com.typesafe.config.ConfigFactory
-import akka.routing.ActorRefRoutee
-import akka.routing.Router
-import akka.routing.RoundRobinRoutingLogic
-import akka.routing.ActorRefRoutee
+import akka.routing._
 import akka.actor.Terminated
 import com.stocksimulator.parallel._
 import scala.collection.mutable.ListBuffer
 import com.stocksimulator.remote._
-import com.stocksimulator.common_strategies.RubyStrategyLoader
 import javax.script.ScriptEngineManager
 import java.io.FileReader
-import com.stocksimulator.common_strategies.RubyRatioStrategy
-import com.stocksimulator.common_strategies.RubyStdStrategy
 import java.io.File
-
+import com.stocksimulator.reuters._
+import argonaut._
+import Argonaut._
+import scalaz._
+import Scalaz._
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+import com.stocksimulator.ff._
+import com.stocksimulator.main.ConfigurationModule._
 object Bootstrap {
-  var localWorkerQtd: Option[Int] = None
-  def loadRuby(filename: String) = {
-    val manager = new ScriptEngineManager
-    val engine = manager.getEngineByName("jruby")
-    val filereader = new FileReader(filename)
-    engine.eval(filereader)
 
-    engine.eval("Start.run").asInstanceOf[Array[RubyBSAdapter]]
+  trait CommandLineOption
 
+  case class Local(filename: String) extends CommandLineOption
+  case class Job(ip: String, port: String, filename: String) extends CommandLineOption
+  case class Worker(ip: String, port: String, workers: Int) extends CommandLineOption
+  case class Master(ip: String) extends CommandLineOption
+
+  case class DefferedGet[T](arr: Array[T], idx: Int, isEqualTo: Option[T] = None) {
+    private val convertedArray = ArrayBuffer.empty[T]
+    arr.foreach {
+      elem => convertedArray += elem
+    }
+    def get: Option[T] = {
+      
+      isEqualTo match {  
+      
+        case Some(iet) =>
+          convertedArray.collectFirst {
+
+            case element if (iet == element && convertedArray.indexOf(element) == idx) => element
+          }
+        case None =>
+          convertedArray.collectFirst {
+            case element if (convertedArray.indexOf(element) == idx) => element
+          }
+      }
+    }
   }
 
-  def run[T <: Strategy](b: BSSet[T]) = b.bootstrap.run
-  def main(args: Array[String]): Unit = {
-    val iType = args(0)
-    val rWorkers = new RemoteWorkers
-    if (iType == "local") {
-      val rubyBSAdapters = loadRuby(args(1))
-      val jobs = for (rubyBSAdapter <- rubyBSAdapters) yield {
-        rubyBSAdapter.getBS
-      }
-      for (j <- jobs) {
-        j.bootstrap.run()
-      }
-    } else if (iType == "remote") {
+  case class CommandLineStatus(keys: List[(Option[String], Int, String)], args: Array[String]) {
 
-      val nodeType = args(1)
-      
-      if (nodeType == "master") {
-    	ParCommon.hostname = args(2)
-        rWorkers.localMaster
-      } else if (nodeType == "worker") {
-        val masterIP = args(2)
-        val masterPort: Int = args(3).toInt
-        localWorkerQtd = if(args.size >4) Some(args(4).toInt) else None
-        rWorkers.localWorker(masterIP, masterPort)
+    def getOption[Option[CommandLineOption]] = {
+      val options = keys.map {
+        case (name, position, givenName) => (name, DefferedGet(args, position, name).get, givenName)
       }
-    } else if (iType == "job") {
-      println("Sending remote job..")
-      val masterIP = args(1)
-      val masterPort: Int = args(2).toInt
-      val file = args(3)
-      val rubyBSAdapters = loadRuby(file)
-      val jobs = for (rubyBSAdapter <- rubyBSAdapters) yield {
-        rubyBSAdapter.getBS
+      val filtered = options.filter {
+        case (name, Some(option), givenName) => true
+        case _ => false
+      }.map {
+        case (name, option, givenName) => (givenName, option.get)
       }
-      val fileContents = scala.io.Source.fromFile(file).mkString
-      val masterJob = MasterJob(fileContents)
-      rWorkers.emitWork(masterIP, masterPort, masterJob)
-
+     val map = filtered.toMap
+    def isCase(list: List[String]) = {
+     list.map {
+       attr => map.get(attr) match {
+         case Some(_) => true
+         case _ => false
+       }
+     }.reduce(_&&_)
     }
-    Log.stopActor
+    val cases = List(
+        ("local",List("local", "filename")),
+        ("worker", List("remote", "worker", "workerhost", "workerport", "workers")), 
+        ("master", List("remote", "master", "host")),
+        ("job",List("job", "ip", "port", "filename"))
+    	)
+   
+    cases.map {
+      case ("local", content) if(isCase(content)) => 
+       Local(map("filename")).some
+      case ("worker", content) if(isCase(content)) =>
+        val workers = map("workers").toInt
+        Worker(map("workerhost"), map("workerport"), workers).some
+      case ("master", content) if(isCase(content)) => 
+       Master(map("host")).some
+      case ("job", content) if(isCase(content)) =>
+        Job(map("ip"), map("port"), map("filename")).some
+      case _ => None
+    }.collectFirst {
+      case Some(el) => el
+    }
+    
+    
+    
+    }
+    
+    
+  }
+
+  def main(args: Array[String]): Unit = {
+   Log.setActive(true)
+    val keys = List(
+        ("local".some, 0, "local"), 
+        ("remote".some, 0, "remote"), 
+        ("job".some, 0, "job"), 
+        ("worker".some, 1, "worker"), 
+        ("master".some, 1, "master"), 
+        (None, 2, "host"),
+        (None, 2, "ip"), 
+        (None, 2, "workerhost"),
+        (None, 3,"workerport"), 
+        (None, 1, "ip"), 
+        (None, 2,"port"), 
+        (None, 4, "filename"), 
+        (None, 1,"filename"), 
+        (None, 3,"filename"), 
+        (None, 4, "workers"))
+        
+    CommandLineStatus(keys, args).getOption match {
+      case Some(status) =>
+        println(status)
+        status match {
+          case Local(filename) => RunFromFileJson(filename)
+          case Job(ip, port, filename) =>
+            val config = ConfigurationLoadJson.load(filename)
+            val fs = (new FiletoStringIO(filename)).run
+            config match {
+              case Some(conf) => 
+                val jfs = (new FiletoStringIO(config.get.javaFilename+".java")).run
+                val mJob = MasterJob(fs, jfs)
+                RemoteWorkers.emitWork(ip, port.toInt, mJob)
+              case None =>
+                println("Erro ao carregar json..")
+            }
+          case Worker(ip, port, workers) =>
+            RemoteWorkers.localWorker(ip, port.toInt)
+          case Master(host) =>
+           RemoteWorkers.localMaster(host)
+           
+        }
+      case None => 
+        println("Erro ao processar argumentos.")
+    }
+   Log.stopActor
   }
 
 }

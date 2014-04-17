@@ -7,8 +7,8 @@ import scala.collection.mutable.LinkedHashMap
 import org.joda.convert.ToString
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-import com.stocksimulator.macros._
-import com.stocksimulator.macros.PMaker._
+import com.stocksimulator.helpers._
+import com.stocksimulator.helpers.PMaker._
 import com.stocksimulator.helpers.ImplicitClasses._
 import com.stocksimulator.utils.BlackScholes
 

@@ -7,7 +7,6 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.ArrayBuffer
 import com.stocksimulator.debug._
 import scala.collection.mutable.PriorityQueue
-import com.stocksimulator.main.RBSFactory
 import scala.collection.mutable.HashMap
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -21,7 +20,7 @@ class TimeControl(inst: Set[Stock]) {
   private val buffer: PriorityQueue[StockInfoHA] = PriorityQueue.empty[StockInfoHA]
   private var lastMup: Map[Stock, StockInfoHA] = Map.empty[Stock, StockInfoHA]
   private val lastQuoteOcorr: HashMap[Stock, Quote] = HashMap.empty[Stock, Quote]
-  private val currentDelay = RBSFactory.delay
+  private val currentDelay = 100
   private var lastTick:Option[DateTime] = None
   private var time: Int = 0
   private var nextTime: Int = 0

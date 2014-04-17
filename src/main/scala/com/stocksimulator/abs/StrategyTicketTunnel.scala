@@ -37,6 +37,9 @@ class StrategyTicketTunnel(market: Market) {
 
   def check(wait: Wait): TunnelTicketStatus = {
     val id = wait.id
+    if(id==14) {
+      val stop =1
+    }
     if (lastId >= id) {
       val ticket = buffer(id)
       buffer -= id

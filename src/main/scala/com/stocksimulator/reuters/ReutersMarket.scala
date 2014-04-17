@@ -4,7 +4,7 @@ import com.stocksimulator.debug._
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.LinkedHashMap
-import com.stocksimulator.main.RBSFactory
+
 import io.jvm.uuid._
 import scala.collection.mutable.HashSet
 import com.stocksimulator.helpers.ImplicitClasses._
@@ -16,7 +16,7 @@ import com.stocksimulator.abs.AutoDemotion._
 import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
-class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RBSFactory.delay) extends Market(mc) {
+class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 100) extends Market(mc) {
   val stocks = feed.instruments
 
   val filters = mc.collect {
@@ -26,7 +26,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
 
   val bookOrder = mc.collectFirst { case s: BookOrderComponent => s } match {
     case Some(a) => a
-    case None => ReutersMarketComponents.standardBookOrder(1)
+    case None => ReutersMarketComponents.standardBookOrder(30)
   }
 
   val ticketResult = new HashMap[Ticket, OrderResult]
@@ -35,12 +35,13 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
   val cancelDetector = new CancelDetector
 
   Log("Creating time feed control...")
-  while(feed) { 
-    val infoToFeed = !feed
+  feed.foreach { 
+    infoToFeed =>
     //Log(infoToFeed)
     timeControl <-- infoToFeed.map {
-    
+   
       case (stockKey, stockInfo) => 
+        
         stockKey -> stockInfo.promoteTo[StockInfoHA]
     }
   }
@@ -56,8 +57,9 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
   }
   def childTick() = {
    // Log("childTick Awaiting...")
- 
-   if (feed || timeControl) performTick(!timeControl) else throw new Exception
+   //val callTimeControl = 
+  // Log(callTimeControl)
+   if (timeControl) performTick(!timeControl) else throw new Exception
     
   }
 
@@ -67,14 +69,17 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = RB
 
     val (buyTickets, sellTickets) = tickets.buyAndSellPartition
     val newInfo = oldInfo2
+    
     val results = new ListBuffer[(Ticket, OrderResult)]
-    //Log(newInfo)
+     //println(newInfo)
     if (buyBook.size != 0 || sellBook.size != 0 || tickets.size != 0) {
       for ((stock, info) <- newInfo) yield {
         if (!info.hasAppeared) {
+           
           info.setHasAppeared(true)
           info.unfold match {
             case q: Quote =>
+             
               for (t <- updateTicketsOnQuote(q, stock)) {
                 results += t
               }

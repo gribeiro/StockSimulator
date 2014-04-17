@@ -19,7 +19,7 @@ import akka.routing.ActorRefRoutee
 import akka.actor.Terminated
 import java.io._
 import akka.actor.PoisonPill
-import com.stocksimulator.fancy_output._
+import com.stocksimulator.output._
 import scala.collection.mutable.ArrayBuffer
 
 class WorkerActor(createBundle: (Parameters) => Strategy) extends Actor {

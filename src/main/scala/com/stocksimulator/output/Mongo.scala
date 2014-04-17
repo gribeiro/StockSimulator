@@ -1,4 +1,4 @@
-package com.stocksimulator.fancy_output
+package com.stocksimulator.output
 
 import com.stocksimulator.abs.Parameters
 import com.mongodb.casbah.Imports._
@@ -46,18 +46,18 @@ object PNL {
 
   }
 }
-abstract class ExtraInfoGenerator[T] {
+abstract class ExtraInfoGenerator[@specialized(Int, Double, Float)  T] (implicit num: Numeric[T]){
 
   protected def pnl(out: Parameters) = PNL(out)
   def apply(in: Parameters, out: Parameters): T
 
-  def mean[@specialized(Int, Double, Float) T](xs: Iterable[T])(implicit num: Numeric[T]): Double = xs match {
+  def mean(xs: Iterable[T]): Double = xs match {
     case Nil => 0.0
     case ys => num.toDouble(ys.reduceLeft(num.plus(_, _))) / ys.size.toDouble
     //ys.reduceLeft(num.plus(_,_)) / ys.size.toDouble
   }
 
-  def stddev[@specialized(Int, Double, Float) T](xs: Iterable[T], avg: Option[Double] = None)(implicit num: Numeric[T]): Double = xs match {
+  def stddev(xs: Iterable[T], avg: Option[Double] = None): Double = xs match {
     case Nil => 0.0
     case ys =>
       val usableAvg = avg.getOrElse(mean(xs))
@@ -168,7 +168,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
     val position = outContent.get("position").get.asInstanceOf[HashMap[Stock, Position]]
 
 
-    val results = List("Orders" -> list, "sID" -> sId, "simID" -> id, "Input" -> inContent, "PNL" -> pnl2, "md5" -> md5, "inputHash" -> inputHash, "inputStr" -> inputStr, "date" -> date) ++ infoFarm.get()
+    val results = List("Orders" -> list, "sID" -> sId, "simID" -> id, "Input" -> inContent, "PNL" -> pnl2, "md5" -> md5, "inputHash" -> inputHash, "inputStr" -> (inputStr), "date" -> date) ++ infoFarm.get()
     MongoDBObject(results)
   }
 

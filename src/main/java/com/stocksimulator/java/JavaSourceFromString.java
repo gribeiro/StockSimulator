@@ -1,24 +1,7 @@
 package com.stocksimulator.java;
 
-import com.stocksimulator.abs.*;
-import com.stocksimulator.java_loader.*;
-
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.util.Arrays;
-
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
-import javax.tools.ToolProvider;
-import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.JavaFileObject.Kind;
 
 public class JavaSourceFromString extends SimpleJavaFileObject {
     /**

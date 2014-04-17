@@ -1,8 +1,8 @@
 import com.stocksimulator.abs._
 import com.stocksimulator.common_strategies._
 import org.scalatest._
-import com.stocksimulator.macros.PMaker._
-import com.stocksimulator.macros._
+import com.stocksimulator.helpers.PMaker._
+import com.stocksimulator.helpers._
 class StrategyUtilsTests extends FlatSpec with Matchers {
 	"(Integer rounding) A roundUp factory" should "round up 22.3 to 25 as expected when rounded by 5" in {
 	 val roundUpFunction = StrategyUtils.roundUpFactory(5)

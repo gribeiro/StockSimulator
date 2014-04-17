@@ -1,8 +1,8 @@
 package com.stocksimulator.common_strategies
 import com.stocksimulator.abs._
 import com.stocksimulator.debug.Log
-import com.stocksimulator.macros.PMaker._
-import com.stocksimulator.macros._
+import com.stocksimulator.helpers.PMaker._
+import com.stocksimulator.helpers._
 abstract class RatioArbitrerStrategy(market: Market, param: Parameters) extends QuoteOnlyStrategy(market, param) {
   val symbolA: Stock
   val symbolB: Stock

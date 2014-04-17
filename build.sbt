@@ -1,14 +1,12 @@
 import aether.Aether._
 
-import AssemblyKeys._ // put this at the top of the file
+import AssemblyKeys._
 
 assemblySettings
 
-// Import default settings. This changes `publishTo` settings to use the Sonatype repository and add several commands for publishing.
-
 name := "StockSimulator"
 
-version := "1.1.4"
+version := "1.2.7"
 
 scalaVersion := "2.10.3"
 
@@ -28,39 +26,25 @@ resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositor
 
 resolvers += "Element Releases" at "http://repo.element.hr/nexus/content/repositories/releases/"
 
-resolvers += "spray" at "http://repo.spray.io/"
+libraryDependencies += "io.argonaut" %% "argonaut" % "6.0.3"
 
-libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _)
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
 
-libraryDependencies +=
-  "com.typesafe.akka" %% "akka-actor" % "2.3.0"
+libraryDependencies += "com.typesafe.akka" %% "akka-remote" % "2.3.2"
 
-libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-reflect" % "2.10.0-M5"
-)
+libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.10.4"
 
-//libraryDependencies += "org.scala-lang" % "scala-swing" % "2.10+"
+libraryDependencies += "com.jsuereth" %% "scala-arm" % "1.3"
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "0.8.0"
 
-libraryDependencies += "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
-
-//libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.0.0"
-
-libraryDependencies += "org.mongodb" % "casbah_2.10" % "2.7.0-RC0"
-
-libraryDependencies += "com.typesafe.akka" %% "akka-remote" % "2.3.0"
-
-libraryDependencies += "org.jruby" % "jruby" % "1.7.10"
+libraryDependencies += "org.mongodb" %% "casbah" % "2.7.0"
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.6"
 
-//libraryDependencies ++= List("org.scalamacros" % "quasiquotes" % "2.0.0-M3" cross CrossVersion.full)
-
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 
-libraryDependencies +=
-"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
+libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
 
 libraryDependencies += "io.jvm" %% "scala-uuid" % "0.1.2"
 
@@ -76,7 +60,7 @@ ProguardKeys.options in Proguard ++= Seq("-dontnote", "-dontwarn", "-ignorewarni
 
 ProguardKeys.options in Proguard += ProguardOptions.keepMain("com.stocksimulator.main.Bootstrap")
 
-//addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion.full)
 
 publishMavenStyle := true
 
