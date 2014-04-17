@@ -7,6 +7,7 @@ import scala.util.Failure
 import com.stocksimulator.reuters.ReutersMarket
 import scala.concurrent._
 import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.java.CommonStrategy
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.stocksimulator.java._
@@ -29,12 +30,12 @@ class WorkerActor(createBundle: (Parameters) => Strategy) extends Actor {
     case spWork(params, date) =>
 
       val master = sender
-      Log(s"$myName : Received command for date $date")
-      Log(s"$myName : Starting bundle with argument: $params ...")
+      this.log(s"$myName : Received command for date $date")
+      this.log(s"$myName : Starting bundle with argument: $params ...")
       master ! spWorkInProgress
       val strategy = createBundle(params)
       val result = strategy.init // Block current actor flow.
-      Log(s"$myName : Done!")
+      this.log(s"$myName : Done!")
       master ! spResult(params, result)
 
     case `spMasterChecking` => {

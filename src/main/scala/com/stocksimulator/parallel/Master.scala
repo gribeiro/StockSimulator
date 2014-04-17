@@ -7,6 +7,7 @@ import scala.util.Failure
 import com.stocksimulator.reuters.ReutersMarket
 import scala.concurrent._
 import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.java.CommonStrategy
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.stocksimulator.java._
@@ -74,25 +75,25 @@ class MasterActor(nWorkers: Int, createBundle: (Parameters) => Strategy, sId: St
     case result: spResult => {
       val saveParam = (result.a, result.b)
       CommonBootstrap.parametersAcc += saveParam
-     Log(result)
-      Log("Result received!!")
+     this.log(result)
+      this.log("Result received!!")
       broadcast.route(spMasterChecking, self)
 
     }
     case `spWorkInProgress` => Log("Worker allocated!")
     case `spLast` => {
-      Log("Received all work for this day.")
+      this.log("Received all work for this day.")
       if (!resultToBeDone) broadcast.route(spMasterChecking, self)
     }
     case `spReportDone` => {
-      Log("Report Done")
+      this.log("Report Done")
       broadcast.route(spMasterChecking, self)
     }
 
     case `spAllWorkDone` => {
       doneCounter += 1
       if (doneCounter == nWorkers) {
-        Log("Work Done!")
+        this.log("Work Done!")
         context.system.shutdown()
         //Log.stopActor
       }

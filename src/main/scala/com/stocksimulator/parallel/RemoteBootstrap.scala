@@ -4,6 +4,7 @@ import com.stocksimulator.reuters._
 import com.stocksimulator.abs._
 import com.stocksimulator.parallel._
 import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import scala.collection.mutable.ArrayBuffer
 import akka.actor.actorRef2Scala
 import com.stocksimulator.abs.Market
@@ -17,7 +18,7 @@ object CommonBootstrap {
     feed = f
   } 
 }
-class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Parameters], date: String, filename: String, generator: (Market, Parameters) => T)(implicit strategyManifest: Manifest[T]) {
+class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Parameters], date: String, filename: String, generator: (Market, Parameters) => T) {
 
   val workers = new Workers(conf.localWorkers, createBundle, conf.name)
  
@@ -28,7 +29,7 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Paramete
    
    val datez = DateTime.parse(timeComplete, dateFormat).toDateTime(DateTimeZone.forID("America/Sao_Paulo"))
    val datez2 = datez.minusHours(datez.getZone().getOffset(datez.getMillis())/(60*60*1000))
-   Log(datez2)
+   this.log(datez2)
    datez2
   }
   val from = loadTime(conf.from)
@@ -50,13 +51,13 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Paramete
     
     val uniqueParams = params.toArray.distinct
    
-    Log("Job count after filter: " +uniqueParams.length) 
+    this.log("Job count after filter: " +uniqueParams.length) 
     uniqueParams.foreach {
       p => workers.master ! spWork(p, date)
     }
     workers.master ! spLast
     workers.system.awaitTermination()
-    Log("Local worker system terminated...")
+    this.log("Local worker system terminated...")
     val result = CommonBootstrap.parametersAcc
     val sendResult  = ArrayBuffer.empty ++ result
     result.clear

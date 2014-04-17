@@ -2,7 +2,6 @@ package com.stocksimulator.parallel
 
 import com.stocksimulator.abs.Parameters
 import com.typesafe.config.ConfigFactory
-import com.stocksimulator.main.BSSet
 import com.stocksimulator.abs.Strategy
 
 trait stockSimProtocol
@@ -56,6 +55,3 @@ object ParCommon {
     "")
 }
 
-trait BootstrapProtocol
-case class bsWork[T <: Strategy](set: BSSet[T])
-case class bsLoadClass(filename: String, pack: String)

@@ -8,7 +8,7 @@ import resource._
 import java.io.ObjectOutputStream
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
-import com.stocksimulator.main.Configuration
+
 abstract class RemoteProtocol
 
 case class Job(filename: String, date: String, fs: String, parameter: Array[String], name: String, javaFs: String) extends RemoteProtocol {
@@ -20,6 +20,7 @@ case class Job(filename: String, date: String, fs: String, parameter: Array[Stri
   }
   override def hashCode = uuid.hashCode()
 }
+
 
 object ObjectToByteArray {
   def apply[T](obj: T) = {

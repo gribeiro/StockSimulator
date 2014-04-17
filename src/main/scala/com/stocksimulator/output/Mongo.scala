@@ -7,7 +7,8 @@ import com.stocksimulator.abs.BuyOrderResult
 import com.stocksimulator.abs.SellOrderResult
 import com.stocksimulator.abs.EmptyOrderResult
 import com.stocksimulator.abs.Utils
-import com.stocksimulator.debug.Log
+import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import org.joda.time.DateTime
 import com.stocksimulator.abs.Stock
 import com.stocksimulator.abs.StockInfo
@@ -29,7 +30,7 @@ object PNL {
       val unwrapped = param.unwrap
       val position = unwrapped("position").asInstanceOf[HashMap[Stock, Position]]
       val marketLast = unwrapped("marketLast").asInstanceOf[Map[Stock, StockInfo]]
-      Log(position)
+      this.log(position)
       val nInfo = for ((lastStock, info) <- marketLast; (posStock, pos) <- position; if (posStock == lastStock)) yield {
 
         val price = info match {
@@ -40,7 +41,7 @@ object PNL {
         (pos.pnl + price * pos.quantity.toDouble) * tabela(info.iStock)
 
       }
-      Log(nInfo)
+      this.log(nInfo)
       nInfo.sum
     } else 0
 

@@ -13,8 +13,11 @@ import com.stocksimulator.java_loader.JavaStdStrategy
 
 object ConfigurationModule {
   import com.stocksimulator.main.CurrentMongoConfig
+  import com.stocksimulator.main.BSTypeClass.BSLike
+  import com.stocksimulator.main.BSTypeClass._
   implicit val config = CurrentMongoConfig
   
+  trait ConfigurationTransform[T]
   trait MongoConfig {
     val host: String
     val port: Int
@@ -26,13 +29,16 @@ object ConfigurationModule {
     def load(filename: String): Option[Configuration]
   }
 
-  trait RunConfiguration[U <: Strategy] {
+  abstract class RunConfiguration[U: BSLike](implicit ev: BSLike[U]) {
+    
     def apply(conf: Configuration): Result
-    def BSSGen(conf: Configuration, date: String, file: String): BSSet[U]
+    def BSSGen(conf: Configuration, date: String, file: String): U
+    val remote = false
+    val filename = ""
     protected def runBSS(conf: Configuration) = {
-      val runs = for ((date, file) <- conf.loadedCSVs) yield {
+      val runs = for ((date, file) <- conf.loadedCSVs(remote, filename)) yield {
         val bss = BSSGen(conf, date, file)
-        bss.run
+        ev.bootstrap(bss)
       }
       runs.flatten
     }
@@ -91,7 +97,9 @@ object ConfigurationModule {
       saveMongo(result)
     }
   }
-  object RunConfigurationStd extends RunConfiguration[JavaStdStrategy] {
+  
+  object RunConfigurationStd extends RunConfiguration[JavaBSSet] {
+    
     def BSSGen(conf: Configuration, date: String, file: String) = new JavaBSSet(conf, date, file)
     def apply(conf: Configuration) = {
       val result = runBSS(conf)
@@ -102,7 +110,8 @@ object ConfigurationModule {
     }
   }
 
-  case class RunConfigurationRemote(javafs: String, filter: Option[List[String]] = None) extends RunConfiguration[JavaStdStrategy] {
+  case class RunConfigurationRemote(javafs: String, filter: Option[List[String]] = None, override val filename:String) extends RunConfiguration[RemoteJavaBSSet] {
+    override val remote = true
     def BSSGen(conf: Configuration, date: String, file: String) = new RemoteJavaBSSet(conf, date, file, javafs, filter)
     def apply(conf: Configuration) = runBSS(conf)
 
@@ -125,12 +134,12 @@ object ConfigurationModule {
   }
 
   case class Configuration(symbols: List[String], dates: List[String], from: String, to: String, name: String, bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam]) {
-    def loadedCSVs: List[(String, String)] = {
+    def loadedCSVs(remote:Boolean = false, filename: String = ""): List[(String, String)] = {
       val IOs = this.dates.map {
         date =>
           (date, new IOSideEffect[String] {
             def run: String = {
-              FileManager.downloadReuters(symbols.toArray, date)
+              if(!remote) FileManager.downloadReuters(symbols.toArray, date) else filename
             }
           })
       }

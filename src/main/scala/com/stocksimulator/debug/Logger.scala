@@ -1,9 +1,19 @@
 package com.stocksimulator.debug
 import com.github.nscala_time.time.Imports._
 import akka.actor._
-
-
 import com.typesafe.config.ConfigFactory
+
+
+object LogNames {
+ implicit class LogAny(t: Any) {
+   def log(message: Object) = {
+     val klass = t.getClass()
+     val messageStr = message.toString()
+     Log(s"[$klass] $messageStr")
+   }
+ }
+}
+
 abstract class LogProtocol
 case class LogMessage(s: Any, noTime:Boolean) extends LogProtocol
 case object LogBye

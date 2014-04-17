@@ -55,8 +55,6 @@ abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T
   def timePassed(mSeconds: Int) = {
 	mSecondsRunDecrement -= mSeconds
 	mSecondsAddDecrement -= mSeconds
-	//Log(mSeconds.toString)
-	//Log(mSecondsAddDecrement.toString)
 	if(mSecondsRunDecrement <= 0) {
 	  myVal = calculate()
 	  mSecondsRunDecrement += mSecondsToRun

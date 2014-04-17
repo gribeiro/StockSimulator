@@ -26,27 +26,23 @@ import com.stocksimulator.helpers.ParamGen._
 import scala.io.Source
 import com.stocksimulator.java_loader._
 import com.stocksimulator.main.ConfigurationModule._
-trait LogMe { 
-  Log.setActive(true)
-  Log("Starting bootstrap...")
+
+
+object BSTypeClass {
+  trait BSLike[T] {
+    def bootstrap(bootstrapable: T):List[(Parameters, Parameters)]
+  }
   
+  object BSLike {
+    implicit object BSLikeRemoteJava extends BSLike[RemoteJavaBSSet] {
+      def bootstrap(bootstrapable: RemoteJavaBSSet) = bootstrapable.bootstrap.run.toList
+    }
+    implicit object BSLikeJavaBSSet extends BSLike[JavaBSSet] {
+      def bootstrap(bootstrapable: JavaBSSet) = bootstrapable.bootstrap.run.toList
+    }
+  }
 }
 
-abstract class BSSet[T <: Strategy] {
-
-	val filename: String
-    
-	protected val inst: Set[Stock]
-	protected val mc: ListBuffer[MarketComponent]
-	protected val varParamList: Array[Parameters]
-	protected val conf: BootstrapConf
-	protected val date: String
-
-
-	def bootstrap: CommonBootstrap[T] 
-	def run = bootstrap.run	
-
-}
 
 case object VarParam { 
   def apply(conf: Configuration):Array[Parameters] = conf.parameters.map(p => (p.base, p.to.getOrElse(p.base), p.by.getOrElse(1.0), p.name)).getParamArray
@@ -69,7 +65,7 @@ class RemoteJavaBSSet(configuration: Configuration, date: String, filename: Stri
 
 }
 
-class JavaBSSet(configuration: Configuration, val date: String, val filename: String) extends BSSet[JavaStdStrategy] {
+class JavaBSSet(configuration: Configuration, val date: String, val filename: String) {
   
   val inst = configuration.symbols.map(Stock(_)).toSet
   

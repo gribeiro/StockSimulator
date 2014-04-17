@@ -29,7 +29,7 @@ class Start < RBSFactory
 	
 	def self.run()
 		#dates = []
-		dates = ["02/04/2014"]
+		dates = ["10/04/2014"]
 		self.setVar()
 
 		ret = []
@@ -69,7 +69,6 @@ class RubyConf < RubyBSAdapter
 		@dateRB = date
 		@bookOrder = to_int(30)
 		@actorsQtd = to_int(2)
-		@replace = false
 		@strategyType = "RubyOptionAdapter"
 		@watchSymbol = [Variables.symbolA]
 		@javaFilename = ""
@@ -81,9 +80,6 @@ class RubyConf < RubyBSAdapter
 		#pushExcludedHour("10:00:00", "14:10:00")
 	end
 	
-	def mConfig
-		mongoConfigMaker("localhost", 27017, @dbLookUp+@dateRB, myFilename)
-	end 
 
 	def myInst
 		instMaker([Variables.symbolA, Variables.symbolB])

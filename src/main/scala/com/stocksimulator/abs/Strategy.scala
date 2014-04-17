@@ -3,6 +3,7 @@ import org.joda.time._
 import scala.collection.mutable.ListBuffer
 import scala.{ Some, None }
 import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import scala.collection.mutable.LinkedHashMap
 import org.joda.convert.ToString
 import scala.collection.mutable.HashMap
@@ -271,7 +272,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
       }
 
     }
-    Log("Strategy: Allocating result..")
+    this.log("Strategy: Allocating result..")
     putResult("position", position)
     putResult("marketLast", marketLast)
     val partA = lastTick

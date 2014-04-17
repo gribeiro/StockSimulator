@@ -27,7 +27,7 @@ import scala.collection.mutable.ArrayBuffer
 import com.stocksimulator.ff._
 import com.stocksimulator.main.ConfigurationModule._
 object Bootstrap {
-
+  import com.stocksimulator.debug.LogNames._
   trait CommandLineOption
 
   case class Local(filename: String) extends CommandLineOption
@@ -108,7 +108,9 @@ object Bootstrap {
   }
 
   def main(args: Array[String]): Unit = {
-   Log.setActive(true)
+   
+    Log.setActive(true)
+   
     val keys = List(
         ("local".some, 0, "local"), 
         ("remote".some, 0, "remote"), 
@@ -128,7 +130,7 @@ object Bootstrap {
         
     CommandLineStatus(keys, args).getOption match {
       case Some(status) =>
-        println(status)
+        this.log(status)
         status match {
           case Local(filename) => RunFromFileJson(filename)
           case Job(ip, port, filename) =>
@@ -140,7 +142,7 @@ object Bootstrap {
                 val mJob = MasterJob(fs, jfs)
                 RemoteWorkers.emitWork(ip, port.toInt, mJob)
               case None =>
-                println("Erro ao carregar json..")
+                this.log("Erro ao carregar json..")
             }
           case Worker(ip, port, workers) =>
             RemoteWorkers.localWorker(ip, port.toInt)
@@ -149,7 +151,7 @@ object Bootstrap {
            
         }
       case None => 
-        println("Erro ao processar argumentos.")
+        this.log("Erro ao processar argumentos.")
     }
    Log.stopActor
   }

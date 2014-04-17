@@ -1,6 +1,7 @@
 package com.stocksimulator.reuters
 import com.stocksimulator.abs._
 import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.LinkedHashMap
@@ -34,7 +35,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
   val timeControl = new TimeControl(feed.instruments)
   val cancelDetector = new CancelDetector
 
-  Log("Creating time feed control...")
+  this.log("Creating time feed control...")
   feed.foreach { 
     infoToFeed =>
     //Log(infoToFeed)
@@ -45,7 +46,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
         stockKey -> stockInfo.promoteTo[StockInfoHA]
     }
   }
-  Log("Time feed created!")
+  this.log("Time feed created!")
   def childBeforeTick() = {
 
     tProvider match {
@@ -102,11 +103,11 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
 
 	val arg = false
     def ticketVal(t: Iterable[Ticket]) = t.head.order.value
-    Log("Tick atual:" + sendInfo, arg)
+    this.log("Tick atual:" + sendInfo, arg)
     if(buyTickets.size > 0) Log("Ordem de compra: " + ticketVal(buyTickets), arg)
     if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets), arg)
-    Log("Order Result: "+  results, arg)
-    Log("\n", arg)
+    this.log("Order Result: "+  results, arg)
+    this.log("\n", arg)
 
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true
