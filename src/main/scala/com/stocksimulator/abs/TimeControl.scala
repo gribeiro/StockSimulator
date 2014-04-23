@@ -98,38 +98,7 @@ class TimeControl(inst: Set[Stock]) {
       buffer.enqueue(sinfo)
     }
   }
-  /*
-  private def receiveWithMup(mup: Map[Stock, StockInfo]) = {
-    //Log(mup.toString())
-    val temp = LinkedHashMap.empty[Stock, StockInfo]
-    save(mup)
-    val earlierInfo = buffer.dequeue()
-    calculateTime(earlierInfo)
-    val eiSt = earlierInfo.iStock
 
-    temp.put(eiSt, earlierInfo)
-    for ((stock, sinfo) <- mup; if (stock != eiSt)) {
-      lastMup.get(stock) match {
-        case Some(s) => temp.put(stock, s)
-        case None => temp.put(stock, sinfo)
-      }
-    }
-    
-    if(temp.size < inst.size) {
-         for (stock <- inst; if (stock != eiSt)) {
-      lastMup.get(stock) match {
-        case Some(s) => temp.put(stock, s)
-        case None => 
-          if(buffer.size > 0) temp.put(stock, buffer.filter(si => si.iStock == stock).minBy(si => si.iDatetime))
-      }
-    }
-    }
-    lastMup = temp.toMap
-
-    lastMup
-
-  }
-*/
   def hasData(): Boolean = buffer.size > 0
 
 }

@@ -138,14 +138,16 @@ object Bootstrap {
             val fs = (new FiletoStringIO(filename)).run
             config match {
               case Some(conf) => 
+                println(conf)
                 val jfs = (new FiletoStringIO(config.get.javaFilename+".java")).run
                 val mJob = MasterJob(fs, jfs)
+                
                 RemoteWorkers.emitWork(ip, port.toInt, mJob)
               case None =>
                 this.log("Erro ao carregar json..")
             }
           case Worker(ip, port, workers) =>
-            RemoteWorkers.localWorker(ip, port.toInt)
+            RemoteWorkers.localWorker(ip, port.toInt, workers)
           case Master(host) =>
            RemoteWorkers.localMaster(host)
            

@@ -10,6 +10,8 @@ import com.stocksimulator.abs._
 import com.stocksimulator.output._
 import com.mongodb.casbah.Imports._
 import com.stocksimulator.java_loader.JavaStdStrategy
+import com.stocksimulator.debug._
+import com.stocksimulator.debug.LogNames._
 
 object ConfigurationModule {
   import com.stocksimulator.main.CurrentMongoConfig
@@ -68,17 +70,19 @@ object ConfigurationModule {
     val connection = MongoClient(host, port)
     val db = connection(mConf.coll)
     def withMongoObject(mongoData: DBObject) = {
-
+      val ignoreDates = List("31/12/1969", "01/01/1970")
       val coll = db(collName)
-      val inputStr = mongoData("inputStr")
-      val date = mongoData("date")
+      val inputStr = mongoData("inputStr").asInstanceOf[String]
+      val date = mongoData("date").asInstanceOf[String]
+      val pnl = mongoData("PNL").asInstanceOf[Double]
+     if(!ignoreDates.exists(_==date) && pnl != 0) {
       val mobj = MongoDBObject("inputStr" -> inputStr, "date" -> date)
       val find = coll.findOne(mobj)
       find match {
         case Some(obj) => {}
         case None => coll.insert(mongoData)
       }
-
+     } else this.log("Bogus save attempted..")
     }
     def apply(result: Result): Unit = {
 
@@ -91,6 +95,10 @@ object ConfigurationModule {
   }
 
   trait MongoDataSave {
+    protected def saveToMongo(result: Result, conf: Configuration) 
+  }
+  
+  trait MongoStdSave extends MongoDataSave  {
     protected def saveToMongo(result: Result, conf: Configuration) = {
       val symbols = conf.symbols mkString "."
       val saveMongo = new SaveMongo(conf.name + "_" + symbols, conf.name, conf.name)
@@ -98,14 +106,12 @@ object ConfigurationModule {
     }
   }
   
-  object RunConfigurationStd extends RunConfiguration[JavaBSSet] {
+  object RunConfigurationStd extends RunConfiguration[JavaBSSet] with MongoStdSave {
     
     def BSSGen(conf: Configuration, date: String, file: String) = new JavaBSSet(conf, date, file)
     def apply(conf: Configuration) = {
       val result = runBSS(conf)
-      val symbols = conf.symbols mkString "."
-      val saveMongo = new SaveMongo(conf.name + "_" + symbols, conf.name, conf.name)
-      saveMongo(result)
+      saveToMongo(result, conf)
       result
     }
   }
@@ -130,10 +136,12 @@ object ConfigurationModule {
 
     def apply(filename: String) = {
       method.load(filename)
+      
     }
   }
 
   case class Configuration(symbols: List[String], dates: List[String], from: String, to: String, name: String, bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam]) {
+    def filterName = Configuration(symbols, dates, from, to, name.replace('_', '-'), bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam])
     def loadedCSVs(remote:Boolean = false, filename: String = ""): List[(String, String)] = {
       val IOs = this.dates.map {
         date =>

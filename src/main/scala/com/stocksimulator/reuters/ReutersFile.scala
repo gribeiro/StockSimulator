@@ -19,7 +19,17 @@ import com.etp._
 import scalaz._
 import Scalaz._
 
-class ReutersFiles(username: String, password: String) {
+trait Credentials {
+  def username: String
+  def password: String
+}
+
+trait CurrentReutersCredentials extends Credentials {
+  def username = "andre@allianceasset.com.br"
+  def password =  "fiveware456"
+}
+
+class ReutersFiles { self: Credentials =>
 	val conn = new RTHConnector
 	
 	def apply(symbols: Array[String], date: String):String = {
@@ -33,7 +43,7 @@ class ReutersFiles(username: String, password: String) {
 	
 }
 
-object hcReuters extends ReutersFiles("andre@allianceasset.com.br", "fiveware456")
+object hcReuters extends ReutersFiles with CurrentReutersCredentials
 
 case class FileFormat(val ric: String, val datetime: Long, val gmt: Int, val sType: Boolean, val price: Double, val volume: Int, val bidPrice: Double, val bidSize: Int, val askPrice: Double, val askSize: Int) extends Ordered[FileFormat] {
   
@@ -48,8 +58,6 @@ object FileManager {
   def datExtension(filename: String): String = filename.split("""\.""").head + ".dat"
   
   def downloadReuters(symbols: Array[String], date: String):String = {
-    symbols.foreach(println(_))
-    println(date)
     val all = symbols.map {
       str => Stock(str).checkOption(date).name
     }

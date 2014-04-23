@@ -33,15 +33,13 @@ abstract class DoubleRatioArbitrerStrategy(market: Market, param: Parameters) ex
   def onQuotes() = {
 
     val pos = getPosition(symbolA).quantity
-    //if (Math.abs(pos) >= maxPos) -timeExitCallBack else +timeExitCallBack
     if (mvAvg.isAvailable) {
-      //Log(this.lastTick)
+
       val infoPair = (getSymbol(symbolA), getSymbol(symbolB), getSymbol(symbolC))
       infoPair match {
         case (a: Quote, b: Quote, c: Quote) =>
           val midPr = midPrice(b)*midPrice(c)
           val precoTeoricoA = mvAvg.lastVal * midPr
-
     
           val spreadVenda = spreadDinamico.buySpread
           val spreadCompra = spreadDinamico.sellSpread

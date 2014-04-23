@@ -9,7 +9,7 @@ import java.io.ObjectOutputStream
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
 
-abstract class RemoteProtocol
+sealed trait RemoteProtocol
 
 case class Job(filename: String, date: String, fs: String, parameter: Array[String], name: String, javaFs: String) extends RemoteProtocol {
   val uuid =  java.util.UUID.randomUUID.toString
@@ -22,45 +22,21 @@ case class Job(filename: String, date: String, fs: String, parameter: Array[Stri
 }
 
 
-object ObjectToByteArray {
-  def apply[T](obj: T) = {
-    val stream = new ByteArrayOutputStream
-    val monad = managed(stream).map(new ObjectOutputStream(_))
-    monad.acquireAndGet {
-      output =>
-        output.writeObject(obj)
-        output.close
-    }
-    stream.toByteArray()
-  }
-}
 
-object ByteArrayToObject {
-    def apply[T](ba: Array[Byte]):T = {
-    val stream = new ByteArrayInputStream(ba)
-    val monad = managed(stream).map(new ObjectInputStream(_))
-    var obj:Object = null
-    monad.acquireAndGet {
-      input =>
-        obj = input.readObject()
-        input.close()
-    }
-    obj.asInstanceOf[T]
-  }
-}
-case class FileInit(filename: String)
-case class FileChunk(filename: String, file: Array[Byte])
-case class FileEnd(filename: String)
+case class FileInit(filename: String) extends RemoteProtocol
+case class FileChunk(filename: String, file: Array[Byte]) extends RemoteProtocol
+case class FileEnd(filename: String) extends RemoteProtocol
 
 
-case class ResultChunk(name: String, data: Array[Byte])
-case class ResultEnd(name: String, job: Job)
+case class ResultChunk(name: String, data: Array[Byte]) extends RemoteProtocol
+case class ResultEnd(name: String, job: Job) extends RemoteProtocol
 
-case class FileRequest(filename: String)
-case class SaveResult(result: Array[Byte], job: Job)
-
+case class FileRequest(filename: String) extends RemoteProtocol
+case class SaveResult(result: Array[Byte], job: Job) extends RemoteProtocol
+case object RegisterOk extends RemoteProtocol
 case object NewJobArrived extends RemoteProtocol
 case object WorkerJobRequest extends RemoteProtocol
+case class JobFailed(job: Job) extends RemoteProtocol 
 case class MasterJob(fs: String, javaFs: String) extends RemoteProtocol
 case class Idle(jobDone: Job) extends RemoteProtocol
 case object QueueStatus extends RemoteProtocol
@@ -72,7 +48,7 @@ case object JobAck extends RemoteProtocol
 case object NoJob extends RemoteProtocol
 case class JobAckSmall(job: Job) extends RemoteProtocol
 
-trait JobState
+sealed trait JobState
 case class JobRunning(a: ActorRef, confirm: Boolean) extends JobState
 case object JobDone extends JobState
 case object JobToDo extends JobState

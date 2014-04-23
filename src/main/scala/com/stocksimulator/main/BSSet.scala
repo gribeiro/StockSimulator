@@ -55,6 +55,18 @@ case object VarParam {
   }
 }
 
+abstract class BSSet(configuration: Configuration, date: String, filename: String) {
+   val inst = configuration.symbols.map(Stock(_)).toSet
+   val varParamList = VarParam(configuration)
+  protected val mc:ListBuffer[MarketComponent] = ListBuffer(ReutersMarketComponents.standardBookOrder(configuration.bookOrder))
+   val conf = BootstrapConf(configuration.workers, configuration.name, inst, mc.toList, configuration.from, configuration.to)
+   def generator: (Market, Parameters) => Strategy 
+
+   
+   
+}
+
+
 class RemoteJavaBSSet(configuration: Configuration, date: String, filename: String, javafs: String, filters: Option[List[String]]) extends JavaBSSet(configuration, date, filename) {
   override def javaFile = javafs
   
@@ -65,14 +77,8 @@ class RemoteJavaBSSet(configuration: Configuration, date: String, filename: Stri
 
 }
 
-class JavaBSSet(configuration: Configuration, val date: String, val filename: String) {
-  
-  val inst = configuration.symbols.map(Stock(_)).toSet
-  
-  protected val mc:ListBuffer[MarketComponent] = ListBuffer(ReutersMarketComponents.standardBookOrder(configuration.bookOrder))
-  val varParamList = VarParam(configuration)
-  val conf = BootstrapConf(configuration.workers, configuration.name, inst, mc.toList, configuration.from, configuration.to)
+class JavaBSSet(configuration: Configuration, val date: String, val filename: String) extends BSSet(configuration, date, filename) {
+  def generator = CreateStrategyForAdapter(configuration.javaFilename,javaFile)
   protected def javaFile = Source.fromFile(configuration.javaFilename+".java", "utf-8").getLines mkString "\n"
-
-  def bootstrap = new CommonBootstrap[JavaStdStrategy](conf, varParamList, date, filename, CreateStrategyForAdapter(configuration.javaFilename,javaFile))
+  def bootstrap = new CommonBootstrap(conf, varParamList, date, filename, generator)
 }

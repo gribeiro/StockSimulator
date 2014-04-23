@@ -6,9 +6,9 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.2.9"
+version := "1.2.15"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 publishMavenStyle := true
 
@@ -26,11 +26,13 @@ resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositor
 
 resolvers += "Element Releases" at "http://repo.element.hr/nexus/content/repositories/releases/"
 
+resolvers += "akka" at "http://repo.akka.io/snapshots"
+
 libraryDependencies += "io.argonaut" %% "argonaut" % "6.0.3"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4-SNAPSHOT"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-remote" % "2.3.2"
+libraryDependencies += "com.typesafe.akka" %% "akka-remote" % "2.4-SNAPSHOT"
 
 libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.10.4"
 

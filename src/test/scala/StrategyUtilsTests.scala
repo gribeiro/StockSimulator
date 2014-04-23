@@ -41,6 +41,7 @@ class StrategyUtilsTests extends FlatSpec with Matchers {
 	
 	"Param maker helper interpolation of p\"abc\"" should "be equal to ParamMaker(\"abc\")" in {
 	  val test = p"abc"
+	  
 	  test.name should be ("abc")
 	} 
 	

@@ -24,10 +24,6 @@ class StrategyTicketTunnel(market: Market) {
   def sendOrder(order: Order): TunnelTicketStatus = {
     val ticket = market.sendOrder(order)
     
-    //@Debug
-    if(lastId >= 5) {
-      val debug =1
-    }
     val ticketId = ticket.id
     if (lastId < ticketId) {
       buffer += ticket.id -> ticket

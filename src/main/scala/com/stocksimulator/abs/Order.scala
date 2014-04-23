@@ -2,15 +2,15 @@ package com.stocksimulator.abs
 import com.github.nscala_time.time.Imports._
 
 
-trait SideNature
+sealed trait SideNature
 case object BuyNature extends SideNature
 case object SellNature extends SideNature
 
-trait BuyOrderNature {
+sealed trait BuyOrderNature {
   val nature = BuyNature
 }
 
-trait SellOrderNature {
+sealed trait SellOrderNature {
   val nature = SellNature
 }
 

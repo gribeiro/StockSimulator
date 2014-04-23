@@ -17,6 +17,7 @@ import com.stocksimulator.abs.AutoDemotion._
 import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
+
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 100) extends Market(mc) {
   val stocks = feed.instruments
 
@@ -99,15 +100,14 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
       case (stock, stockInfoHA) =>
         stock -> stockInfoHA.demote
     }
-    if(results.size > 0) {		
+    if(results.size > 0 && false) {		
 
-	val arg = false
     def ticketVal(t: Iterable[Ticket]) = t.head.order.value
-    this.log("Tick atual:" + sendInfo, arg)
-    if(buyTickets.size > 0) Log("Ordem de compra: " + ticketVal(buyTickets), arg)
-    if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets), arg)
-    this.log("Order Result: "+  results, arg)
-    this.log("\n", arg)
+    this.log("Tick atual:" + sendInfo)
+    if(buyTickets.size > 0) Log("Ordem de compra: " + ticketVal(buyTickets))
+    if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets))
+    this.log("Order Result: "+  results)
+    this.log("\n")
 
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true

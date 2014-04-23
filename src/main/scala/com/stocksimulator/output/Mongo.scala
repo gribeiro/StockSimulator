@@ -150,7 +150,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
     val list2 = for ((oStr, oVal) <- outContent) yield {
       oVal match {
         case rep: OrderResult =>
-          date = (List(rep.dateTime.dayOfMonth().get(), rep.dateTime.monthOfYear().get(), rep.dateTime.year().get()).mkString("/"))
+          if(date == null) date = (List(rep.dateTime.dayOfMonth().get(), rep.dateTime.monthOfYear().get(), rep.dateTime.year().get()).mkString("/"))
           Map("Order" -> rep.iType, "DateTimeLong" -> rep.dateTime.getMillis(),"DateTime" -> rep.dateTime.toString(), "Quantity" -> rep.quantity, "Value" -> rep.value)
 
         case _ => Map("Order" -> "Empty", "DateTimeLong" -> 0L)

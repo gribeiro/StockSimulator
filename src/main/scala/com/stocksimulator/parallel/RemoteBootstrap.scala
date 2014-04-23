@@ -11,15 +11,8 @@ import com.stocksimulator.abs.Market
 
 case class BootstrapConf(localWorkers: Int, name: String, inst: Set[Stock], components: List[MarketComponent], from: String, to: String)
 
-object CommonBootstrap {
-  val parametersAcc = new ArrayBuffer[(Parameters, Parameters)]
-  var feed:Feed = null
-  def setFeed(f: Feed) = {
-    feed = f
-  } 
-}
-class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Parameters], date: String, filename: String, generator: (Market, Parameters) => T) {
-
+class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Parameters], date: String, filename: String, generator: (Market, Parameters) => T) extends ResultAccComponent {
+self: ResultAccComponent =>
   val workers = new Workers(conf.localWorkers, createBundle, conf.name)
  
   def terminated = workers.terminated
@@ -35,14 +28,12 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Paramete
   val from = loadTime(conf.from)
   val to = loadTime(conf.to)
   val filefeed = (new FileFeedTimeFilter(new FileFeed(filename, conf.inst))).timeFiltering(from, to)
-  CommonBootstrap.setFeed(filefeed)
+
   def createBundle(param: Parameters) = {
     val feed = filefeed
     val market = new ReutersMarket(feed, conf.components)
     
     val strategy = generator(market, param)
-    //val strategy = strategyManifest.erasure.getConstructor(classOf[Market], classOf[Parameters]).newInstance(market, param).asInstanceOf[T]
-    //val strategy = cStrat.getConstructor(classOf[Market], classOf[Parameters]).newInstance(market, param)
     strategy
   }
 
@@ -58,10 +49,25 @@ class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Paramete
     workers.master ! spLast
     workers.system.awaitTermination()
     this.log("Local worker system terminated...")
-    val result = CommonBootstrap.parametersAcc
-    val sendResult  = ArrayBuffer.empty ++ result
-    result.clear
-    sendResult
+    result.parametersResult
   }
   
+}
+
+trait ResultBuffer {
+  def add(par: (Parameters, Parameters))
+  def parametersResult: Array[(Parameters, Parameters)]
+}
+
+trait ResultAccComponent {
+   implicit val result:ResultBuffer = new ResultAcc
+
+  class ResultAcc extends ResultBuffer  {
+    private val parametersAcc = new ArrayBuffer[(Parameters, Parameters)]
+    def add(par: (Parameters, Parameters)) = {	
+      parametersAcc += par
+      this.log("Parameter will be on result:" + par)
+    }
+    def parametersResult = parametersAcc.toArray
+  }
 }

@@ -26,7 +26,7 @@ import scala.{ Some, None }
 import com.stocksimulator.main.Bootstrap
 
 
-class Workers(n: Int, bundle: (Parameters) => Strategy, sId: String) {
+class Workers(n: Int, bundle: (Parameters) => Strategy, sId: String)(implicit res: ResultBuffer) {
 
   val config = ParCommon.config
   val system = ActorSystem("spSystem" + sId, config)
@@ -35,7 +35,7 @@ class Workers(n: Int, bundle: (Parameters) => Strategy, sId: String) {
   val master = system.actorOf(Props(new MasterActor(newWorkerNumber, bundle, sId)), "spManager")
 }
 
-class MasterActor(nWorkers: Int, createBundle: (Parameters) => Strategy, sId: String) extends Actor {
+class MasterActor(nWorkers: Int, createBundle: (Parameters) => Strategy, sId: String)(implicit res: ResultBuffer) extends Actor {
   var counter = 0
   var doneCounter = 0
   var resultToBeDone = false
@@ -58,45 +58,45 @@ class MasterActor(nWorkers: Int, createBundle: (Parameters) => Strategy, sId: St
   def broadcast = Router(akka.routing.BroadcastRoutingLogic(), router.routees)
   def receive = {
 
-    case Terminated(worker) => {
+    case Terminated(worker) => 
       Log("Worker died :(")
       router = router.removeRoutee(worker)
       val newWorker = context.actorOf(Props(classOf[WorkerActor], createBundle), workerName())
       context watch newWorker
       router = router.addRoutee(newWorker)
       Log("New worker :D")
-    }
+    
 
     case w: spWork =>
        router.route(w, self)
        resultToBeDone = true
       
 
-    case result: spResult => {
+    case result: spResult => 
       val saveParam = (result.a, result.b)
-      CommonBootstrap.parametersAcc += saveParam
-     this.log(result)
+      res.add(saveParam)
+      this.log(result)
       this.log("Result received!!")
       broadcast.route(spMasterChecking, self)
 
-    }
+    
     case `spWorkInProgress` => Log("Worker allocated!")
-    case `spLast` => {
+    case `spLast` => 
       this.log("Received all work for this day.")
       if (!resultToBeDone) broadcast.route(spMasterChecking, self)
-    }
-    case `spReportDone` => {
+    
+    case `spReportDone` => 
       this.log("Report Done")
       broadcast.route(spMasterChecking, self)
-    }
+    
 
-    case `spAllWorkDone` => {
+    case `spAllWorkDone` => 
       doneCounter += 1
       if (doneCounter == nWorkers) {
         this.log("Work Done!")
         context.system.shutdown()
         //Log.stopActor
       }
-    }
+    
   }
 }

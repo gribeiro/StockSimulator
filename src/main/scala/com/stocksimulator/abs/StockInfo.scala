@@ -106,7 +106,7 @@ class StockInfoHA(stockInfo: StockInfo) extends Promotion[StockInfo](stockInfo) 
 
   def compare(that: StockInfoHA) = unfold.compare(that.unfold)
 }
-abstract class StockInfo(_stock: Stock, _datetime: DateTime) extends Promotable[StockInfo] with Ordered[StockInfo] {
+sealed abstract class StockInfo(_stock: Stock, _datetime: DateTime) extends Promotable[StockInfo] with Ordered[StockInfo] {
   val iStock = _stock
   val iDatetime = _datetime
   val uuid = UUID.random
