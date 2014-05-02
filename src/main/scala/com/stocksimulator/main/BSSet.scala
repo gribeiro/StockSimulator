@@ -45,6 +45,7 @@ object BSTypeClass {
 
 
 case object VarParam { 
+  def apply(confPar: List[ConfigParam]): Array[Parameters] = confPar.map(p => (p.base, p.to.getOrElse(p.base), p.by.getOrElse(1.0), p.name)).getParamArray
   def apply(conf: Configuration):Array[Parameters] = conf.parameters.map(p => (p.base, p.to.getOrElse(p.base), p.by.getOrElse(1.0), p.name)).getParamArray
   def apply(conf: Configuration, filter: List[String]):Array[Parameters] = {
     val varparam = apply(conf)

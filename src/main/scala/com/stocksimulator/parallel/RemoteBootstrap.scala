@@ -39,7 +39,7 @@ self: ResultAccComponent =>
 
 
   def run() = {
-    
+    this.log("Run started..")
     val uniqueParams = params.toArray.distinct
    
     this.log("Job count after filter: " +uniqueParams.length) 

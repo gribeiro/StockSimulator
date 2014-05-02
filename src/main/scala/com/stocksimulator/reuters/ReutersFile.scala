@@ -18,6 +18,7 @@ import com.stocksimulator.helpers.RingBuffer
 import com.etp._
 import scalaz._
 import Scalaz._
+import com.stocksimulator.debug.LogNames._
 
 trait Credentials {
   def username: String
@@ -43,7 +44,6 @@ class ReutersFiles { self: Credentials =>
 	
 }
 
-object hcReuters extends ReutersFiles with CurrentReutersCredentials
 
 case class FileFormat(val ric: String, val datetime: Long, val gmt: Int, val sType: Boolean, val price: Double, val volume: Int, val bidPrice: Double, val bidSize: Int, val askPrice: Double, val askSize: Int) extends Ordered[FileFormat] {
   
@@ -54,10 +54,14 @@ case class FileFormat(val ric: String, val datetime: Long, val gmt: Int, val sTy
 
 
 object FileManager {
+      import scala.concurrent._
+    import ExecutionContext.Implicits.global
   val dateFormat = ReutersCommon.dateFormat
   def datExtension(filename: String): String = filename.split("""\.""").head + ".dat"
   
+  
   def downloadReuters(symbols: Array[String], date: String):String = {
+    val hcReuters = new ReutersFiles with CurrentReutersCredentials
     val all = symbols.map {
       str => Stock(str).checkOption(date).name
     }
@@ -69,8 +73,40 @@ object FileManager {
   }
   
   
+  def downloadReutersOption(symbols: Array[String], date: String): Option[String] = {
+
+    try {
+    val tryDownloadReuters = downloadReuters(symbols, date)
+       val testeFileExists = fileExists(tryDownloadReuters)
+    val length = (new File(tryDownloadReuters) ).length()/(1024)
+    
+    if(testeFileExists && length >= 100) Some(tryDownloadReuters) else None
+    }
+    catch {
+      case e: Exception => 
+        
+        this.log("Reuters download failed...")
+        this.log(e)
+        None
+    
+   }
+  }
+  
   def fileExists(filename: String) = {
     Files.exists(Paths.get(filename))
+  }
+  
+  
+  def datFileIO(filename: String) = {
+    val datFile = datExtension(filename)
+    
+     if (fileExists(datFile)) {
+      new java.io.File(datFile)
+    } else {
+      val load = transform(filename)
+      save(datFile, load)
+      new java.io.File(datFile)
+    }
   }
   def apply(filename: String, from: Option[String] = None , to: Option[String] = None) = {
     val datFile = datExtension(filename)

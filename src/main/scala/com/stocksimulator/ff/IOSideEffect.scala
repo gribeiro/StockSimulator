@@ -17,6 +17,8 @@ class FiletoStringIO(filename: String) extends IOSideEffect[String] {
   def run: String = {
      Source.fromFile(filename, "utf-8").getLines mkString "\n"
   }
+  
+
 }
 
 class PrintIO(message: String) extends IOSideEffect[Unit] {

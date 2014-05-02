@@ -31,10 +31,10 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     case None => ReutersMarketComponents.standardBookOrder(30)
   }
 
-  val ticketResult = new HashMap[Ticket, OrderResult]
-  val emptyFeed = Map.empty[Stock, StockInfo]
-  val timeControl = new TimeControl(feed.instruments)
-  val cancelDetector = new CancelDetector
+  private val ticketResult = new HashMap[Ticket, OrderResult]
+  private val emptyFeed = Map.empty[Stock, StockInfo]
+  private val timeControl = new TimeControl(feed.instruments)
+  private val cancelDetector = new CancelDetector
 
   this.log("Creating time feed control...")
   feed.foreach { 
@@ -67,7 +67,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
 
   def isActive(): Boolean = timeControl
 
-  private def performTick(oldInfo2: Map[Stock, StockInfoHA]): (Map[Stock, StockInfo], ListBuffer[(Ticket, OrderResult)]) = {
+  private def performTick(oldInfo2: Map[Stock, StockInfoHA]): (Map[Stock, StockInfo], List[(Ticket, OrderResult)]) = {
 
     val (buyTickets, sellTickets) = tickets.buyAndSellPartition
     val newInfo = oldInfo2
@@ -100,7 +100,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
       case (stock, stockInfoHA) =>
         stock -> stockInfoHA.demote
     }
-    if(results.size > 0 && false) {		
+    if(results.size > 0) {		
 
     def ticketVal(t: Iterable[Ticket]) = t.head.order.value
     this.log("Tick atual:" + sendInfo)
@@ -112,7 +112,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true
   
-    if (filterResult) (sendInfo, results) else (emptyInfo, results)
+    if (filterResult) (sendInfo, results.toList) else (emptyInfo, results.toList)
   }
 
   private def updateTicketsOnQuote(quote: Quote, stock: Stock) = {

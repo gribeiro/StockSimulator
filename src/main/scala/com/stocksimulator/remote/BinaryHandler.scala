@@ -4,7 +4,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.ArrayBuffer
 
 trait BinaryHandler[T] {
-  val result = HashMap.empty[String, ArrayBuffer[Byte]]
+  private val result = HashMap.empty[String, ArrayBuffer[Byte]]
   def receiveChunk(name: String, chunk: Array[Byte]) = {
        result.get(name) match {
         case Some(buffer) => buffer ++= chunk

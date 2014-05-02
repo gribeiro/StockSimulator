@@ -50,7 +50,7 @@ object Log {
       "akka.debug.unhandled=on\n" +
       ""
     )
-  private var active: Boolean = false
+  private var active: Boolean = true
   private var level: Set[LogLevel] = Set(Info, Warning, Error)
   val startTime = DateTime.now
   val system = ActorSystem("logSystem", config)
@@ -68,7 +68,8 @@ object Log {
   
   def apply(s: Any, noTime:Boolean = false, ll: LogLevel = Info) = {
     if(active && level.contains(ll)) {
-     logActor ! LogMessage(s, noTime)
+     println(s)
+      //logActor ! LogMessage(s, noTime)
     }
   }
 }

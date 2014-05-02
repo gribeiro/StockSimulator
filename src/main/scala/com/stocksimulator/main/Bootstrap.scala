@@ -28,12 +28,13 @@ import com.stocksimulator.ff._
 import com.stocksimulator.main.ConfigurationModule._
 object Bootstrap {
   import com.stocksimulator.debug.LogNames._
-  trait CommandLineOption
+  sealed trait CommandLineOption
 
   case class Local(filename: String) extends CommandLineOption
-  case class Job(ip: String, port: String, filename: String) extends CommandLineOption
-  case class Worker(ip: String, port: String, workers: Int) extends CommandLineOption
-  case class Master(ip: String) extends CommandLineOption
+  case class Job(filename: String) extends CommandLineOption
+  case class Worker(qtd: Int) extends CommandLineOption
+  case object Preprocessor extends CommandLineOption
+  case object Resulter extends CommandLineOption
 
   case class DefferedGet[T](arr: Array[T], idx: Int, isEqualTo: Option[T] = None) {
     private val convertedArray = ArrayBuffer.empty[T]
@@ -41,9 +42,9 @@ object Bootstrap {
       elem => convertedArray += elem
     }
     def get: Option[T] = {
-      
-      isEqualTo match {  
-      
+
+      isEqualTo match {
+
         case Some(iet) =>
           convertedArray.collectFirst {
 
@@ -69,93 +70,96 @@ object Bootstrap {
       }.map {
         case (name, option, givenName) => (givenName, option.get)
       }
-     val map = filtered.toMap
-    def isCase(list: List[String]) = {
-     list.map {
-       attr => map.get(attr) match {
-         case Some(_) => true
-         case _ => false
-       }
-     }.reduce(_&&_)
+      val map = filtered.toMap
+      def isCase(list: List[String]) = {
+        list.map {
+          attr =>
+            map.get(attr) match {
+              case Some(_) => true
+              case _ => false
+            }
+        }.reduce(_ && _)
+      }
+
+      def singleCase(cas: String) = {
+        (cas, List(cas))
+      }
+
+      val cases = List(
+        ("local", List("local", "arg1")),
+        ("worker", List("worker", "arg1")),
+        singleCase("preprocessor"),
+        singleCase("result"),
+        ("job", List("job", "arg1")))
+
+      cases.map {
+        case ("local", content) if (isCase(content)) =>
+          Local(map("arg1")).some
+        case ("worker", content) if (isCase(content)) =>
+          val workersQtd = map("arg1").toInt
+          Worker(workersQtd).some
+        case ("preprocessor", content) if (isCase(content)) =>
+          Preprocessor.some
+        case ("result", content) if (isCase(content)) =>
+          Resulter.some
+        case ("job", content) if (isCase(content)) =>
+          Job(map("arg1")).some
+        case _ => None
+      }.collectFirst {
+        case Some(el) => el
+      }
+
     }
-    val cases = List(
-        ("local",List("local", "filename")),
-        ("worker", List("remote", "worker", "workerhost", "workerport", "workers")), 
-        ("master", List("remote", "master", "host")),
-        ("job",List("job", "ip", "port", "filename"))
-    	)
-   
-    cases.map {
-      case ("local", content) if(isCase(content)) => 
-       Local(map("filename")).some
-      case ("worker", content) if(isCase(content)) =>
-        val workers = map("workers").toInt
-        Worker(map("workerhost"), map("workerport"), workers).some
-      case ("master", content) if(isCase(content)) => 
-       Master(map("host")).some
-      case ("job", content) if(isCase(content)) =>
-        Job(map("ip"), map("port"), map("filename")).some
-      case _ => None
-    }.collectFirst {
-      case Some(el) => el
-    }
-    
-    
-    
-    }
-    
-    
+
+  }
+
+  def firstArg(arg: String) = (arg.some, 0, arg)
+
+  def supportArgs(n: Int) = {
+    val seq = for (i <- 1 to n) yield (None, i, "arg" + i)
+    seq.toList
   }
 
   def main(args: Array[String]): Unit = {
-   
+    import com.stocksimulator.aws._
+    import com.stocksimulator.main.ConfigurationModule._
     Log.setActive(true)
-   
-    val keys = List(
-        ("local".some, 0, "local"), 
-        ("remote".some, 0, "remote"), 
-        ("job".some, 0, "job"), 
-        ("worker".some, 1, "worker"), 
-        ("master".some, 1, "master"), 
-        (None, 2, "host"),
-        (None, 2, "ip"), 
-        (None, 2, "workerhost"),
-        (None, 3,"workerport"), 
-        (None, 1, "ip"), 
-        (None, 2,"port"), 
-        (None, 4, "filename"), 
-        (None, 1,"filename"), 
-        (None, 3,"filename"), 
-        (None, 4, "workers"))
-        
+
+    val firstArgs = List(
+      firstArg("local"),
+      firstArg("job"),
+      firstArg("worker"),
+      firstArg("preprocessor"),
+      firstArg("result"))
+
+    val keys = firstArgs ++ supportArgs(4)
+
+    this.log("Starting...")
     CommandLineStatus(keys, args).getOption match {
       case Some(status) =>
-        this.log(status)
+
         status match {
           case Local(filename) => RunFromFileJson(filename)
-          case Job(ip, port, filename) =>
-            val config = ConfigurationLoadJson.load(filename)
-            val fs = (new FiletoStringIO(filename)).run
-            config match {
-              case Some(conf) => 
-                println(conf)
-                val jfs = (new FiletoStringIO(config.get.javaFilename+".java")).run
-                val mJob = MasterJob(fs, jfs)
-                
-                RemoteWorkers.emitWork(ip, port.toInt, mJob)
-              case None =>
-                this.log("Erro ao carregar json..")
+          case Job(filename) =>
+            val passo1 = new SendJobService("simulacoes-etp", "simul-preproces")
+            val config = ConfigurationLoadJson.load(filename).get
+            passo1(config)
+          case Worker(qtd: Int) =>
+            for(i <- 1 to qtd) {
+            val workerService = new RunnerService("simul-jobs", "simul-result", "simulacoes-etp", 1)
+            workerService.run
             }
-          case Worker(ip, port, workers) =>
-            RemoteWorkers.localWorker(ip, port.toInt, workers)
-          case Master(host) =>
-           RemoteWorkers.localMaster(host)
-           
+          case Preprocessor =>
+            val preprocessor = new AcquireDatService("simul-preproces", "simul-jobs", "simulacoes-etp")
+            preprocessor.run
+          case Resulter =>
+            val resulter = new OutputService("simul-result", "Resultados")
+            resulter.run
         }
-      case None => 
+      case None =>
         this.log("Erro ao processar argumentos.")
     }
-   Log.stopActor
+    Log.stopActor
   }
 
 }

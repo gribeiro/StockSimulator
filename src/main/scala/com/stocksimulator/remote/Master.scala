@@ -64,8 +64,8 @@ class MasterRemoteActor extends Actor with BinaryHandler[Job] {
       val resultB = ByteArrayToObject[DBObject](arr)
       val conf = ConfigurationLoadJson(job.fs).get
       val symbols = conf.symbols mkString "."
-      val saveMongo = new SaveMongo(conf.name + "_" + symbols, conf.name, conf.name)
-      saveMongo.withMongoObject(resultB)
+      //val saveMongo = new SaveMongo(conf.name + "_" + symbols, conf.name, conf.name)
+      //saveMongo.withMongoObject(resultB)
   }
   
   def simpleJobSend(sender: ActorRef) = {

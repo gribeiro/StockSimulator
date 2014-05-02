@@ -109,7 +109,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   def bsVolCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BlackScholes.bsVolCall(spot, strike, r, optionPrice, timeToExpiry)
   def priceEuropeanBlackScholesCall(spot: Double, strike: Double, r: Double, timeToExpiry: Double, volatility: Double) = BlackScholes.priceEuropeanBlackScholesCall(spot, strike, r, timeToExpiry, volatility)
   
-  protected def putResult(key: String, obj: Object) {
+  private def putResult(key: String, obj: Object) {
     result.set(key, obj)
   }
   protected def print(s: String) = Log(s)
@@ -121,14 +121,14 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   def onSellReport(stock: Stock, volume: Int, price: Double)
 
   private val myTickets = new ListBuffer[Ticket]
-  val stocks = market.stocks
+  private val stocks = market.stocks
   private val position = new HashMap[Stock, Position]
   private var marketLast: mInfo = Map.empty[Stock, StockInfo]
   protected var lastTick: DateTime = new DateTime(0)
 
   private val sProvideLiquidity = new StrategyProvideLiquidity(this)
 
-  def provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double) = sProvideLiquidity.provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double)
+  private def provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double) = sProvideLiquidity.provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double)
   
   def provideSellLiquidity(symbol: Stock, qtd: Int, price: Double) = provideLiquidity(symbol, Sell, qtd, price)
   def provideBuyLiquidity(symbol: Stock, qtd: Int, price: Double) = provideLiquidity(symbol, Buy, qtd, price)

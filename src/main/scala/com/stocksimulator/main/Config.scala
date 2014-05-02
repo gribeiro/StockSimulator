@@ -12,12 +12,44 @@ import com.mongodb.casbah.Imports._
 import com.stocksimulator.java_loader.JavaStdStrategy
 import com.stocksimulator.debug._
 import com.stocksimulator.debug.LogNames._
+import ConfigurationModule._
 
+case class SaveMongo(collName: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
+    val host = mConf.host
+    val port = mConf.port
+    val connection = MongoClient(host, port)
+    val db = connection(mConf.coll)
+    def withMongoObject(mongoData: DBObject) = {
+      val ignoreDates = List("31/12/1969", "01/01/1970")
+      val coll = db(collName)
+      val inputStr = mongoData("inputStr").asInstanceOf[String]
+      val date = mongoData("date").asInstanceOf[String]
+      val pnl = mongoData("PNL").asInstanceOf[Double]
+     if(!ignoreDates.exists(_==date) && pnl != 0) {
+      val mobj = MongoDBObject("inputStr" -> inputStr, "date" -> date)
+      val find = coll.findOne(mobj)
+      find match {
+        case Some(obj) => {}
+        case None => coll.insert(mongoData)
+      }
+     } else this.log("Bogus save attempted..")
+    }
+    def apply(result: Result): Unit = {
+
+      for ((a, b) <- result) {
+        val mongoFormat = new MongoOutput(a, b, id, sId)
+        withMongoObject(mongoFormat.output)
+      }
+
+    }
+  }
 object ConfigurationModule {
   import com.stocksimulator.main.CurrentMongoConfig
   import com.stocksimulator.main.BSTypeClass.BSLike
   import com.stocksimulator.main.BSTypeClass._
   implicit val config = CurrentMongoConfig
+  
+
   
   trait ConfigurationTransform[T]
   trait MongoConfig {
@@ -64,35 +96,7 @@ object ConfigurationModule {
   trait SaveResult {
     def apply(result: Result): Unit
   }
-  class SaveMongo(collName: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
-    val host = mConf.host
-    val port = mConf.port
-    val connection = MongoClient(host, port)
-    val db = connection(mConf.coll)
-    def withMongoObject(mongoData: DBObject) = {
-      val ignoreDates = List("31/12/1969", "01/01/1970")
-      val coll = db(collName)
-      val inputStr = mongoData("inputStr").asInstanceOf[String]
-      val date = mongoData("date").asInstanceOf[String]
-      val pnl = mongoData("PNL").asInstanceOf[Double]
-     if(!ignoreDates.exists(_==date) && pnl != 0) {
-      val mobj = MongoDBObject("inputStr" -> inputStr, "date" -> date)
-      val find = coll.findOne(mobj)
-      find match {
-        case Some(obj) => {}
-        case None => coll.insert(mongoData)
-      }
-     } else this.log("Bogus save attempted..")
-    }
-    def apply(result: Result): Unit = {
 
-      for ((a, b) <- result) {
-        val mongoFormat = new MongoOutput(a, b, id, sId)
-        withMongoObject(mongoFormat.output)
-      }
-
-    }
-  }
 
   trait MongoDataSave {
     protected def saveToMongo(result: Result, conf: Configuration) 

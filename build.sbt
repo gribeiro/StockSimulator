@@ -6,7 +6,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.2.15"
+version := "1.3.2"
 
 scalaVersion := "2.10.4"
 
@@ -27,6 +27,16 @@ resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositor
 resolvers += "Element Releases" at "http://repo.element.hr/nexus/content/repositories/releases/"
 
 resolvers += "akka" at "http://repo.akka.io/snapshots"
+
+resolvers += "subcut" at "https://github.com/dickwall/subcut"
+
+resolvers += "spray repo" at "http://repo.spray.io"
+
+libraryDependencies += "com.github.seratch" %% "awscala" % "0.2.+"
+
+libraryDependencies += "commons-codec" % "commons-codec" % "1.2"
+
+libraryDependencies += "commons-io" % "commons-io" % "2.4"
 
 libraryDependencies += "io.argonaut" %% "argonaut" % "6.0.3"
 
@@ -66,8 +76,6 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.0-M3" cross CrossVersion
 
 publishMavenStyle := true
 
-//publishTo := Some("Sonatype Nexus Repository Manager" at "http://apps.fiveware.com.br/nexus/content/repositories/releases")
-
 publishTo := {
   val nexus = "http://apps.fiveware.com.br/nexus/"
   if (isSnapshot.value)
@@ -77,6 +85,14 @@ publishTo := {
 }
 
 credentials += Credentials("Sonatype Nexus Repository Manager", "apps.fiveware.com.br", "admin", "five2013")
+
+mergeStrategy in assembly <<= (mergeStrategy in assembly) {
+      (old) => {
+        case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+        case str if str.endsWith("MMEwz.class") => MergeStrategy.discard
+        case x => old(x)
+      }
+    }
 
 publishArtifact in (Compile, packageDoc) := false
 
