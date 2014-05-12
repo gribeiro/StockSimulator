@@ -7,7 +7,6 @@ abstract class MovingWindow(windowSize: Int, elapsed: Int, update: () => Double)
 	
 	val mSecondsToAdd = elapsed/windowSize
 	val feeder = this
-	//Log("MSECONDSTOADD:" + mSecondsToAdd.toString)
 	def calculate(): Double 
 	def next() = update()
 	def isAvailable(): Boolean = (getBuffer().size >= windowSize)

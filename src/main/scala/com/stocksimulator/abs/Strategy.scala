@@ -82,6 +82,8 @@ object Strategy {
       case q: Quote => midPrice(q)
     }
   }
+  
+  
 }
  
 abstract class Strategy(market: Market, private val param: Parameters) extends BuySellAdapter {

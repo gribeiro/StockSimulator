@@ -11,6 +11,10 @@ import scala.collection.mutable.HashMap
 import scala.concurrent._
 import scala.concurrent.duration._
 
+
+
+class ItWouldRunForeverException(msg: String) extends RuntimeException(msg)
+
 import ExecutionContext.Implicits.global
 object TimeControl {
  implicit def timeControl2Boolean(t: TimeControl): Boolean = t()
@@ -24,7 +28,7 @@ class TimeControl(inst: Set[Stock]) {
   private var lastTick:Option[DateTime] = None
   private var time: Int = 0
   private var nextTime: Int = 0
-  
+  private var checkTimeout: Boolean = false
   def timePassed = time
   def hasTime: Boolean = time > 0
   
@@ -84,7 +88,9 @@ class TimeControl(inst: Set[Stock]) {
     for (stock <- inst; if (stock != eiSt)) {
       lastMup.get(stock) match {
         case Some(s) => temp.put(stock, s)
-        case None => temp.put(stock, buffer.filter(si => si.unfold.iStock == stock).minBy(si => si.unfold.iDatetime))
+        case None if(buffer.filter(si => si.unfold.iStock == stock).length > 0) => temp.put(stock, buffer.filter(si => si.unfold.iStock == stock).minBy(si => si.unfold.iDatetime))
+        case None if(buffer.filter(si => si.unfold.iStock == stock).length == 0) => throw new ItWouldRunForeverException(inst.toString)
+        case None => {}
       }
     }
 
@@ -99,6 +105,9 @@ class TimeControl(inst: Set[Stock]) {
     }
   }
 
-  def hasData(): Boolean = buffer.size > 0
+  def hasData(): Boolean = {
+ 
+    buffer.size > 0
+  }
 
 }

@@ -13,9 +13,8 @@ case class BootstrapConf(localWorkers: Int, name: String, inst: Set[Stock], comp
 
 class CommonBootstrap[T <: Strategy](conf: BootstrapConf, params: Array[Parameters], date: String, filename: String, generator: (Market, Parameters) => T) extends ResultAccComponent {
 self: ResultAccComponent =>
-  val workers = new Workers(conf.localWorkers, createBundle, conf.name)
+  //val workers = new Workers(conf.localWorkers, createBundle, conf.name)
  
-  def terminated = workers.terminated
   private def loadTime(timeStr: String) = {
    val timeComplete = Array(date, timeStr+".000") mkString " "
    val dateFormat = ReutersCommon.dateFormat
@@ -43,13 +42,17 @@ self: ResultAccComponent =>
     val uniqueParams = params.toArray.distinct
    
     this.log("Job count after filter: " +uniqueParams.length) 
-    uniqueParams.foreach {
-      p => workers.master ! spWork(p, date)
+    val results = uniqueParams.map { 
+      params => 
+         val strategy = createBundle(params)
+         (params, strategy.init) // Block current actor flow.
+      // p => workers.master ! spWork(p, date)
     }
-    workers.master ! spLast
-    workers.system.awaitTermination()
+    //workers.master ! spLast
+    //workers.system.awaitTermination()
     this.log("Local worker system terminated...")
-    result.parametersResult
+    //result.parametersResult
+    results
   }
   
 }

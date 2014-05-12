@@ -18,7 +18,7 @@ abstract class Service(name: String) {
 
 trait DynamoDBUser {
   import ServicesManagement._
-  implicit val dynamo = SL_DynamoDB()
+  implicit def dynamo = SL_DynamoDB()
 }
 
 trait DynamobDBUserWithTable extends DynamoDBUser {
@@ -29,25 +29,26 @@ trait DynamobDBUserWithTable extends DynamoDBUser {
 trait S3UserWithBucket {
   import ServicesManagement._
   val bucketName: String
-  implicit val s3 = SL_S3()
-  val bucketOption = s3.bucket(bucketName)
+  implicit def s3 = SL_S3()
+  def bucketOption = s3.bucket(bucketName)
 }
 
 trait SQSUser {
   import ServicesManagement._
-  implicit val sqs = SL_SQS()
+  implicit def sqs = SL_SQS()
 }
 
 trait SQSReceiveQueue extends SQSUser {
   import Result._
   val receiveQueue: String
-  val queueOption = sqs.queue(receiveQueue)
-  val tryQueue = queueOption.result("Queue not found")
+  def queueOption = sqs.queue(receiveQueue)
+  def tryQueue = queueOption.result("Queue not found")
   def removeMessage(m: awscala.sqs.Message) = {
-    queueOption.map {
-      queue => queue.remove(m)
+    queueOption match {
+      case Some(queue) => queue.remove(m)
+      case None => println("Error: Queue not available")
     }
-  }
+ }
   def receiveFromQueue[T](count: Int)(fun: Seq[awscala.sqs.Message] => T): Result[T] = {
     val option = queueOption.map {
       queue =>
@@ -78,7 +79,7 @@ trait SQSReceiveQueue extends SQSUser {
 trait SQSSendQueue extends SQSUser {
   import Result._
   val sendQueue: String
-  val sendQueueOption = sqs.queue(sendQueue)
+  def sendQueueOption = sqs.queue(sendQueue)
   val tryOutputQueue = sendQueueOption.result("Output Queue not found!")
 }
 
@@ -127,7 +128,7 @@ abstract class PrimaryServiceActor(workers: Int, errorQueueName: String = "simul
   val nextTicks = 20000 
   val ticker = context.system.scheduler.schedule(firstTick millis, nextTicks millis, self, callName)
   
-  private val errorQueue = ExtraQueue(errorQueueName)
+  protected val errorQueue = ExtraQueue(errorQueueName)
  
 
 

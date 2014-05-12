@@ -89,7 +89,7 @@ credentials += Credentials("Sonatype Nexus Repository Manager", "apps.fiveware.c
 mergeStrategy in assembly <<= (mergeStrategy in assembly) {
       (old) => {
         case PathList("org", "apache", xs @ _*) => MergeStrategy.last
-        case str if str.endsWith("MMEwz.class") => MergeStrategy.discard
+        case str if str.endsWith("MMEwz.class") || str.endsWith("RatioArb2.class") || str.endsWith("RatioArb3.class") || str.endsWith("RatioArb.class") => MergeStrategy.discard
         case x => old(x)
       }
     }

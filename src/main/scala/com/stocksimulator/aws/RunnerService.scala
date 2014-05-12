@@ -12,6 +12,15 @@ import akka.actor.Props
 import akka.actor.ActorSystem
 import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.debug._
+import org.jboss.netty.util.HashedWheelTimer
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
+import org.jboss.netty.util.TimerTask
+import org.jboss.netty.util.Timeout
+import scala.concurrent.Promise
+import org.jboss.netty.handler.timeout.TimeoutException
+import scala.concurrent.ExecutionContext
+import scala.parallel._
 
 case class ProcessSimulation(workInfo: WorkInfo, p: awscala.sqs.Message)
 
@@ -27,25 +36,32 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
   import org.apache.commons.codec.binary._
   import com.stocksimulator.aws.Result._
 
-  def secondaryActor = {
-    context.actorOf(Props(classOf[JobWorker], bucketName))
-  }
-  
   def simulResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String) {
-         val output = (new MongoOutput(a, b, id, id)).output
-      val binary = ObjectToByteArray(output)
-      val stringB64 = new String(Base64.encodeBase64(binary))
+    val output = (new MongoOutput(a, b, id, id)).output
+    val binary = ObjectToByteArray(output)
+    val stringB64 = new String(Base64.encodeBase64(binary))
 
-      for (queue <- queueOption; outputQ <- sendQueueOption) {
-        outputQ.add(stringB64)
-        queue.remove(message)
-      }
+    val tryAdd = for (queue <- queueOption; outputQ <- sendQueueOption) yield {
+      outputQ.add(stringB64)
+      queue.remove(message)
+    }
+    tryAdd match {
+      case Some(_) => this.log("Queues are all ok.")
+      case None => this.log("Error! Queues are not ok!!!")
+    }
   }
   def receive = {
     case "checkQueue" =>
       this.log("Bidding")
-      val receiveOption = receiveFromQueueAndMap (1) {
+      val receiveOption = receiveFromQueueAndMap(1) {
         p =>
+
+          def error(message: String) = {
+            removeMessage(p)
+            errorQueue.sendMessage(message + p.toString())
+            this.log(message)
+          }
+          
           val maybeConfig = WorkInfo.load(p.body)
           val sendMessage = maybeConfig.map {
             preInfo =>
@@ -53,12 +69,13 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
 
               okMessage match {
                 case ProcessSimulation(WorkInfo(id, day, symbols, param, datFile), message) =>
-                  for {
+                  val worked = for {
                     bucket <- bucketOption;
                     json <- bucket.get("jobs/" + id + ".json");
                     javafile <- bucket.get("jobs/" + id + ".java");
                     dat <- bucket.get("data/" + datFile)
-                  } {
+                  } yield {
+
                     val jsonStr = scala.io.Source.fromInputStream(json.content).getLines().mkString("\n")
                     val javaStr = scala.io.Source.fromInputStream(javafile.content).getLines().mkString("\n")
                     val jsonOption = jsonStr.decodeOption[Configuration]
@@ -70,12 +87,34 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                     for (conf <- jsonOption) {
                       this.log(param + " " + conf)
                       val configOneDay = conf.copy(dates = List(day))
-                      val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
-                      this.log("Done..")
-                      result.foreach { res =>
-                        simulResult(res._1, res._2, message, id)
+                      try {
+                        val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
+                        this.log("Done..")
+                        result.foreach { res =>
+                          simulResult(res._1, res._2, message, id)
+                        }
+                      } catch {
+                        case e: ItWouldRunForeverException =>
+                          error("Infinite loop would occur, maybe the instruments names are wrong.\n")
+
+                        case e: Exception =>
+                          error("Exception occurred:" + e.getMessage())
+
                       }
+
                     }
+                    try {
+                    json.close()
+                    javafile.close()
+                    dat.close()
+                  	} catch {
+                    case e: Exception =>  this.log("Error when closing S3 objects.")
+                  }
+                  	true
+                  }
+                  worked match {
+                    case Some(_) => this.log("No errors.")
+                    case None => error("S3 Save exception.")
                   }
               }
           }
@@ -84,22 +123,6 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
 
       receiveOption.gatherErr
 
-    case SimulationResult(a, b, message, id) =>
-      this.log(b)
-      val output = (new MongoOutput(a, b, id, id)).output
-      val binary = ObjectToByteArray(output)
-      val stringB64 = new String(Base64.encodeBase64(binary))
-
-      for (queue <- queueOption; outputQ <- sendQueueOption) {
-        outputQ.add(stringB64)
-        queue.remove(message)
-      }
   }
 
-}
-
-class JobWorker(val bucketName: String) extends Actor {
-  def receive = {
-    case _ =>
-  }
 }

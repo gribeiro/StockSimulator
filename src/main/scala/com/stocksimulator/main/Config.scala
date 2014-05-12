@@ -15,11 +15,12 @@ import com.stocksimulator.debug.LogNames._
 import ConfigurationModule._
 
 case class SaveMongo(collName: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
+  
+   def withMongoObject(mongoData: DBObject) = {
     val host = mConf.host
     val port = mConf.port
     val connection = MongoClient(host, port)
     val db = connection(mConf.coll)
-    def withMongoObject(mongoData: DBObject) = {
       val ignoreDates = List("31/12/1969", "01/01/1970")
       val coll = db(collName)
       val inputStr = mongoData("inputStr").asInstanceOf[String]
@@ -33,6 +34,7 @@ case class SaveMongo(collName: String, id: String, sId: String)(implicit mConf: 
         case None => coll.insert(mongoData)
       }
      } else this.log("Bogus save attempted..")
+     connection.close()
     }
     def apply(result: Result): Unit = {
 

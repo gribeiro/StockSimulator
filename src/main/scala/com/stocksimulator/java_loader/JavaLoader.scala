@@ -3,9 +3,30 @@ package com.stocksimulator.java_loader
 import com.stocksimulator.main._
 import com.stocksimulator.abs._
 import com.stocksimulator.common_strategies._
+import com.stocksimulator.helpers.ParamMaker
+import com.stocksimulator.debug._, LogNames._
+
+
+abstract class JavaAdapterQ extends JavaAdapter {
+  
+  
+  def callback() = {}
+  def onSellReport(stock: Stock, volume: Int, price:Double) = {}
+  def onBuyReport(stock: Stock, volume: Int, price:Double) = {}
+  
+  def onStart = {
+    this.log(this.getClass()+" is on!!")
+  }
+  
+}
+
+
 
 
 abstract class JavaAdapter {
+  
+  
+
   protected var _strat: JavaStdStrategy = null
   def strategy = _strat
   def onQuotes()
@@ -16,6 +37,10 @@ abstract class JavaAdapter {
   def setStrategy(strat: JavaStdStrategy) = {
     _strat = strat
   }
+  
+  implicit def ParamMaker2Int(pm: ParamMaker): Int = strategy.getIntParam(pm.name)
+  implicit def ParamMaker2Double(pm: ParamMaker): Double = strategy.getParam(pm.name).asInstanceOf[Double]
+  implicit def ParamMaker2String(pm: ParamMaker): String = strategy.getParam(pm.name).asInstanceOf[String]
 }
 
 

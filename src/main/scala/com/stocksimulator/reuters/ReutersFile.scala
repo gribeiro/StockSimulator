@@ -27,40 +27,165 @@ trait Credentials {
 
 trait CurrentReutersCredentials extends Credentials {
   def username = "andre@allianceasset.com.br"
-  def password =  "fiveware456"
+  def password = "fiveware456"
 }
 
 class ReutersFiles { self: Credentials =>
-	val conn = new RTHConnector
-	
-	def apply(symbols: Array[String], date: String):String = {
-	  val filename= conn.downloadMultiTAQFile(symbols, date, username, password)
-	  "TAQ" + filename.split("TAQ").last   
-	}
+  val conn = new RTHConnector
 
-	def apply(symbols: Array[String], date: List[String]):Iterable[String] = {
-	  for(d <- date) yield apply(symbols, d)
-	}
-	
+  def apply(symbols: Array[String], date: String): String = {
+    val filename = conn.downloadMultiTAQFile(symbols, date, username, password)
+    "TAQ" + filename.split("TAQ").last
+  }
+
+  def apply(symbols: Array[String], date: List[String]): Iterable[String] = {
+    for (d <- date) yield apply(symbols, d)
+  }
+
 }
 
-
 case class FileFormat(val ric: String, val datetime: Long, val gmt: Int, val sType: Boolean, val price: Double, val volume: Int, val bidPrice: Double, val bidSize: Int, val askPrice: Double, val askSize: Int) extends Ordered[FileFormat] {
-  
+
   def compare(that: FileFormat) = {
     datetime.compare(that.datetime)
   }
 }
 
-
 object FileManager {
-      import scala.concurrent._
-    import ExecutionContext.Implicits.global
+  import scala.concurrent._
+  import ExecutionContext.Implicits.global
+  import akka.actor._
+  import com.stocksimulator.parallel.ParCommon
+  import akka.pattern.ask
+  import akka.util.Timeout
+  import scala.concurrent.Await
+  import scala.concurrent.duration._
+  implicit val timeout = Timeout(100.days)
+  
+  
+  val config = ParCommon.config
+  val system = ActorSystem("FileMS", config)
+  
+  val fileActor =  system.actorOf(Props(classOf[FileActor]))
+  
+  trait FileManaging
+  case class OpenFile(filename: String) extends FileManaging
+  case class SaveFile(fileName: String, fileContent: Array[FileFormat]) extends FileManaging
+  case class SaveFromMemory(data: Array[Byte], fileName: String) extends FileManaging
+  case class ReadSymbolTable(filename: String) extends FileManaging
+
+  class FileActor extends Actor {
+
+    def readSymbolTable(fileName: String) = {
+      val fileMonad = managed(new FileInputStream(fileName))
+
+      val bufferMonad = fileMonad.map(new BufferedInputStream(_)).map(new InflaterInputStream(_)).map(new BufferedInputStream(_)).map(new DataInputStream(_))
+      var loadData = new ArrayBuffer[String]
+      bufferMonad.acquireAndGet { input =>
+        val bla = input.readInt
+        val ricTableSz = input.readInt
+        for (j <- 1 to ricTableSz) yield {
+          loadData += input.readUTF()
+        }
+        input.close
+      }
+      loadData.toArray
+    }
+    def saveFromMemory(data: Array[Byte], fileName: String) = {
+      val fileMonad = managed(new FileOutputStream(fileName))
+      fileMonad.acquireAndGet {
+        output =>
+          output.write(data)
+          output.close()
+      }
+
+    }
+
+    def open(fileName: String):Array[FileFormat] = {
+      val fileMonad = managed(new FileInputStream(fileName))
+      val bufferMonad = fileMonad.map(new InflaterInputStream(_)).map(new DataInputStream(_))
+      var loadData = new RingBuffer[FileFormat](0)
+      bufferMonad.acquireAndGet { input =>
+        val size = input.readInt
+        val ricTableSz = input.readInt
+        val ricTable = for (j <- 1 to ricTableSz) yield {
+          input.readUTF()
+        }
+        loadData = new RingBuffer[FileFormat](size)
+        val allData = for (i <- 1 to size) yield {
+          val ric = ricTable(input.readInt)
+          val datetime = input.readLong
+          val gmt = input.readInt
+          val sType = input.readBoolean
+          if (!sType) {
+            val price = input.readDouble
+            val volume = input.readInt
+            loadData += FileFormat(ric, datetime, gmt, sType, price, volume, 0, 0, 0, 0)
+          } else {
+            val bidPrice = input.readDouble
+            val bidSize = input.readInt
+            val askPrice = input.readDouble
+            val askSize = input.readInt
+            loadData += FileFormat(ric, datetime, gmt, sType, 0, 0, bidPrice, bidSize, askPrice, askSize)
+          }
+        }
+        input.close
+        loadData.toArray
+      }
+    }
+
+    def save(fileName: String, fileContent: Array[FileFormat]) = {
+      val ricArray = fileContent.par.groupBy(_.ric).keySet.toArray
+      val fileMonad = managed(new FileOutputStream(fileName))
+      val bufferMonad = fileMonad.map(new DeflaterOutputStream(_)).map(new DataOutputStream(_))
+      val loadData = ArrayBuffer.empty[FileFormat]
+      bufferMonad.acquireAndGet { output =>
+        val size = fileContent.size
+        output.writeInt(size)
+        //outputRIC TABLE
+        output.writeInt(ricArray.size)
+        ricArray.foreach {
+          ric =>
+            output.writeUTF(ric)
+        }
+        //
+        fileContent.foreach { formated =>
+          output.writeInt(ricArray.indexOf(formated.ric))
+          output.writeLong(formated.datetime)
+          output.writeInt(formated.gmt)
+          output.writeBoolean(formated.sType)
+          if (!formated.sType) {
+            output.writeDouble(formated.price)
+            output.writeInt(formated.volume)
+          } else {
+            output.writeDouble(formated.bidPrice)
+            output.writeInt(formated.bidSize)
+            output.writeDouble(formated.askPrice)
+            output.writeInt(formated.askSize)
+          }
+
+        }
+        output.close
+      }
+    }
+    def receive = {
+      case OpenFile(filename) =>
+        val opened = open(filename)
+        this.log(opened.getClass())
+        sender ! open(filename)
+      case SaveFile(filename, fileContent) =>
+        sender ! save(filename, fileContent)
+      case SaveFromMemory(data, filename) =>
+        sender ! saveFromMemory(data, filename)
+      case ReadSymbolTable(filename) =>
+        sender ! readSymbolTable(filename)
+    }
+  }
+
   val dateFormat = ReutersCommon.dateFormat
   def datExtension(filename: String): String = filename.split("""\.""").head + ".dat"
-  
-  
-  def downloadReuters(symbols: Array[String], date: String):String = {
+
+  def downloadReuters(symbols: Array[String], date: String): String = {
     val hcReuters = new ReutersFiles with CurrentReutersCredentials
     val all = symbols.map {
       str => Stock(str).checkOption(date).name
@@ -71,36 +196,40 @@ object FileManager {
 
     hcReuters.apply(all, date)
   }
-  
-  
+
   def downloadReutersOption(symbols: Array[String], date: String): Option[String] = {
 
     try {
-    val tryDownloadReuters = downloadReuters(symbols, date)
-       val testeFileExists = fileExists(tryDownloadReuters)
-    val length = (new File(tryDownloadReuters) ).length()/(1024)
-    
-    if(testeFileExists && length >= 100) Some(tryDownloadReuters) else None
-    }
-    catch {
-      case e: Exception => 
-        
+      val tryDownloadReuters = downloadReuters(symbols, date)
+      val testeFileExists = fileExists(tryDownloadReuters)
+      val length = (new File(tryDownloadReuters)).length() / (1024)
+
+      if (testeFileExists && length >= 100) Some(tryDownloadReuters) else None
+    } catch {
+      case e: Exception =>
+
         this.log("Reuters download failed...")
         this.log(e)
         None
-    
-   }
+
+    }
   }
-  
+
+  def generatedFilename(symbols: Array[String], date: String): String = {
+    val symb = symbols.mkString("").replace('.', '_').toUpperCase()
+    val datest = date.replace('/', '_')
+
+    (List("TAQ", symb, datest) mkString "_") + ".dat"
+  }
+
   def fileExists(filename: String) = {
     Files.exists(Paths.get(filename))
   }
-  
-  
+
   def datFileIO(filename: String) = {
     val datFile = datExtension(filename)
-    
-     if (fileExists(datFile)) {
+
+    if (fileExists(datFile)) {
       new java.io.File(datFile)
     } else {
       val load = transform(filename)
@@ -108,9 +237,9 @@ object FileManager {
       new java.io.File(datFile)
     }
   }
-  def apply(filename: String, from: Option[String] = None , to: Option[String] = None) = {
+  def apply(filename: String, from: Option[String] = None, to: Option[String] = None) = {
     val datFile = datExtension(filename)
-    
+
     val transformed = if (fileExists(datFile)) {
       open(datFile)
     } else {
@@ -118,49 +247,7 @@ object FileManager {
       save(datFile, load)
       load
     }
-   /* val mutable = ArrayBuffer.empty ++ transformed
-    val grouped = mutable.groupBy(_.ric)
 
-    def choose(map: Map[String, ArrayBuffer[FileFormat]]) = {
-      val keys = map.keys
-      val buff = ArrayBuffer.empty[FileFormat]
-      for(key <- keys) {
-        val pipe = map(key)
-        if(pipe.length > 0 ) {
-          val head  = pipe.head
-          pipe -= head
-          buff += head
-        }
-      }
-      buff
-    }
-    
-    def getMap(buffer: ArrayBuffer[FileFormat]) = {
-      val maps:ArrayBuffer[Map[Stock, StockInfo]] = buffer.map { fFormat =>
-        val stock = Stock(fFormat.ric)
-        val datetime = new DateTime(fFormat.datetime)
-        if (fFormat.sType) {
-          val bid = PriceVol(fFormat.bidPrice, fFormat.bidSize)
-          val ask = PriceVol(fFormat.askPrice, fFormat.askSize)
-          Map(stock -> Quote(stock, bid, ask, datetime))
-        } else {
-          val priceVol = PriceVol(fFormat.price, fFormat.volume)
-          Map(stock -> Trade(stock, priceVol, datetime))
-        }
-      }
-      
-      val oneMap = maps.foldLeft(Map.empty[Stock, StockInfo]) {
-        (a,b) =>
-          a ++ b
-      }
-      oneMap
-    }
-    val result = ArrayBuffer.empty[Map[Stock, StockInfo]]
-    var elem = choose(grouped)
-    while(elem.length > 0) {
-       result += getMap(elem) 
-       elem = choose(grouped)
-    }*/
     val allTransf: Array[Map[Stock, StockInfo]] = transformed.map {
       fFormat =>
         val stock = Stock(fFormat.ric)
@@ -174,7 +261,7 @@ object FileManager {
           Map(stock -> Trade(stock, priceVol, datetime))
         }
     }
-   
+
     allTransf
     //result.foreach(println(_))
     //result.toArray
@@ -250,96 +337,27 @@ object FileManager {
     }
     outputArr.toByteArray
   }
+
+  
+  def loadInSequence[T](fm: FileManaging):T = {
+     val fut = ask(fileActor, fm)
+	 val await = Await.result(fut, timeout.duration).asInstanceOf[T]
+	await
+  }
   
   def saveFromMemory(data: Array[Byte], fileName: String) = {
-    val fileMonad = managed(new FileOutputStream(fileName))
-    fileMonad.acquireAndGet {
-      output =>
-        output.write(data)
-        output.close()
-    }
- 
+	  loadInSequence[Unit](SaveFromMemory(data, fileName))
   }
   
-  def readSymbolTable(fileName: String) = {
-    val fileMonad = managed(new FileInputStream(fileName))
-    
-    val bufferMonad = fileMonad.map(new BufferedInputStream(_)).map(new InflaterInputStream(_)).map(new BufferedInputStream(_)).map(new DataInputStream(_))
-    var loadData = new ArrayBuffer[String]
-    bufferMonad.acquireAndGet { input =>
-      val bla = input.readInt
-      val ricTableSz = input.readInt
-      for (j <- 1 to ricTableSz) yield {
-        loadData += input.readUTF()
-      }
-      input.close
-    }
-    loadData.toArray
+  def readSymbolTable(fileName: String):Array[String] = {
+	 loadInSequence[Array[String]](ReadSymbolTable(fileName))
   }
-  def open(fileName: String) = {
-    val fileMonad = managed(new FileInputStream(fileName))
-    val bufferMonad = fileMonad.map(new BufferedInputStream(_)).map(new InflaterInputStream(_)).map(new BufferedInputStream(_)).map(new DataInputStream(_))
-    var loadData = new RingBuffer[FileFormat](0)
-    bufferMonad.acquireAndGet { input =>
-      val size = input.readInt
-      val ricTableSz = input.readInt
-      val ricTable = for (j <- 1 to ricTableSz) yield {
-        input.readUTF()
-      }
-      loadData = new RingBuffer[FileFormat](size)
-      val allData = for (i <- 1 to size) yield {
-        val ric = ricTable(input.readInt)
-        val datetime = input.readLong
-        val gmt = input.readInt
-        val sType = input.readBoolean
-        if (!sType) {
-          val price = input.readDouble
-          val volume = input.readInt
-          loadData += FileFormat(ric, datetime, gmt, sType, price, volume, 0, 0, 0, 0)
-        } else {
-          val bidPrice = input.readDouble
-          val bidSize = input.readInt
-          val askPrice = input.readDouble
-          val askSize = input.readInt
-          loadData += FileFormat(ric, datetime, gmt, sType, 0, 0, bidPrice, bidSize, askPrice, askSize)
-        }
-      }
-      input.close
-      loadData.toArray
-    }
+  def open(fileName: String):Array[FileFormat] = {
+	  val loaded = loadInSequence[Array[FileFormat]](OpenFile(fileName))
+	  //loaded.foreach(p => println(p))
+	  loaded
   }
   def save(fileName: String, fileContent: Array[FileFormat]) = {
-    val ricArray = fileContent.par.groupBy(_.ric).keySet.toArray
-    val fileMonad = managed(new FileOutputStream(fileName))
-    val bufferMonad = fileMonad.map(new DeflaterOutputStream(_)).map(new DataOutputStream(_))
-    val loadData = ArrayBuffer.empty[FileFormat]
-    bufferMonad.acquireAndGet { output =>
-      val size = fileContent.size
-      output.writeInt(size)
-      //outputRIC TABLE
-      output.writeInt(ricArray.size)
-      ricArray.foreach {
-        ric =>
-          output.writeUTF(ric)
-      }
-      //
-      fileContent.foreach { formated =>
-        output.writeInt(ricArray.indexOf(formated.ric))
-        output.writeLong(formated.datetime)
-        output.writeInt(formated.gmt)
-        output.writeBoolean(formated.sType)
-        if (!formated.sType) {
-          output.writeDouble(formated.price)
-          output.writeInt(formated.volume)
-        } else {
-          output.writeDouble(formated.bidPrice)
-          output.writeInt(formated.bidSize)
-          output.writeDouble(formated.askPrice)
-          output.writeInt(formated.askSize)
-        }
-
-      }
-      output.close
-    }
+	  loadInSequence[Unit](SaveFile(fileName, fileContent))
   }
 }

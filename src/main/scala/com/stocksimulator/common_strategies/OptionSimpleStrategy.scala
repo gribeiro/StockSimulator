@@ -2,7 +2,7 @@ package com.stocksimulator.common_strategies
 
 import com.stocksimulator.abs._
 import com.stocksimulator.debug.Log
-
+/*
 abstract class OptionSimpleStrategy(market: Market, param: Parameters)  extends RatioArbitrerStrategy(market, param) {
   
   
@@ -38,4 +38,4 @@ abstract class OptionSimpleStrategy(market: Market, param: Parameters)  extends 
     }
   }
 
-}
+}*/

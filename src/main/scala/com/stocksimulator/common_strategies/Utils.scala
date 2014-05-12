@@ -32,11 +32,11 @@ object StrategyUtils {
   }
   
   def roundUpFactory(gran: Double) = {
-    doubleFactory(integerUp, gran)
+    (x:Double) => Math.ceil(( x/ gran)) * gran
   }
   
   def roundDownFactory(gran: Double) = {
-    doubleFactory(integerDown, gran)
+    (x:Double) => Math.floor(( x/ gran)) * gran
   }
   
   

@@ -35,8 +35,7 @@ class OutputActor(val receiveQueue: String, val tableName: String) extends Prima
   import com.stocksimulator.remote.ByteArrayToObject
   import awscala.dynamodbv2.TableMeta
   
-  
-  
+ 
   def receive = {
 
     case "checkQueue" =>
@@ -47,9 +46,10 @@ class OutputActor(val receiveQueue: String, val tableName: String) extends Prima
           val body = p.body.map(_.toByte).toArray
           val decoded = Base64.decodeBase64(body)
           val mongo = ByteArrayToObject[BasicDBObject](decoded)
-          
+     
           val pnl = mongo.get("PNL").asInstanceOf[Double]
           val sortino = mongo.get("sortino").asInstanceOf[Double]
+     this.log(pnl.toString)
           val sharpe = mongo.get("sharpe").asInstanceOf[Double]
           val id = mongo.get("sID").asInstanceOf[String]
           val mongoDB = SaveMongo(id, id, id)

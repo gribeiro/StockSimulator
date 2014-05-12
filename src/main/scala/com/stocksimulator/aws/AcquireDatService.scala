@@ -33,13 +33,10 @@ class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucke
   import scala.concurrent.duration._
   import context.dispatcher
 
-  def secondaryActor = {
-    context.actorOf(Props(classOf[GetFileActor], bucketName))
-  }
   def receive = {
     case "checkQueue" =>
       this.log("Bidding")
-      val receiveOption = receiveFromQueueAndMap (1) {
+      val receiveOption = receiveFromQueueAndMap(1) {
         p =>
           val maybeInfo = PreProcessInfo.load(p.body)
           maybeInfo.map { preInfo =>
@@ -51,30 +48,41 @@ class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucke
                 for {
                   bucket <- bucketOption;
                   date <- days;
-                  filename <- FileManager.downloadReutersOption(symbols.toArray, date)
+                  queue <- sendQueueOption
                 } {
                   this.log("Getting " + date + " file")
+                  val filename = FileManager.generatedFilename(symbols.toArray, date)
+                  val crossName = "data/" + filename
+                  def addJob = {
+                    this.log("Making new job...")
+                    VarParam(param).foreach {
+                      p =>
+                        val nWork = WorkInfo(id, date, symbols, p.inputStr, FileManager.datExtension(filename))
+                        val newWork = nWork.asJson.toString
+                        queue.add(newWork)
+                    }
+                  }
 
-                  val file = FileManager.datFileIO(filename)
-                  val crossName = "data/" + FileManager.datExtension(filename)
 
                   val fileExists = bucket.keys().toList.exists(_ == crossName)
                   if (!fileExists) {
-                    bucket.put(crossName, file)
+                    
+                    for (filenameR <- FileManager.downloadReutersOption(symbols.toArray, date)) {
+                      val file = FileManager.datFileIO(filenameR)
+                     val teste= bucket.put(crossName, file)
+                      
+                      addJob
+                    }
                   }
-                  this.log("Making new job...")
-                  VarParam(param).foreach {
-                    p =>
-                      val nWork = WorkInfo(id, date, symbols, p.inputStr, FileManager.datExtension(filename))
-                      val newWork = nWork.asJson.toString
-                      for (queue <- sendQueueOption) queue.add(newWork)
+                  else {
+                    addJob
                   }
 
                 }
             }
-            for (receiveQueue <- queueOption) {
-              receiveQueue.remove(p)
-            }
+            this.log("Removendo mensagem:" + p.id)
+            removeMessage(p)
+            this.log("Mensagem supostamente removida")
           }
       }
 
