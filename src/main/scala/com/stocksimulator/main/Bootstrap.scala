@@ -123,6 +123,7 @@ object Bootstrap {
   def main(args: Array[String]): Unit = {
     import com.stocksimulator.aws._
     import com.stocksimulator.main.ConfigurationModule._
+  
     Log.setActive(true)
 
     val firstArgs = List(
@@ -141,19 +142,19 @@ object Bootstrap {
         status match {
           case Local(filename) => RunFromFileJson(filename)
           case Job(filename) =>
-            val passo1 = new SendJobService("simulacoes-etp", "simul-preproces")
+            val passo1 = new SendJobService with DefaultConfig
             val config = ConfigurationLoadJson.load(filename).get
             passo1(config)
           case Worker(qtd: Int) =>
             for(i <- 1 to qtd) {
-            val workerService = new RunnerService("simul-jobs", "simul-result", "simulacoes-etp", 1)
+            val workerService = new RunnerService with DefaultConfig
             workerService.run
             }
           case Preprocessor =>
-            val preprocessor = new AcquireDatService("simul-preproces", "simul-jobs", "simulacoes-etp")
+            val preprocessor = new AcquireDatService with DefaultConfig
             preprocessor.run
           case Resulter =>
-            val resulter = new OutputService("simul-result", "Resultados")
+            val resulter = new OutputService with DefaultConfig
             resulter.run
         }
       case None =>

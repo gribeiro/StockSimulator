@@ -1,3 +1,4 @@
+
 package com.stocksimulator.aws
 import akka.actor._
 import com.stocksimulator.parallel.ParCommon
@@ -6,6 +7,8 @@ import akka.routing.Router
 import akka.routing.RoundRobinRoutingLogic
 import scalaz._
 import Scalaz._
+import com.stocksimulator.debug.LogNames._
+
 abstract class Service(name: String) {
     val config = ParCommon.config
 	val system = ActorSystem(name, config)
@@ -56,7 +59,7 @@ trait SQSReceiveQueue extends SQSUser {
         fun(messageSequence)
     }
 
-    option match {
+    option match { 
       case Some(res) => ok(res)
       case None => err("Queue inexistent")
     }
@@ -67,6 +70,8 @@ trait SQSReceiveQueue extends SQSUser {
 
     receiveFromQueue(count) {
       messages =>
+        this.log("Receiving... ")
+        this.log(messages)
         def removeMessage(e: awscala.sqs.Message) = {
           sqs.delete(e)
         }
@@ -120,7 +125,7 @@ trait SecondaryActors {
     }
 }
 
-abstract class PrimaryServiceActor(workers: Int, errorQueueName: String = "simul-erro") extends Actor {
+abstract class PrimaryServiceActor(errorQueueName: String) extends Actor {
   import scala.concurrent.duration._
   import context.dispatcher
   val callName = "checkQueue" 
@@ -128,7 +133,7 @@ abstract class PrimaryServiceActor(workers: Int, errorQueueName: String = "simul
   val nextTicks = 20000 
   val ticker = context.system.scheduler.schedule(firstTick millis, nextTicks millis, self, callName)
   
-  protected val errorQueue = ExtraQueue(errorQueueName)
+  protected def errorQueue = ExtraQueue(errorQueueName)
  
 
 

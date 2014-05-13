@@ -11,7 +11,10 @@ object PreProcessInfo {
   def load(s: String) = s.decodeOption[PreProcessInfo]
 }
 
-class SendJobService(bucketName: String, queueName: String) {
+class SendJobService {
+  self: ConfigComponent =>
+  val bucketName = self.queueNames.bucketName
+  val queueName = self.queueNames.preprocessorInputQueue
  import ServicesManagement._
 
  import scala.concurrent._

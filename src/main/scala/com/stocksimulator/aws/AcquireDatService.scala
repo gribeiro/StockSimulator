@@ -12,9 +12,14 @@ import Scalaz._
 import com.stocksimulator.main.VarParam
 import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.debug._
-class AcquireDatService(receiveQueue: String, sendQueue: String, bucketName: String) extends Service("acquireDatService") {
+class AcquireDatService extends Service("acquireDatService") {
+  self: ConfigComponent =>
+  val receiveQueue = self.queueNames.preprocessorInputQueue
+  val sendQueue = self.queueNames.runnerInputQueue
+  val bucketName = self.queueNames.bucketName
+  val errorQueueName = self.queueNames.errorQueueName
   def actorGen(system: ActorSystem) = {
-    system.actorOf(Props(classOf[AcquireDatActor], receiveQueue, sendQueue, bucketName, 1))
+    system.actorOf(Props(classOf[AcquireDatActor], receiveQueue, sendQueue, bucketName, errorQueueName))
   }
 }
 
@@ -29,7 +34,7 @@ object WorkInfo {
   def load(s: String) = s.decodeOption[WorkInfo]
 }
 
-class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, workers: Int = 1) extends PrimaryServiceActor(workers) with SQSSendReceiveQueue with S3UserWithBucket {
+class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueue: String) extends PrimaryServiceActor(errorQueue) with SQSSendReceiveQueue with S3UserWithBucket {
   import scala.concurrent.duration._
   import context.dispatcher
 

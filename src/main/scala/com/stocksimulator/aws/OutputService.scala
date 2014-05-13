@@ -18,8 +18,11 @@ import awscala.dynamodbv2.Projection
 
 
 
-class OutputService(receiveQueue: String, tableName: String) extends Service("OutputService") {
-  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[OutputActor], receiveQueue, tableName))
+class OutputService extends Service("OutputService") {
+  self: ConfigComponent =>
+  val receiveQueue = self.queueNames.outputInputQueue
+  val errorQueueName = self.queueNames.errorQueueName
+  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[OutputActor], receiveQueue, errorQueueName))
 }
 
 case class OutputFormated(pnl: Double, sortino: Double, sharpe: Double, orders: String)
@@ -30,7 +33,7 @@ object OutputFormated {
 
 
 
-class OutputActor(val receiveQueue: String, val tableName: String) extends PrimaryServiceActor(1) with SQSReceiveQueue {
+class OutputActor(val receiveQueue: String, errorQueue: String) extends PrimaryServiceActor(errorQueue) with SQSReceiveQueue {
   import org.apache.commons.codec.binary._
   import com.stocksimulator.remote.ByteArrayToObject
   import awscala.dynamodbv2.TableMeta
@@ -49,7 +52,7 @@ class OutputActor(val receiveQueue: String, val tableName: String) extends Prima
      
           val pnl = mongo.get("PNL").asInstanceOf[Double]
           val sortino = mongo.get("sortino").asInstanceOf[Double]
-     this.log(pnl.toString)
+          this.log(pnl.toString)
           val sharpe = mongo.get("sharpe").asInstanceOf[Double]
           val id = mongo.get("sID").asInstanceOf[String]
           val mongoDB = SaveMongo(id, id, id)
@@ -57,12 +60,6 @@ class OutputActor(val receiveQueue: String, val tableName: String) extends Prima
           val orders = mongo.get("Orders")
            this.log("Saving data to db...")
           removeMessage(p)
-         /* for (table <- tableOption) {
-           
-            val teste = 22.0
-          //  table.put(id, "pnl" -> pnl, "sharpe" -> sharpe, "sortino" -> sortino, "orders" -> orders)
-            
-          }*/
 
       }
   }

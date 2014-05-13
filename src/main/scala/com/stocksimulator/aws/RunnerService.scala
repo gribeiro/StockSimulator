@@ -26,11 +26,17 @@ case class ProcessSimulation(workInfo: WorkInfo, p: awscala.sqs.Message)
 
 case class SimulationResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String)
 
-class RunnerService(receiveQueue: String, sendQueue: String, bucketName: String, workers: Int) extends Service("RunneService") {
-  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueue, bucketName, workers))
+class RunnerService extends Service("RunneService") {
+  self: ConfigComponent =>
+  val receiveQueue = self.queueNames.runnerInputQueue
+  val sendQueue = self.queueNames.outputInputQueue
+  val bucketName = self.queueNames.bucketName
+  val errorQueue = self.queueNames.errorQueueName
+  
+  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueue, bucketName, errorQueue))
 }
 
-class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, workers: Int = 1) extends PrimaryServiceActor(workers) with SQSSendReceiveQueue with S3UserWithBucket {
+class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueueName: String) extends PrimaryServiceActor(errorQueueName) with SQSSendReceiveQueue with S3UserWithBucket {
   import com.stocksimulator.output._
   import com.stocksimulator.remote.ObjectToByteArray
   import org.apache.commons.codec.binary._
@@ -98,7 +104,8 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                           error("Infinite loop would occur, maybe the instruments names are wrong.\n")
 
                         case e: Exception =>
-                          error("Exception occurred:" + e.getMessage())
+                          val stTr = e.getStackTrace() mkString "\n"
+                          error("Exception occurred: " + e.getMessage() + stTr)
 
                       }
 
