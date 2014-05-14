@@ -12,14 +12,16 @@ import Scalaz._
 import com.stocksimulator.main.VarParam
 import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.debug._
+import scala.concurrent._
 class AcquireDatService extends Service("acquireDatService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.preprocessorInputQueue
   val sendQueue = self.queueNames.runnerInputQueue
   val bucketName = self.queueNames.bucketName
   val errorQueueName = self.queueNames.errorQueueName
+  val acquireQueueName = self.queueNames.reutersInputQueue
   def actorGen(system: ActorSystem) = {
-    system.actorOf(Props(classOf[AcquireDatActor], receiveQueue, sendQueue, bucketName, errorQueueName))
+    system.actorOf(Props(classOf[AcquireDatActor], receiveQueue, sendQueue, bucketName, errorQueueName, acquireQueueName))
   }
 }
 
@@ -34,10 +36,15 @@ object WorkInfo {
   def load(s: String) = s.decodeOption[WorkInfo]
 }
 
-class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueue: String) extends PrimaryServiceActor(errorQueue) with SQSSendReceiveQueue with S3UserWithBucket {
+abstract class PreprocessActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueue: String) extends PrimaryServiceActor(errorQueue) with SQSSendReceiveQueue with S3UserWithBucket {
   import scala.concurrent.duration._
   import context.dispatcher
 
+  sealed trait NextAction
+  object EndNote extends NextAction
+  case class Enqueue(q: String) extends NextAction
+
+  def preprocess(id: String, days: List[String], symbols: List[String], param: List[ConfigParam], queue: awscala.sqs.Queue, date: String, bucket: awscala.s3.Bucket, filename: String, crossname: String, addJob: => Unit): NextAction
   def receive = {
     case "checkQueue" =>
       this.log("Bidding")
@@ -55,7 +62,6 @@ class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucke
                   date <- days;
                   queue <- sendQueueOption
                 } {
-                  this.log("Getting " + date + " file")
                   val filename = FileManager.generatedFilename(symbols.toArray, date)
                   val crossName = "data/" + filename
                   def addJob = {
@@ -67,41 +73,39 @@ class AcquireDatActor(val receiveQueue: String, val sendQueue: String, val bucke
                         queue.add(newWork)
                     }
                   }
-
-
-                  val fileExists = bucket.keys().toList.exists(_ == crossName)
-                  if (!fileExists) {
-                    
-                    for (filenameR <- FileManager.downloadReutersOption(symbols.toArray, date)) {
-                      val file = FileManager.datFileIO(filenameR)
-                     val teste= bucket.put(crossName, file)
-                      
-                      addJob
-                    }
+                  val next = preprocess(id, days, symbols, param, queue, date, bucket, filename, crossName, addJob)
+                  next match {
+                    case Enqueue(q) =>
+                      val nPreInfo = PreProcessInfo(id, List(date), symbols, param)
+                      val extraQ = ExtraQueue(q)
+                      extraQ.sendMessage(nPreInfo.asJson.toString)
+                    case EndNote =>
                   }
-                  else {
-                    addJob
-                  }
-
                 }
             }
             this.log("Removendo mensagem:" + p.id)
             removeMessage(p)
-            this.log("Mensagem supostamente removida")
           }
       }
 
-    case SendWorkInfo(work @ WorkInfo(_, _, _, _, _), message) =>
-      this.log(work)
-
   }
-
 }
-class GetFileActor(val bucketName: String) extends Actor {
+class AcquireDatActor(_receiveQueue: String, _sendQueue: String, _bucketName: String, _errorQueue: String, acquireQueue: String) extends PreprocessActor(_receiveQueue, _sendQueue, _bucketName, _errorQueue) {
+  import scala.concurrent.duration._
   import context.dispatcher
-  def receive = {
-    case _ =>
+  def preprocess(id: String, days: List[String], symbols: List[String], param: List[ConfigParam], queue: awscala.sqs.Queue, date: String, bucket: awscala.s3.Bucket, filename: String, crossName: String, addJob: => Unit): NextAction = {
+    this.log("Checking " + date + " file")
+
+    val fileExists = bucket.keys().toList.exists(_ == crossName)
+    if (!fileExists) {
+      Enqueue(acquireQueue)
+    } else {
+      future {
+      addJob
+      }
+      EndNote
+    }
 
   }
-
 }
+

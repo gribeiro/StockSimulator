@@ -13,8 +13,6 @@ object PreProcessInfo {
 
 class SendJobService {
   self: ConfigComponent =>
-  val bucketName = self.queueNames.bucketName
-  val queueName = self.queueNames.preprocessorInputQueue
  import ServicesManagement._
 
  import scala.concurrent._
@@ -22,25 +20,30 @@ class SendJobService {
  import org.joda.time._
  import com.stocksimulator.reuters.FileManager
  
-  implicit val sqs = SL_SQS()
-  implicit val s3 = SL_S3()
+  val bucketName = self.queueNames.bucketName
+  val queueName = self.queueNames.preprocessorInputQueue
+
+  implicit def sqs = SL_SQS()
+  implicit def s3 = SL_S3()
   val bucketOption = s3.bucket(bucketName)
   val filaOption = sqs.queue(queueName)
   def apply(config: Configuration) = {
-   
-   
    val javaFile = new java.io.File(config.javaFilename+".java")
    val name = config.name+DateTime.now().toString()
    val configFile = config.asJson.toString.toCharArray.map(_.toByte)
    val preProcessData = PreProcessInfo(name, config.dates, config.symbols, config.parameters)
    val exists = javaFile.exists()
-   for(bucket <- bucketOption; fila <- filaOption) {
+   val tryPut = for(bucket <- bucketOption; fila <- filaOption) yield {
      if(exists) {
     	 bucket.put("jobs/"+name+".java", javaFile)
     	 bucket.putObject("jobs/"+name+".json", configFile, new ObjectMetadata)
     	 fila.add(preProcessData.asJson.toString)
-     } else println("Java file does not exists...")
+     } else throw new Exception("Java file does not exists...")
    }
- }
+ tryPut match {
+    case Some(_) => println("Job was successful sent!")
+    case None => throw new Exception("AWS Connection Error")
+  }
+  }
   
 }

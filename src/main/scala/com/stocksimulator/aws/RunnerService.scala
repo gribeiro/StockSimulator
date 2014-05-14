@@ -21,6 +21,7 @@ import scala.concurrent.Promise
 import org.jboss.netty.handler.timeout.TimeoutException
 import scala.concurrent.ExecutionContext
 import scala.parallel._
+import com.amazonaws.services.s3.model.ObjectMetadata
 
 case class ProcessSimulation(workInfo: WorkInfo, p: awscala.sqs.Message)
 
@@ -46,9 +47,10 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
     val output = (new MongoOutput(a, b, id, id)).output
     val binary = ObjectToByteArray(output)
     val stringB64 = new String(Base64.encodeBase64(binary))
-
-    val tryAdd = for (queue <- queueOption; outputQ <- sendQueueOption) yield {
-      outputQ.add(stringB64)
+    val md5Title = "result/" + id + Utils.md5Hash(stringB64)
+    val tryAdd = for (queue <- queueOption; outputQ <- sendQueueOption; bucket <- bucketOption) yield {
+      bucket.putObject(md5Title, stringB64.toCharArray().map(_.toByte), new ObjectMetadata)
+      outputQ.add(md5Title)
       queue.remove(message)
     }
     tryAdd match {

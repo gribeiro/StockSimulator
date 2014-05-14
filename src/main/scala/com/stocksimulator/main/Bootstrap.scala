@@ -35,7 +35,8 @@ object Bootstrap {
   case class Worker(qtd: Int) extends CommandLineOption
   case object Preprocessor extends CommandLineOption
   case object Resulter extends CommandLineOption
-
+  case object Reuters extends CommandLineOption
+  
   case class DefferedGet[T](arr: Array[T], idx: Int, isEqualTo: Option[T] = None) {
     private val convertedArray = ArrayBuffer.empty[T]
     arr.foreach {
@@ -90,6 +91,7 @@ object Bootstrap {
         ("worker", List("worker", "arg1")),
         singleCase("preprocessor"),
         singleCase("result"),
+        singleCase("reuters"),
         ("job", List("job", "arg1")))
 
       cases.map {
@@ -104,6 +106,8 @@ object Bootstrap {
           Resulter.some
         case ("job", content) if (isCase(content)) =>
           Job(map("arg1")).some
+        case ("reuters", content) if(isCase(content)) =>
+          Reuters.some
         case _ => None
       }.collectFirst {
         case Some(el) => el
@@ -131,7 +135,9 @@ object Bootstrap {
       firstArg("job"),
       firstArg("worker"),
       firstArg("preprocessor"),
-      firstArg("result"))
+      firstArg("result"),
+      firstArg("reuters")
+    )
 
     val keys = firstArgs ++ supportArgs(4)
 
@@ -142,8 +148,10 @@ object Bootstrap {
         status match {
           case Local(filename) => RunFromFileJson(filename)
           case Job(filename) =>
+            this.log("Sending job: " + filename)
             val passo1 = new SendJobService with DefaultConfig
             val config = ConfigurationLoadJson.load(filename).get
+            this.log("Config:" + config.toString())
             passo1(config)
           case Worker(qtd: Int) =>
             for(i <- 1 to qtd) {
@@ -156,6 +164,9 @@ object Bootstrap {
           case Resulter =>
             val resulter = new OutputService with DefaultConfig
             resulter.run
+          case Reuters =>
+            val reutersService = new NewDatService with DefaultConfig
+            reutersService.run
         }
       case None =>
         this.log("Erro ao processar argumentos.")

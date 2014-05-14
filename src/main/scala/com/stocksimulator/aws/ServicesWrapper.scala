@@ -91,7 +91,7 @@ object SL_S3 extends ServiceLoaderFor[S3] {
   def at(region: Region)(implicit ev: CredentialFor[S3]) = {
    
     val credentials = ev.myCredentials
-    (new S3Client(credentials)).at(region)
+   (new S3Client(credentials)).at(region)
   }
 }
 

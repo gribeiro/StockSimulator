@@ -31,11 +31,13 @@ object PNL {
       val position = unwrapped("position").asInstanceOf[HashMap[Stock, Position]]
       val marketLast = unwrapped("marketLast").asInstanceOf[Map[Stock, StockInfo]]
       this.log(position)
+      this.log("ML:" + marketLast)
       val nInfo = for ((lastStock, info) <- marketLast; (posStock, pos) <- position; if (posStock == lastStock)) yield {
 
         val price = info match {
           case q: Quote =>  if (pos.quantity >= 0) q.bid.price else q.ask.price
           case t: Trade => t.priceVol.price
+          case _ => 0
         }
 
         (pos.pnl + price * pos.quantity.toDouble) * tabela(info.iStock)
@@ -55,7 +57,6 @@ abstract class ExtraInfoGenerator[@specialized(Int, Double, Float)  T] (implicit
   def mean(xs: Iterable[T]): Double = xs match {
     case Nil => 0.0
     case ys => num.toDouble(ys.reduceLeft(num.plus(_, _))) / ys.size.toDouble
-    //ys.reduceLeft(num.plus(_,_)) / ys.size.toDouble
   }
 
   def stddev(xs: Iterable[T], avg: Option[Double] = None): Double = xs match {
@@ -164,7 +165,6 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
     val md5 = outContent.get("md5").orElse(Some("N/A")).get.asInstanceOf[String]
 
     val inputStr = in.inputStr
-    //Log(RBSFactory.mongoOutputSymbol)
 
     val position = outContent.get("position").get.asInstanceOf[HashMap[Stock, Position]]
 
