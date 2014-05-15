@@ -19,13 +19,14 @@ import com.stocksimulator.abs.Trade
 import com.stocksimulator.main._
 import com.stocksimulator.abs.BuyOrderResult
 import com.stocksimulator.abs.SellOrderResult
+import com.stocksimulator.abs.Strategy
 object PNL {
   val tabela = HashMap.empty[Stock, Double].withDefaultValue(1.0)
   tabela("WINc1") = 0.2
   tabela("WDOc1") = 10
   tabela("DOLc1") = 50
   def apply(param: Parameters) = {
-
+	
     if (param.size > 0) {
       val unwrapped = param.unwrap
       val position = unwrapped("position").asInstanceOf[HashMap[Stock, Position]]
@@ -34,12 +35,12 @@ object PNL {
       this.log("ML:" + marketLast)
       val nInfo = for ((lastStock, info) <- marketLast; (posStock, pos) <- position; if (posStock == lastStock)) yield {
 
-        val price = info match {
-          case q: Quote =>  if (pos.quantity >= 0) q.bid.price else q.ask.price
+        val prePrice = info match {
+          case q: Quote => if (pos.quantity >= 0) q.bid.price else q.ask.price
           case t: Trade => t.priceVol.price
           case _ => 0
         }
-
+        val price = if(prePrice == 0) Strategy.midPrice(info) else prePrice
         (pos.pnl + price * pos.quantity.toDouble) * tabela(info.iStock)
 
       }

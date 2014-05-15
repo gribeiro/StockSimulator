@@ -73,7 +73,9 @@ object Strategy {
   def midPrice(q: Quote) = {
     //Log("Bid Price: " + q.bid.price.toString)
     //Log("Ask Price: " + q.ask.price.toString)
-    (q.bid.price + q.ask.price) / 2
+    if(q.bid.price != 0 && q.ask.price !=0) (q.bid.price + q.ask.price) / 2
+    else if(q.bid.price !=0) q.bid.price
+    else q.ask.price
   }
   def midPrice(t: Trade) = t.priceVol.price
   def midPrice(s: StockInfo): Double = {
@@ -107,6 +109,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   
   def getIntParam(s: String):Int = getParam(s).asInstanceOf[Double].intValue()
   def getDoubleParam(s: String):Double = getParam(s).asInstanceOf[Double]
+  def getStringParam(s: String):String = getParam(s).asInstanceOf[String]
   
   def bsVolCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BlackScholes.bsVolCall(spot, strike, r, optionPrice, timeToExpiry)
   def priceEuropeanBlackScholesCall(spot: Double, strike: Double, r: Double, timeToExpiry: Double, volatility: Double) = BlackScholes.priceEuropeanBlackScholesCall(spot, strike, r, timeToExpiry, volatility)
@@ -274,6 +277,7 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
       }
 
     }
+    
     this.log("Strategy: Allocating result..")
     putResult("position", position)
     putResult("marketLast", marketLast)

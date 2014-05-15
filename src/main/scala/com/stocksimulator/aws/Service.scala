@@ -34,6 +34,13 @@ trait S3UserWithBucket {
   val bucketName: String
   implicit def s3 = SL_S3()
   def bucketOption = s3.bucket(bucketName)
+  def s3FileExists(filename: String):Boolean = {
+    bucketOption match {
+      case Some(bucket) => //bucket.keys().toList.exists(_ == filename)
+      bucket.get(filename).map(f => true).getOrElse(false)
+      case None => false
+    }
+  }
 }
 
 trait SQSUser {

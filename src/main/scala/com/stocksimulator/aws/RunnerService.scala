@@ -42,12 +42,17 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
   import com.stocksimulator.remote.ObjectToByteArray
   import org.apache.commons.codec.binary._
   import com.stocksimulator.aws.Result._
-
-  def simulResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String) {
+  def putAlreadyCalculated(message: awscala.sqs.Message, resName: String) ={
+    for(queue <- queueOption; outputQ <- sendQueueOption) {
+      outputQ.add(resName)
+      queue.remove(message)
+    }
+  }
+  def simulResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String, resName: String) {
     val output = (new MongoOutput(a, b, id, id)).output
     val binary = ObjectToByteArray(output)
     val stringB64 = new String(Base64.encodeBase64(binary))
-    val md5Title = "result/" + id + Utils.md5Hash(stringB64)
+    val md5Title = resName
     val tryAdd = for (queue <- queueOption; outputQ <- sendQueueOption; bucket <- bucketOption) yield {
       bucket.putObject(md5Title, stringB64.toCharArray().map(_.toByte), new ObjectMetadata)
       outputQ.add(md5Title)
@@ -95,11 +100,20 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                     for (conf <- jsonOption) {
                       this.log(param + " " + conf)
                       val configOneDay = conf.copy(dates = List(day))
+                      val md5 = Utils.md5Hash _
+                      
+                      val s3ResName = List("result","1.3.4", md5(javaStr), md5(datFile), md5(param)) mkString "/"
+                      
                       try {
+                        if(!s3FileExists(s3ResName)) {
                         val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
                         this.log("Done..")
                         result.foreach { res =>
-                          simulResult(res._1, res._2, message, id)
+                          simulResult(res._1, res._2, message, id, s3ResName)
+                        }
+                        }
+                        else {
+                          putAlreadyCalculated(message, s3ResName)
                         }
                       } catch {
                         case e: ItWouldRunForeverException =>

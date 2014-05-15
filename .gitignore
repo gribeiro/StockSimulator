@@ -15,3 +15,8 @@ project/project/*
 /StockSimulator
 *.class
 .settings/*
+/CSV/
+/TAQ_PETR3_SAPETR4_SA_07_05_2014.dat
+/TAQ_PETR3_SAPETR4_SA_13_05_2014.dat
+/TAQ_PETR3_SAPETR4_SAEWZ_07_05_2014.dat
+/TAQ_WDOc1DOLc1_05_05_2014.dat

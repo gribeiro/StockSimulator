@@ -89,7 +89,7 @@ object ConfigurationModule {
       val config = ConfigurationLoad(ConfigurationLoadJson)(json)
       config match {
         case Some(c) => RunConfigurationStd(c)
-        case None => new PrintIO("Erro ao carregar json...")
+        case None => this.log("Erro ao carregar json...")
       }
 
     }
@@ -146,8 +146,8 @@ object ConfigurationModule {
     }
   }
 
-  case class Configuration(symbols: List[String], dates: List[String], from: String, to: String, name: String, bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam]) {
-    def filterName = Configuration(symbols, dates, from, to, name.replace('_', '-'), bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam])
+  case class Configuration(symbols: List[String], dates: List[String], from: String, to: String, name: String, bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam], stringParam:Option[List[StringParam]]) {
+    def filterName = Configuration(symbols, dates, from, to, name.replace('_', '-'), bookOrder: Int, workers: Int, javaFilename: String, parameters: List[ConfigParam], stringParam)
     def loadedCSVs(remote:Boolean = false, filename: String = ""): List[(String, String)] = {
       val IOs = this.dates.map {
         date =>
@@ -165,13 +165,17 @@ object ConfigurationModule {
   }
 
   case class ConfigParam(base: Double, to: Option[Double], by: Option[Double], name: String)
-
+  case class StringParam(name: String, params: List[String])
+  
+  object StringParam {
+    implicit def paramCodec: CodecJson[StringParam] = casecodec2(StringParam.apply, StringParam.unapply)("name", "params")
+  }
   object ConfigParam {
     implicit def paramCodec: CodecJson[ConfigParam] = casecodec4(ConfigParam.apply, ConfigParam.unapply)("base", "to", "by", "name")
   }
 
   object Configuration {
-    implicit def confParam: CodecJson[Configuration] = casecodec9(Configuration.apply, Configuration.unapply)("symbols", "dates", "from", "to", "name", "bookOrder", "workers", "javaFilename", "parameters")
+    implicit def confParam: CodecJson[Configuration] = casecodec10(Configuration.apply, Configuration.unapply)("symbols", "dates", "from", "to", "name", "bookOrder", "workers", "javaFilename", "parameters", "stringParam")
 
   }
 }

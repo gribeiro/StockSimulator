@@ -5,9 +5,9 @@ import Argonaut._
 import scalaz._
 import Scalaz._
 import com.amazonaws.services.s3.model.ObjectMetadata
-case class PreProcessInfo(id: String, days: List[String], symbols: List[String], param: List[ConfigParam])
+case class PreProcessInfo(id: String, days: List[String], symbols: List[String], param: List[ConfigParam], stringParam: Option[List[StringParam]])
 object PreProcessInfo {
-  implicit def paramCodec: CodecJson[PreProcessInfo] = casecodec4(PreProcessInfo.apply, PreProcessInfo.unapply)("id", "days", "symbols", "param")
+  implicit def paramCodec: CodecJson[PreProcessInfo] = casecodec5(PreProcessInfo.apply, PreProcessInfo.unapply)("id", "days", "symbols", "param", "stringParam")
   def load(s: String) = s.decodeOption[PreProcessInfo]
 }
 
@@ -31,7 +31,7 @@ class SendJobService {
    val javaFile = new java.io.File(config.javaFilename+".java")
    val name = config.name+DateTime.now().toString()
    val configFile = config.asJson.toString.toCharArray.map(_.toByte)
-   val preProcessData = PreProcessInfo(name, config.dates, config.symbols, config.parameters)
+   val preProcessData = PreProcessInfo(name, config.dates, config.symbols, config.parameters, config.stringParam)
    val exists = javaFile.exists()
    val tryPut = for(bucket <- bucketOption; fila <- filaOption) yield {
      if(exists) {
