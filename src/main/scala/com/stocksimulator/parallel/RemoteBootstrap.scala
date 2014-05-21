@@ -24,9 +24,13 @@ self: ResultAccComponent =>
    this.log(datez2)
    datez2
   }
+  
+  val processedInst = conf.inst.map {
+    stock => stock.checkOption(date)
+  }
   val from = loadTime(conf.from)
   val to = loadTime(conf.to)
-  val filefeed = (new FileFeedTimeFilter(new FileFeed(filename, conf.inst))).timeFiltering(from, to)
+  val filefeed = (new FileFeedTimeFilter(new FileFeed(filename, processedInst))).timeFiltering(from, to)
 
   def createBundle(param: Parameters) = {
     val feed = filefeed
@@ -44,6 +48,7 @@ self: ResultAccComponent =>
     this.log("Job count after filter: " +uniqueParams.length) 
     val results = uniqueParams.map { 
       params => 
+         params.set("_date", date)
          val strategy = createBundle(params)
          (params, strategy.init) // Block current actor flow.
       // p => workers.master ! spWork(p, date)

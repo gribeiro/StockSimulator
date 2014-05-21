@@ -10,7 +10,7 @@ abstract class RatioArbitrerStrategy extends JavaAdapterQ {
   val symbolA: Stock
   val symbolB: Stock
 
-  lazy val strat = strategy
+  protected lazy val strat = strategy
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
 
@@ -20,23 +20,28 @@ abstract class RatioArbitrerStrategy extends JavaAdapterQ {
   lazy val step: Int = strat.getIntParam("step")
   lazy val maxPos: Int = strat.getIntParam("maxPos")
   lazy val gran: Double = strat.getDoubleParam("gran")
-  lazy val mvAvg = strat.createRatioMAvg(symbolA, symbolB, elapsed / 1000, elapsed);
-
+  lazy val mvAvgA = strat.createRatioMAvg(symbolA, symbolB, elapsed / 1000, elapsed)
+  lazy val mvAvgB = strat.createRatioMAvg(symbolB, symbolA, elapsed / 1000, elapsed)
 
   def onQuotes() = {
 
     val pos = strat.getPosition(symbolA).quantity
-    if (mvAvg.isAvailable && mvAvg.lastVal > 0) {
+    val mvAvailable = List(mvAvgA, mvAvgB).map {
+      mv => mv.isAvailable && mv.lastVal > 0
+    }.reduce(_ && _)
+    
+    if (mvAvailable) {
       val infoPair = (strat.getSymbol(symbolA), strat.getSymbol(symbolB))
       infoPair match {
         case (a: Quote, b: Quote) =>
           val midPr = strat.midPrice(b)
           
-          val precoTeoricoA = mvAvg.lastVal * midPr
+          val precoTeoricoA = mvAvgA.lastVal * midPr
+
+          val precoTeoricoB = mvAvgB.lastVal * midPr
           //this.log(s"Preco teorico: $precoTeoricoA")
           val buyPrice = roundDown(Math.min(a.bid.price, precoTeoricoA - spread))
           val sellPrice = roundUp(Math.max(a.ask.price, precoTeoricoA + spread))
-          val midprA = a.bid.price
          // this.log(s"Mid Price: $midprA ")
           if (pos < maxPos && buyPrice > 0) {
            // this.log(s"Buyprice: $buyPrice")
@@ -53,11 +58,3 @@ abstract class RatioArbitrerStrategy extends JavaAdapterQ {
   }
 
 }
-
-
-
-
-
-
-
-

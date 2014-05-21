@@ -27,13 +27,27 @@ case class ProcessSimulation(workInfo: WorkInfo, p: awscala.sqs.Message)
 
 case class SimulationResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String)
 
-class RunnerService extends Service("RunneService") {
+case class ResultPath(id: String, path: String)
+
+object ResultPath {
+  implicit def paramCoded: CodecJson[ResultPath] = casecodec2(ResultPath.apply, ResultPath.unapply)("id", "path")
+  def load(s: String) = s.decodeOption[ResultPath]
+
+}
+/*
+object PreProcessInfo {
+  implicit def paramCodec: CodecJson[PreProcessInfo] = casecodec5(PreProcessInfo.apply, PreProcessInfo.unapply)("id", "days", "symbols", "param", "stringParam")
+  def load(s: String) = s.decodeOption[PreProcessInfo]
+}
+*/
+
+class RunnerService extends Service("RunnerService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.runnerInputQueue
   val sendQueue = self.queueNames.outputInputQueue
   val bucketName = self.queueNames.bucketName
   val errorQueue = self.queueNames.errorQueueName
-  
+
   def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueue, bucketName, errorQueue))
 }
 
@@ -42,26 +56,32 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
   import com.stocksimulator.remote.ObjectToByteArray
   import org.apache.commons.codec.binary._
   import com.stocksimulator.aws.Result._
-  def putAlreadyCalculated(message: awscala.sqs.Message, resName: String) ={
-    for(queue <- queueOption; outputQ <- sendQueueOption) {
-      outputQ.add(resName)
+
+  case class SimplePath(path: List[String]) {
+    override def toString() = {
+      path mkString "/"
+    }
+  }
+
+  private def sendStr(id: String, resName: String): String = {
+    ResultPath(id, resName).asJson.toString
+  }
+  def putAlreadyCalculated(message: awscala.sqs.Message, nextMessage: String) = {
+    for (queue <- queueOption; outputQ <- sendQueueOption) yield {
+      outputQ.add(nextMessage)
       queue.remove(message)
     }
   }
-  def simulResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String, resName: String) {
+  def simulResult(a: Parameters, b: Parameters, message: awscala.sqs.Message, id: String, nextMessage: String, s3Path: SimplePath) = {
     val output = (new MongoOutput(a, b, id, id)).output
     val binary = ObjectToByteArray(output)
     val stringB64 = new String(Base64.encodeBase64(binary))
-    val md5Title = resName
-    val tryAdd = for (queue <- queueOption; outputQ <- sendQueueOption; bucket <- bucketOption) yield {
-      bucket.putObject(md5Title, stringB64.toCharArray().map(_.toByte), new ObjectMetadata)
-      outputQ.add(md5Title)
+    for (queue <- queueOption; outputQ <- sendQueueOption; bucket <- bucketOption) yield {
+      bucket.putObject(s3Path.toString, stringB64.toCharArray().map(_.toByte), new ObjectMetadata)
+      outputQ.add(nextMessage)
       queue.remove(message)
     }
-    tryAdd match {
-      case Some(_) => this.log("Queues are all ok.")
-      case None => this.log("Error! Queues are not ok!!!")
-    }
+    
   }
   def receive = {
     case "checkQueue" =>
@@ -74,7 +94,7 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
             errorQueue.sendMessage(message + p.toString())
             this.log(message)
           }
-          
+
           val maybeConfig = WorkInfo.load(p.body)
           val sendMessage = maybeConfig.map {
             preInfo =>
@@ -101,20 +121,26 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                       this.log(param + " " + conf)
                       val configOneDay = conf.copy(dates = List(day))
                       val md5 = Utils.md5Hash _
-                      
-                      val s3ResName = List("result","1.3.4", md5(javaStr), md5(datFile), md5(param)) mkString "/"
-                      
+
+                      val s3Path = SimplePath(List("result", "1.3.4", md5(javaStr), md5(datFile), md5(param)))
+                      val s3ResName = s3Path.toString
+                      val nextMessage = sendStr(id, s3Path.toString)
                       try {
-                        if(!s3FileExists(s3ResName)) {
-                        val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
-                        this.log("Done..")
-                        result.foreach { res =>
-                          simulResult(res._1, res._2, message, id, s3ResName)
+                       val tryConnection = if (!s3FileExists(s3ResName)) {
+                          val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
+                          this.log("Done..")
+                          result.map { res =>
+                            simulResult(res._1, res._2, message, id, nextMessage, s3Path)
+                          }.reduce {
+                            (a, b) => a.map(_ => b)
+                          }
+                        } else {
+                          putAlreadyCalculated(message, nextMessage)
                         }
-                        }
-                        else {
-                          putAlreadyCalculated(message, s3ResName)
-                        }
+                       tryConnection match {
+                         case Some(_) => this.log("INFO: No AWS connection problems")
+                         case None => this.log("ERROR: AWS CONNECTION PROBLEMS")
+                       }
                       } catch {
                         case e: ItWouldRunForeverException =>
                           error("Infinite loop would occur, maybe the instruments names are wrong.\n")
@@ -127,13 +153,13 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
 
                     }
                     try {
-                    json.close()
-                    javafile.close()
-                    dat.close()
-                  	} catch {
-                    case e: Exception =>  this.log("Error when closing S3 objects.")
-                  }
-                  	true
+                      json.close()
+                      javafile.close()
+                      dat.close()
+                    } catch {
+                      case e: Exception => this.log("Error when closing S3 objects.")
+                    }
+                    true
                   }
                   worked match {
                     case Some(_) => this.log("No errors.")

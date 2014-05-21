@@ -31,8 +31,8 @@ trait ExecutorCompound {
 class CommonExecutorActor extends Actor {
 
   def receive = {
-    case RunnableJob(job, conf, runner) =>
-      sender ! ResultJob(runner(conf), job, conf)
+   /* case RunnableJob(job, conf, runner) => sender ! ResultJob(runner(conf), job, conf)*/
+    case _ => {}
   }
 }
 

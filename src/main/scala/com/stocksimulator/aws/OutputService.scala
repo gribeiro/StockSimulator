@@ -42,8 +42,9 @@ class OutputActor(val receiveQueue: String, val bucketName: String, errorQueue: 
       for (bucket <- bucketOption) {
         val receiveOption = receiveFromQueueAndMap(10) {
           p =>
-            val message = p.body
-            for(s3Obj <- bucket.get(message)) {
+            val idAndPathOption = ResultPath.load(p.body)
+
+            for(idAndPath <- idAndPathOption; s3Obj <- bucket.get(idAndPath.path)) {
             val datBA = new String(org.apache.commons.io.IOUtils.toByteArray(s3Obj.content).map(_.toChar))
             val body = datBA.map(_.toByte).toArray
             val decoded = Base64.decodeBase64(body)
@@ -51,10 +52,10 @@ class OutputActor(val receiveQueue: String, val bucketName: String, errorQueue: 
 
             val pnl = mongo.get("PNL").asInstanceOf[Double]
             val sortino = mongo.get("sortino").asInstanceOf[Double]
-            this.log(pnl.toString)
+            this.log(idAndPath.id + ": " + pnl.toString)
             val sharpe = mongo.get("sharpe").asInstanceOf[Double]
             val id = mongo.get("sID").asInstanceOf[String]
-            val mongoDB = SaveMongo(id, id, id)
+            val mongoDB = SaveMongo(idAndPath.id, id, id)
             mongoDB.withMongoObject(mongo)
             val orders = mongo.get("Orders")
             this.log("Saving data to db...")

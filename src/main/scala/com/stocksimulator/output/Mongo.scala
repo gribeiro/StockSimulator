@@ -137,7 +137,8 @@ class ExtraInfoFarm[T](in: Parameters, out: Parameters) {
 }
 
 class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
-  private val inContent = in.unwrap.toMap
+  private val inContent = in.unwrap.toMap.filter(a => a._1 != "_date")
+  this.log(inContent)
   private val outContent = if (out == null) Map.empty[String, Object] else out.unwrap.toMap
 
   private val pnl2 = if(outContent.size > 0) PNL(out) else 0.0
@@ -153,7 +154,7 @@ class MongoOutput(in: Parameters, out: Parameters, id: String, sId: String) {
       oVal match {
         case rep: OrderResult =>
           if(date == null) date = (List(rep.dateTime.dayOfMonth().get(), rep.dateTime.monthOfYear().get(), rep.dateTime.year().get()).mkString("/"))
-          Map("Order" -> rep.iType, "DateTimeLong" -> rep.dateTime.getMillis(),"DateTime" -> rep.dateTime.toString(), "Quantity" -> rep.quantity, "Value" -> rep.value)
+          Map("Order" -> rep.iType, "Intrument" -> rep.instrument.name , "DateTimeLong" -> rep.dateTime.getMillis(),"DateTime" -> rep.dateTime.toString(), "Quantity" -> rep.quantity, "Value" -> rep.value)
 
         case _ => Map("Order" -> "Empty", "DateTimeLong" -> 0L)
       }

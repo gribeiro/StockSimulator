@@ -13,6 +13,7 @@ import com.stocksimulator.main.VarParam
 import com.stocksimulator.debug.LogNames._
 import com.stocksimulator.debug._
 import scala.concurrent._
+import com.stocksimulator.abs.Stock
 class AcquireDatService extends Service("acquireDatService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.preprocessorInputQueue
@@ -56,12 +57,15 @@ abstract class PreprocessActor(val receiveQueue: String, val sendQueue: String, 
             val okMessage = ProcessDat(preInfo, p)
 
             okMessage match {
-              case ProcessDat(preInfo @ PreProcessInfo(id, days, symbols, param, stringParam), message) =>
+              case ProcessDat(preInfo @ PreProcessInfo(id, days, preSymbols, param, stringParam), message) =>
                 for {
                   bucket <- bucketOption;
                   date <- days;
                   queue <- sendQueueOption
                 } {
+                  val symbols = preSymbols.map {
+                    stock => (new Stock(stock)).checkOption(date).name
+                  }
                   val filename = FileManager.generatedFilename(symbols.toArray, date)
                   val crossName = "data/" + filename
                   def addJob = {
@@ -72,7 +76,7 @@ abstract class PreprocessActor(val receiveQueue: String, val sendQueue: String, 
                     }
                     allParams.foreach {
                       p =>
-                        val nWork = WorkInfo(id, date, symbols, p.inputStr, FileManager.datExtension(filename))
+                        val nWork = WorkInfo(id, date, preSymbols, p.inputStr, FileManager.datExtension(filename))
                         val newWork = nWork.asJson.toString
                         queue.add(newWork)
                     }

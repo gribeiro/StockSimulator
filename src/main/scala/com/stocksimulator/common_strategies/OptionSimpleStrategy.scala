@@ -2,35 +2,43 @@ package com.stocksimulator.common_strategies
 
 import com.stocksimulator.abs._
 import com.stocksimulator.debug.Log
-/*
-abstract class OptionSimpleStrategy(market: Market, param: Parameters)  extends RatioArbitrerStrategy(market, param) {
+import com.stocksimulator.debug.LogNames._
+abstract class OptionSimpleStrategy extends RatioArbitrerStrategy {
+  
+  val dolSymbol: Stock
+  val brSymbol: Stock
   
   
-  override lazy val mvAvg = createRatioMAvgForOption(symbolA, symbolB, elapsed / 1000, elapsed);
+  lazy val mvAvg = strat.createRatioMAvgForOption(symbolA, symbolB, elapsed / 1000, elapsed);
+//  lazy val mvAvgRef = strat.createRatioFor2SymbolsMAvg(brSymbol, symbolB, dolSymbol, elapsed / 1000, elapsed) 
+  
   
   override def onStart() = {
-    
+    this.log("Checking option")
     if(!symbolB.isOption) throw new Exception("Stock should be a option in this field")
   }
   
   override def onQuotes() = {
 
-    val pos = getPosition(symbolA).quantity
+    val pos = strat.getPosition(symbolA).quantity
+    //this.log("mvAvg: " + mvAvg.lastVal)
     if (mvAvg.isAvailable && mvAvg.lastVal > 0) {
-      val infoPair = (getSymbol(symbolA), getSymbol(symbolB))
+      val infoPair = (strat.getSymbol(symbolA), strat.getSymbol(symbolB))
 
       infoPair match {
         case (a: Quote, b: Quote) =>
+          val midPr = strat.midPrice(a)
           val precoTeorico = mvAvg.lastVal
+         // this.log("precoTeorico:" + precoTeorico)
           val buyPrice = roundDown(Math.min(b.bid.price, precoTeorico - spread))
           val sellPrice = roundUp(Math.max(b.ask.price, precoTeorico + spread))
 
           if (pos < maxPos && buyPrice > 0) {
-            provideBuyLiquidity(symbolB, step, buyPrice)
+            strat.provideBuyLiquidity(symbolB, step, buyPrice)
           }
 
           if (pos > -maxPos && sellPrice > 0) {
-            provideSellLiquidity(symbolB, step, sellPrice)
+            strat.provideSellLiquidity(symbolB, step, sellPrice)
           }
 
         case _ => {}
@@ -38,4 +46,4 @@ abstract class OptionSimpleStrategy(market: Market, param: Parameters)  extends 
     }
   }
 
-}*/
+}

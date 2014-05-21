@@ -27,6 +27,7 @@ class SendJobService {
   implicit def s3 = SL_S3()
   val bucketOption = s3.bucket(bucketName)
   val filaOption = sqs.queue(queueName)
+  
   def apply(config: Configuration) = {
    val javaFile = new java.io.File(config.javaFilename+".java")
    val name = config.name+DateTime.now().toString()

@@ -131,13 +131,16 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
 
     val actionBuyTickets = buyTickets ~>= askPrice //buyTickets.filter(t => t.order.value >= askPrice)
     val actionSellTickets = sellTickets ~<= bidPrice //sellTickets.filter(t => t.order.value <= bidPrice)
-
-    val buyOrderResults = actionBuyTickets ! (datetime, askVol, askPrice) //actionBuyTickets.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
-    val sellOrderResults = actionSellTickets ! (datetime, bidVol, bidPrice) //actionSellTickets.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, bidVol), bidPrice))
+    
+    val buyExec = executeOrder(datetime, askVol, askPrice, stock) _
+    val sellExec = executeOrder(datetime, bidVol, bidPrice, stock) _
+    
+    val buyOrderResults = actionBuyTickets.map(buyExec) //actionBuyTickets.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
+    val sellOrderResults = actionSellTickets.map(sellExec)
 
     //  val combinedResults = buyOrderResults ++ sellOrderResults
-    removeTickets(actionBuyTickets)
-    removeTickets(actionSellTickets)
+    actionBuyTickets.map(removeTicket)
+    actionSellTickets.map(removeTicket)
 
     //Book stuff
 
@@ -186,8 +189,8 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
 
     val tZeroSell = sellBook ? askPrice
 
-    val tZeroResultBuy = tZeroBuy ! (datetime, bidVol, bidPrice) //tZeroBuy.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, bidVol), bidPrice))
-    val tZeroResultSell = tZeroSell ! (datetime, askVol, askPrice) //tZeroSell.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
+    val tZeroResultBuy = tZeroBuy ! (datetime, bidVol, bidPrice, stock) //tZeroBuy.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, bidVol), bidPrice))
+    val tZeroResultSell = tZeroSell ! (datetime, askVol, askPrice, stock) //tZeroSell.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
 
     removeTickets(tZeroBuy)
     removeTickets(tZeroSell)
@@ -255,8 +258,8 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     val tZeroBuy = buyBook ? price
     val tZeroSell = sellBook ? price
 
-    val tZeroResultBuy = tZeroBuy ! (datetime, vol, price) //tZeroBuy.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price))
-    val tZeroResultSell = tZeroSell ! (datetime, vol, price) //tZeroSell.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price))
+    val tZeroResultBuy = tZeroBuy ! (datetime, vol, price, stock) //tZeroBuy.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price))
+    val tZeroResultSell = tZeroSell ! (datetime, vol, price, stock) //tZeroSell.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price))
     removeTickets(tZeroBuy)
     removeTickets(tZeroSell)
     val buffer = new ListBuffer[(Ticket, OrderResult)]

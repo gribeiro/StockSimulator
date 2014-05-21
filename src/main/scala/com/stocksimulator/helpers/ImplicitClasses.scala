@@ -53,36 +53,38 @@ implicit class extraOperators(x: Double)  {
     def getStock(st: Stock) = {
       xs.filter(t => t.order.stock == st)
     }
-    def ! (datetime: DateTime, vol: Int, price: Double) = executeOrders(datetime, vol, price)
-    def executeOrders(datetime: DateTime, vol: Int, price: Double) = {
+    def ! (datetime: DateTime, vol: Int, price: Double, instrument: Stock) = executeOrders(datetime, vol, price, instrument)
+    def executeOrders(datetime: DateTime, vol: Int, price: Double, instrument: Stock) = {
       xs.map(t => 
       t.order.nature match {
-        case BuyNature => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price)
-        case SellNature => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price)
+        case BuyNature => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+        case SellNature => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
       } 
       )
     }
     
     
-    
+    private[this] def callFilter(filter:Ticket => Boolean) = {
+      xs.withFilter(filter)
+    }
     def ~>= (value: Double) = {
-      xs.filter(t => t.order.value >= value)
+      callFilter(t => t.order.value >= value)
     }
     
     def ~<= (value: Double) = {
-      xs.filter(t => t.order.value <= value)
+      callFilter(t => t.order.value <= value)
     }
     
     def ~== (value: Double) = {
-      xs.filter(t => t.order.value == value)
+      callFilter(t => t.order.value == value)
     }
     
     def ~> (value: Double) = {
-      xs.filter(t => t.order.value > value)
+      callFilter(t => t.order.value > value)
     }
     
     def ~< (value: Double) = {
-       xs.filter(t => t.order.value < value)
+       callFilter(t => t.order.value < value)
     }
   }
   

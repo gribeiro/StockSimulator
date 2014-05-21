@@ -1,5 +1,6 @@
 package com.stocksimulator.debug
 import com.github.nscala_time.time.Imports._
+import com.stocksimulator.abs._
 import akka.actor._
 import com.typesafe.config.ConfigFactory
 
@@ -9,7 +10,7 @@ object LogNames {
    def log(message: Object) = {
      val klass = t.getClass()
      val messageStr = message.toString()
-     Log(s"[$klass] $messageStr")
+     Log(s"[$klass] $messageStr ")
    }
  }
 }

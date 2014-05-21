@@ -11,7 +11,7 @@ abstract class DoubleRatioArbitrerStrategy extends JavaAdapterQ {
   
   val symbolC: Stock
   
-
+  val strat = strategy
   lazy val roundUp = StrategyUtils.roundUpFactory(gran)
   lazy val roundDown = StrategyUtils.roundDownFactory(gran)
   

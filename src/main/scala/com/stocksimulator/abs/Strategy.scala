@@ -178,6 +178,18 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
       case None => 0.0
     }
   }
+  
+   def last(s: Stock) = stockInfo2Double(marketLast.get(s)) 
+  
+  def createProxyMAvg(windowSize: Int, elapsed: Int)(fun:() => Double) = {
+   def register(mv: MovingAvg): MovingAvg = {
+     windows <-- mv
+     mv
+   }
+   val newWin = new MovingAvg(windowSize, elapsed,                                                                                                                                                         fun)
+   register(newWin)
+  }
+  
   def createRatioFor2SymbolsMAvg(principal: Stock, ref1: Stock, ref2: Stock, windowSize: Int, elapsed: Int) = {
 
     val newWin = new MovingAvg(windowSize, elapsed, () => {
@@ -220,7 +232,6 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
       
 
       val result = precoTeorico
-
       result
       } else 0
     })

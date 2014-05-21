@@ -33,14 +33,14 @@ case class SellOrder(_dateTime: DateTime, _stock: Stock, _quantity: Int, _value:
 case class BuyReplaceOrder(_ticketToReplace: Ticket, _newOrder:BuyOrder) extends ReplaceOrder(_ticketToReplace, _newOrder) with BuyOrderNature
 case class SellReplaceOrder(_ticketToReplace: Ticket, _newOrder: SellOrder) extends ReplaceOrder(_ticketToReplace, _newOrder) with SellOrderNature
 
-abstract class OrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, val iType: String) {
+abstract class OrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, val iType: String, val instrument: Stock) {
   val dateTime = _dateTime
   val quantity = _quantity
   val value = _value
 }
-case class BuyOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double) extends OrderResult(_dateTime, _quantity, _value, "Buy")
-case class SellOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double) extends OrderResult(_dateTime, _quantity, _value, "Sell")
-case object EmptyOrderResult extends OrderResult(DateTime.now, 0, 0, "Empty")
+case class BuyOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, _instrument: Stock) extends OrderResult(_dateTime, _quantity, _value, "Buy", _instrument)
+case class SellOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, _instrument: Stock) extends OrderResult(_dateTime, _quantity, _value, "Sell", _instrument)
+case object EmptyOrderResult extends OrderResult(DateTime.now, 0, 0, "Empty", Stock("N/A"))
 
 abstract class GeneralTicket(val id: Int, val order:Order)
 case class Ticket(_id: Int, _order: Order) extends GeneralTicket(_id, _order)

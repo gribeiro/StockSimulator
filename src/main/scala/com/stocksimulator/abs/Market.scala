@@ -47,9 +47,21 @@ abstract class Market(val components: List[MarketComponent] = List.empty[MarketC
     	buyBook.remove(ticket)
     	sellBook.remove(ticket)
   }
+  protected def removeTicket(t: Ticket):Unit = {
+    tProvider.removeOrder(t, afterCancel(t))
+  }
+  
+    def executeOrder(datetime: DateTime, vol: Int, price: Double, instrument: Stock)(t: Ticket) = {
+     t.order.nature match {
+        case BuyNature => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+        case SellNature => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+      } 
+
+  }
+  
   protected def removeTickets(ts: Iterable[Ticket]) = {
     for (t <- ts) {
-      tProvider.removeOrder(t, afterCancel(t))
+     removeTicket(t)
     }
   }
 

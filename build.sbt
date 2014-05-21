@@ -6,7 +6,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.3.4"
+version := "1.3.4-SNAPSHOT"
 
 scalaVersion := "2.10.4"
 
@@ -31,6 +31,8 @@ resolvers += "akka" at "http://repo.akka.io/snapshots"
 resolvers += "subcut" at "https://github.com/dickwall/subcut"
 
 resolvers += "spray repo" at "http://repo.spray.io"
+
+libraryDependencies += "org.spire-math" %% "spire" % "0.7.4"
 
 libraryDependencies += "com.github.seratch" %% "awscala" % "0.2.+"
 

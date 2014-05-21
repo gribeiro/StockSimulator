@@ -14,8 +14,8 @@ import com.stocksimulator.debug._
 import com.stocksimulator.debug.LogNames._
 import ConfigurationModule._
 
-case class SaveMongo(collName: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
-  
+case class SaveMongo(collNamePre: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
+  private val collName = collNamePre.replace('$', '_')
    def withMongoObject(mongoData: DBObject) = {
     val host = mConf.host
     val port = mConf.port
