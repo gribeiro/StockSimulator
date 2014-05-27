@@ -17,7 +17,7 @@ case class Killed() extends TunnelTicketStatus
 class StrategyTicketTunnel(market: Market) {
   private var lID = 0
   private val buffer = new HashMap[Int, Ticket]
-  private def tickets = market.getTickets()
+  private def tickets = market.getTickets
 
   private def lastId(): Int = market.lastId
   private def checkTicketExistence(t: Ticket) = tickets.exists(t2 => t == t2)

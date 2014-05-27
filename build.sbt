@@ -6,7 +6,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.3.4-SNAPSHOT"
+version := "1.3.5"
 
 scalaVersion := "2.10.4"
 

@@ -12,7 +12,8 @@ import com.stocksimulator.helpers._
 import com.stocksimulator.helpers.PMaker._
 import com.stocksimulator.helpers.ImplicitClasses._
 import com.stocksimulator.utils.BlackScholes
-
+import com.stocksimulator.helpers.BSPrecise
+import com.stocksimulator.helpers.Memoization._
 case class Position(quantity: Int, pnl: Double)
 
 class Parameters {
@@ -40,7 +41,7 @@ class Parameters {
     inputStr.hashCode()
   }
   def inputStr = {
-    val memOne = for ((k, v) <- mem) yield k + "=" + v.toString()
+    val memOne = for ((k, v) <- mem; if( k.toList.head != '_')) yield k + "=" + v.toString()
     memOne.mkString("_")
   }
   override def toString(): String = mem.toString()
@@ -54,7 +55,7 @@ trait BuySellAdapter {
   def replaceSell(ticketToReplace: Ticket, qt: Int, amount: Double): TunnelTicketStatus
   def getStatus(tunnelTicket: TunnelTicketStatus): TunnelTicketStatus
   def cancelOrder(order: Ticket)
-  def appendWaitOrder(wait: Wait, qt: Int, amount: Double) 
+  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) 
 }
 
 abstract class BuySellAdopt(bsAdap: BuySellAdapter) extends BuySellAdapter {
@@ -64,7 +65,7 @@ abstract class BuySellAdopt(bsAdap: BuySellAdapter) extends BuySellAdapter {
   def replaceBuy(ticketToReplace: Ticket, qt: Int, amount: Double) = bsAdap.replaceBuy(ticketToReplace, qt, amount)
   def replaceSell(ticketToReplace: Ticket, qt: Int, amount: Double) = bsAdap.replaceSell(ticketToReplace, qt, amount)
   def getStatus(tunnelTicket: TunnelTicketStatus): TunnelTicketStatus = bsAdap.getStatus(tunnelTicket)
-  def appendWaitOrder(wait: Wait, qt: Int, amount: Double) = bsAdap.appendWaitOrder(wait, qt, amount)
+  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) = bsAdap.appendWaitOrder(wait, qt, amount, e, stock)
 }
 
 
@@ -111,8 +112,9 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
   def getDoubleParam(s: String):Double = getParam(s).asInstanceOf[Double]
   def getStringParam(s: String):String = getParam(s).asInstanceOf[String]
   
-  def bsVolCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BlackScholes.bsVolCall(spot, strike, r, optionPrice, timeToExpiry)
-  def priceEuropeanBlackScholesCall(spot: Double, strike: Double, r: Double, timeToExpiry: Double, volatility: Double) = BlackScholes.priceEuropeanBlackScholesCall(spot, strike, r, timeToExpiry, volatility)
+ // def bsGreeksCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BSPrecise.bsGreeksCall(spot, strike, r, optionPrice, timeToExpiry)
+  //def bsVolCall(spot: Double, strike: Double, r: Double, optionPrice: Double, timeToExpiry: Double) = BSPrecise.bsVolCall(spot, strike, r, optionPrice, timeToExpiry)
+  //def priceEuropeanBlackScholesCall(spot: Double, strike: Double, r: Double, timeToExpiry: Double, volatility: Double) = BSPrecise.priceEuropeanBlackScholesCall(spot, strike, r, timeToExpiry, volatility)
   
   private def putResult(key: String, obj: Object) {
     result.set(key, obj)
@@ -206,34 +208,54 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     newWin
   }
   
-  
-  def createRatioMAvgForOption(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
-
+  def createOptionMAvgs(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
 	  val optionInfoB = stock2.optionInfo.get
-    val volWin = new MovingAvg(windowSize, elapsed, () => {
+	  
+	  val greekCalls = BSPrecise.bsGreeksCall[BigDecimal](optionInfoB.strike, 0.10, optionInfoB.ratio) _
+	  def greeks(which: Int) = {
       val precoA:Double = marketLast.get(stock1)
       val precoB:Double = marketLast.get(stock2)
+      val r = 0.10//optionInfoB.r
+      val bsVol = greekCalls(precoB, precoA)
+      //this.log()
+   /*  this.log("optionInfoB: " + optionInfoB)
+     this.log("precoA: " + precoA)
+     this.log("precoB: " + precoB)
+     this.log("bsVol:" + bsVol(0))*/
+      bsVol(which).doubleValue
+	    
+	  }
+      val volWin = new MovingAvg(windowSize, elapsed, () => {greeks(0)})
+	  windows <-- volWin
+    
 
-      val bsVol = bsVolCall(precoA, optionInfoB.strike, optionInfoB.r, precoB, optionInfoB.ratio)
+      val deltaWin = new MovingAvg(windowSize, elapsed, () => {greeks(1)})
+    windows <-- deltaWin
+    (volWin, deltaWin)
+  }
+  def createRatioMAvgForOption(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int, volWin: MovingAvg) = {
+	  val optionInfoB = stock2.optionInfo.get
+	  val priceGet = BSPrecise.priceEuropeanBlackScholesCall(optionInfoB.strike, 0.10, optionInfoB.ratio) _
+      val newWin = new MovingAvg(windowSize, elapsed, () => {
       
-      bsVol
-    })
-    windows <-- volWin
-    val newWin = new MovingAvg(windowSize, elapsed, () => {
       
-      if(volWin.isAvailable) {
       val mediaVol = volWin.lastVal()
      
       val precoA:Double = marketLast.get(stock1)
       val precoB:Double = marketLast.get(stock2)
        
       
-      val precoTeorico = priceEuropeanBlackScholesCall(precoA, optionInfoB.strike, optionInfoB.r, optionInfoB.ratio, mediaVol)
+      val precoTeorico = priceGet(precoA, mediaVol)
+      //this.log(precoTeorico)
+      //this.log(mediaVol.toString())
+      precoTeorico match {
+        case Some(price) if(volWin.isAvailable) =>
+          //this.log(mediaVol + "")
+          //this.log(price.toString())
+          price.doubleValue over precoA
+        case _ => precoB over precoA
+      }
       
-
-      val result = precoTeorico
-      result
-      } else 0
     })
     windows <-- newWin
     newWin
@@ -277,11 +299,12 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
 
         //if(millis > 0) onQuotes() <-- Ja tem o filtro contador, nao precisa mais. <-- Setar WATCH SYMBOL
         sProvideLiquidity.updateAll()
+        
         onQuotes()
 
         marketLast = marketInfo
       }
-
+      //this.log(position)
       for (ab <- ticketInfo) {
         updatePosition(List(ab))
         publicReports(List(ab))
@@ -370,14 +393,13 @@ abstract class Strategy(market: Market, private val param: Parameters) extends B
     replace(ticketToReplace, sellOrder)
   }
 
-  def appendWaitOrder(wait: Wait, qt: Int, amount: Double) = {
-    val nature = wait.ticket.order.nature
-    nature match {
-      case SellNature =>
-        val order = SellReplaceOrder(wait.ticket, SellOrder(lastTick, wait.ticket.order.stock, qt, amount))
+  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) = {
+    e match {
+      case Sell =>
+        val order = SellReplaceOrder(wait.ticket, SellOrder(lastTick, stock, qt, amount))
         wait.appendReplace(order)
-      case BuyNature =>
-        val order = BuyReplaceOrder(wait.ticket, BuyOrder(lastTick, wait.ticket.order.stock, qt, amount))
+      case Buy =>
+        val order = BuyReplaceOrder(wait.ticket, BuyOrder(lastTick, stock, qt, amount))
         wait.appendReplace(order)
     }
   }

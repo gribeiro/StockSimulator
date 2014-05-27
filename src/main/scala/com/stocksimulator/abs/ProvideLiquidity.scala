@@ -33,7 +33,7 @@ class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy
     }
     def apply(qtd: Int, price: Double):Unit = {
       update()
-      if(lastPrice == price && lastQtd == qtd) return
+      if(lastPrice == price && lastQtd == qtd && !lastTicketStatus.isInstanceOf[Killed]) return
       lastPrice = price
       lastQtd = qtd
     
@@ -44,7 +44,7 @@ class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy
             case k: Killed =>
              lastTicketStatus = buy(symbol, qtd, price)
             case w: Wait =>
-              appendWaitOrder(w, qtd, price)
+              appendWaitOrder(w, qtd, price, e, symbol)
             case r: Ready =>
               lastTicketStatus = replaceBuy(r.ticket, qtd, price)
           }
@@ -54,7 +54,7 @@ class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy
             case k: Killed =>
              lastTicketStatus = sell(symbol, qtd, price)
             case w: Wait =>
-              appendWaitOrder(w, qtd, price)
+              appendWaitOrder(w, qtd, price, e, symbol)
             case r: Ready =>
               lastTicketStatus = replaceSell(r.ticket, qtd, price)
           }

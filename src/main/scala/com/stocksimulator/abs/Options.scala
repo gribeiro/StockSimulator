@@ -10,14 +10,14 @@ object OptionInstrument {
     val letterVal = letter.toInt
     val A = 'A'.toInt
     val M = 'M'.toInt
-    if(letterVal >= A && letterVal <= 'L'.toInt) letterVal - (A-1)
-    else if(letterVal >= M && letterVal <= 'X'.toInt) letterVal - (M-1)
+    if(letterVal >= A && letterVal <= 'L'.toInt) letterVal - (A)
+    else if(letterVal >= M && letterVal <= 'X'.toInt) letterVal - (M)
     else -1
   }
   
     def reverseLetterTable(month: Int) = {
       val A = 'A'.toInt
-      (month + (A-1)).toChar
+      (month + 1+ (A)).toChar
     }
     def vencimento(year: Int, month: Int) = {
       val map2014 = new HashMap[Int, Int] {

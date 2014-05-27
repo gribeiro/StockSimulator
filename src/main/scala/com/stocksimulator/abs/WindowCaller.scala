@@ -4,6 +4,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.math.Numeric
 import com.stocksimulator.debug.Log
 import com.stocksimulator.helpers.RingBuffer
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 class WindowCaller[T] {
 	val windows:ArrayBuffer[WindowTimeControl] = ArrayBuffer.empty[WindowTimeControl]
@@ -44,26 +46,36 @@ class SimpleCallBack(mSecondsToRun: Int, callback: () => Unit) extends WindowTim
   }
 }
 abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T]) extends WindowTimeControl {
-  private val buffer: RingBuffer[T] = new RingBuffer[T](size)
+  private val buffer: RingBuffer[Future[T]] = new RingBuffer[Future[T]](size)
   private var myVal: T = implicitly[Numeric[T]].zero
+  private val num = implicitly[Numeric[T]]
   val mSecondsToRun: Int
   val mSecondsToAdd: Int
   val feeder: WindowParam[T]
   private var mSecondsRunDecrement = mSecondsToRun
   private var mSecondsAddDecrement = mSecondsToAdd
+  private var startState = false
   
+  //println(mSecondsToAdd)
+  //println(mSecondsToRun)
   def timePassed(mSeconds: Int) = {
-	mSecondsRunDecrement -= mSeconds
+//    println(mSeconds)
+	if(!startState) mSecondsRunDecrement -= mSeconds
 	mSecondsAddDecrement -= mSeconds
-	if(mSecondsRunDecrement <= 0) {
+	if(!startState && mSecondsRunDecrement <= 0) {
 	  myVal = calculate()
 	  mSecondsRunDecrement += mSecondsToRun
+	  startState = true
 	}
 	
 	if(mSecondsAddDecrement <= 0) {
-	
+	  //val next = num.max(feeder.next(), num.zero)
+	  //println(next)
+	  //val next = feeder.next()
+	  //if(next > 0) {
 	  buffer += feeder.next()
-	  
+	  //}
+	  if(startState) myVal = calculate()
 	  mSecondsAddDecrement = mSecondsToAdd
 	}
   }
@@ -75,7 +87,7 @@ abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T
 
 
 trait WindowParam[T] {
-  def next(): T
+  def next(): Future[T]
 }
 
 trait WindowTimeControl {

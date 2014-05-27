@@ -19,6 +19,7 @@ object Utils {
         val join1 = dist(perm(filtered), (key, v))
         val withRemoved = l.filter(_ != (key, v))
         if (withRemoved.exists(_._1 == key)) join1 ++ perm(withRemoved) else join1
+        
     }
   } //> perm: (disc: List[(String, String)])List[List[(String, String)]]
   /*

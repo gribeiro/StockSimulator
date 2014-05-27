@@ -26,7 +26,7 @@ class NewDatActor(_receiveQueue: String, _sendQueue: String, _bucketName: String
   def preprocess(id: String, days: List[String], symbols: List[String], param: List[ConfigParam], queue: awscala.sqs.Queue, date: String, bucket: awscala.s3.Bucket, filename: String, crossName: String, addJob: => Unit): NextAction = {
     for (filenameR <- FileManager.downloadReutersOption(symbols.toArray, date)) {
      val file = FileManager.datFileIO(filenameR)
-     val teste= bucket.put(crossName, file)
+     val teste = bucket.put(crossName, file)
      addJob
     }
     EndNote

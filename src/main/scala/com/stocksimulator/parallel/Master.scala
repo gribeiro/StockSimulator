@@ -25,7 +25,6 @@ import scala.collection.mutable.ArrayBuffer
 import scala.{ Some, None }
 import com.stocksimulator.main.Bootstrap
 
-
 class Workers(n: Int, bundle: (Parameters) => Strategy, sId: String)(implicit res: ResultBuffer) {
 
   val config = ParCommon.config

@@ -102,10 +102,10 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     }
     if(results.size > 0) {		
 
-    def ticketVal(t: Iterable[Ticket]) = t.head.order.value
+    //def ticketVal(t: Iterable[Ticket]) = t.head.order.value
     this.log("Tick atual:" + sendInfo)
-    if(buyTickets.size > 0) Log("Ordem de compra: " + ticketVal(buyTickets))
-    if(sellTickets.size > 0) Log("Ordem de venda: " + ticketVal(sellTickets))
+    if(buyTickets.size > 0) Log("Ordem de compra: " + buyTickets)
+    if(sellTickets.size > 0) Log("Ordem de venda: " + sellTickets)
     this.log("Order Result: "+  results)
     this.log("\n")
 

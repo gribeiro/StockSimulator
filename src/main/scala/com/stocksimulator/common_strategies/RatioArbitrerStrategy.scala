@@ -39,12 +39,12 @@ abstract class RatioArbitrerStrategy extends JavaAdapterQ {
           val precoTeoricoA = mvAvgA.lastVal * midPr
 
           val precoTeoricoB = mvAvgB.lastVal * midPr
-          //this.log(s"Preco teorico: $precoTeoricoA")
+          this.log(s"Preco teorico: $precoTeoricoA")
           val buyPrice = roundDown(Math.min(a.bid.price, precoTeoricoA - spread))
           val sellPrice = roundUp(Math.max(a.ask.price, precoTeoricoA + spread))
          // this.log(s"Mid Price: $midprA ")
           if (pos < maxPos && buyPrice > 0) {
-           // this.log(s"Buyprice: $buyPrice")
+            this.log(s"Buyprice: $buyPrice")
             strat.provideBuyLiquidity(symbolA, step, buyPrice)
           }
 
