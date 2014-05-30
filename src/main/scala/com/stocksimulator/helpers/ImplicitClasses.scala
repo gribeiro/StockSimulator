@@ -6,7 +6,7 @@ import scala.collection.mutable.LinkedHashMap
 import org.joda.time.DateTime
 
 object ImplicitClasses {
-  
+import com.stocksimulator.abs.EventTC._
 implicit class extraOperators(x: Double)  {
   def over(that: Double):Double = {
     if(that != 0.0) x/that else 0.0
@@ -56,9 +56,9 @@ implicit class extraOperators(x: Double)  {
     def ! (datetime: DateTime, vol: Int, price: Double, instrument: Stock) = executeOrders(datetime, vol, price, instrument)
     def executeOrders(datetime: DateTime, vol: Int, price: Double, instrument: Stock) = {
       xs.map(t => 
-      t.order.nature match {
-        case BuyNature => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
-        case SellNature => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+      event(t) match {
+        case Buy => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+        case Sell => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
       } 
       )
     }

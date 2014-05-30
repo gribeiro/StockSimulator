@@ -45,10 +45,9 @@ class SimpleCallBack(mSecondsToRun: Int, callback: () => Unit) extends WindowTim
   }
   }
 }
-abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T]) extends WindowTimeControl {
-  private val buffer: RingBuffer[Future[T]] = new RingBuffer[Future[T]](size)
-  private var myVal: T = implicitly[Numeric[T]].zero
-  private val num = implicitly[Numeric[T]]
+abstract class Windowable[T, U](size: Int)(implicit tManifest: Manifest[T]) extends WindowTimeControl {
+  private val buffer: RingBuffer[T] = new RingBuffer[T](size)
+  var myVal: U
   val mSecondsToRun: Int
   val mSecondsToAdd: Int
   val feeder: WindowParam[T]
@@ -56,10 +55,7 @@ abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T
   private var mSecondsAddDecrement = mSecondsToAdd
   private var startState = false
   
-  //println(mSecondsToAdd)
-  //println(mSecondsToRun)
   def timePassed(mSeconds: Int) = {
-//    println(mSeconds)
 	if(!startState) mSecondsRunDecrement -= mSeconds
 	mSecondsAddDecrement -= mSeconds
 	if(!startState && mSecondsRunDecrement <= 0) {
@@ -69,17 +65,12 @@ abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T
 	}
 	
 	if(mSecondsAddDecrement <= 0) {
-	  //val next = num.max(feeder.next(), num.zero)
-	  //println(next)
-	  //val next = feeder.next()
-	  //if(next > 0) {
 	  buffer += feeder.next()
-	  //}
 	  if(startState) myVal = calculate()
 	  mSecondsAddDecrement = mSecondsToAdd
 	}
   }
-  protected def calculate(): T
+  protected def calculate(): U
   def lastVal() = myVal
   def getBuffer() = buffer
   
@@ -87,7 +78,7 @@ abstract class Windowable[T : Numeric](size: Int)(implicit tManifest: Manifest[T
 
 
 trait WindowParam[T] {
-  def next(): Future[T]
+  def next(): T
 }
 
 trait WindowTimeControl {

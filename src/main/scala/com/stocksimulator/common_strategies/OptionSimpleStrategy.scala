@@ -43,7 +43,7 @@ abstract class OptionSimpleStrategy extends RatioArbitrerStrategy {
           val aSellPr = roundUp(strat.midPrice(a)*ratio + spread)
           //this.log("::"+delta)
           val optionStep = roundUpHundred(step/delta).intValue()
-          //this.log("Real Bid: " + b.bid.price + " Vol BID: " + buyPrice)
+          //println("Real Bid: " + b.bid.price + " Vol BID: " + buyPrice)
           if (b.bid.price < buyPrice ) {
             strat.provideBuyLiquidity(symbolB, optionStep, b.ask.price - spread/2)
             strat.provideSellLiquidity(symbolA, step, a.bid.price + spread)

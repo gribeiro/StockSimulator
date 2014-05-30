@@ -1,10 +1,12 @@
 package com.stocksimulator.java_loader
 
 import com.stocksimulator.main._
+import com.stocksimulator.abs.RunningContextModule._
 import com.stocksimulator.abs._
 import com.stocksimulator.common_strategies._
 import com.stocksimulator.helpers.ParamMaker
 import com.stocksimulator.debug._, LogNames._
+
 
 
 abstract class JavaAdapterQ extends JavaAdapter {
@@ -25,8 +27,6 @@ abstract class JavaAdapterQ extends JavaAdapter {
 
 abstract class JavaAdapter {
   
-  
-
   protected var _strat: JavaStdStrategy = null
   def strategy = _strat
   def onQuotes()
@@ -45,9 +45,10 @@ abstract class JavaAdapter {
 
 
 object CreateStrategyForAdapter {
-  def apply(filename: String, fs: String) = {
+  type InstanceType = JavaAdapter
+  def apply(filename: String, fs: String)(implicit runningContext: RunningContext) = {
     (market: Market, param: Parameters) => {
-      val adapt = MemoryCompiler.apply(filename, fs).asInstanceOf[JavaAdapter]
+      val adapt = MemoryCompiler.apply(filename, fs).asInstanceOf[InstanceType]
       new JavaStdStrategy(market, param) {
         val adapter = adapt
       }
@@ -55,9 +56,8 @@ object CreateStrategyForAdapter {
   }
 }
 
-abstract class JavaStdStrategy(market: Market, param: Parameters) extends QuoteOnlyStrategy(market, param) {
+abstract class JavaStdStrategy(market: Market, param: Parameters)(implicit runningContext: RunningContext) extends QuoteOnlyStrategy(market, param) {
   val adapter: JavaAdapter
-  
   def onQuotes = {
     adapter.onQuotes()
 

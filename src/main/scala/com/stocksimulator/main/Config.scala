@@ -13,6 +13,7 @@ import com.stocksimulator.java_loader.JavaStdStrategy
 import com.stocksimulator.debug._
 import com.stocksimulator.debug.LogNames._
 import ConfigurationModule._
+import com.stocksimulator.main.BSTypeClass._
 
 case class SaveMongo(collNamePre: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
   private val collName = collNamePre.replace('$', '_')
@@ -53,7 +54,6 @@ object ConfigurationModule {
   
 
   
-  trait ConfigurationTransform[T]
   trait MongoConfig {
     val host: String
     val port: Int

@@ -8,7 +8,6 @@ import com.stocksimulator.reuters.ReutersMarket
 import scala.concurrent._
 import com.stocksimulator.debug._
 import com.stocksimulator.debug.LogNames._
-import com.stocksimulator.java.CommonStrategy
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.stocksimulator.java._
 import akka.actor.{ Props, ActorSystem, ActorRef, Actor }

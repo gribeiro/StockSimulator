@@ -2,29 +2,6 @@ package com.stocksimulator.helpers
 
 import scala.collection.mutable.HashMap
 
-object Memoization {
-  implicit class memoizeFun1[T,U](fun: Function[T,U])  {
-    def memoize = {
-      new Memoization1[T, U] {
-        def memApply(a :T):U = fun.apply(a)
-      }
-    }
-  }
-  abstract class Memoization1[T,U] extends Function1[T,U] {
-    val mem = HashMap.empty[T,U]
-    
-    def memApply(a: T):U
-    def apply(a: T):U = {
-      mem.get(a) match {
-        case Some(recorded) => recorded
-        case None =>
-          val map = memApply(a)
-          mem(a) = map
-          map
-      }
-    }
-  }
-}
 
 
 object BSPrecise {
@@ -61,7 +38,8 @@ object BSPrecise {
       
       //val teste =  abs(volatility-dv)/volatility
       volatility = volatility - dv
-      if(volatility.doubleValue == Double.NegativeInfinity || volatility.doubleValue == Double.PositiveInfinity) {
+      //println(volatility.doubleValue)
+      if(volatility.doubleValue == Double.NegativeInfinity || volatility.doubleValue == Double.PositiveInfinity || dv.abs > 10E20) {
         volatility = 0
         n = nmax+1
       }
@@ -164,12 +142,10 @@ for( d1 <- getD1(spot, strike, r, timeToExpiry, volatility, timeSqrt); d2 = getD
     d1 - (volatility * timeSqrt)
   }
 
-// val cdf = mem(this.precdf[BigDecimal] _)
+
+val cdf = memoize(this.precdf[BigDecimal] _)
  
- def mem[T, U](fun: Function1[T,U]) = {
-   fun.memoize
- }
-  def cdf[T: Numeric](_z: T) = {
+  def precdf[T: Numeric](_z: T) = {
     val z: BigDecimal = _z
     
       
@@ -204,10 +180,11 @@ for( d1 <- getD1(spot, strike, r, timeToExpiry, volatility, timeSqrt); d2 = getD
     }
     res
     
-    
-      }
-  //val ndf = mem(this.prendf[BigDecimal] _)
-  def ndf[T: Numeric](_input: T) = {
+  }
+ //implicit val teste = memoizeFun1(this.prendf[BigDecimal] _)
+  
+  //val ndf = memoize(this.prendf[BigDecimal] _)
+  def prendf[T: Numeric](_input: T) = {
     val input:BigDecimal = _input
     (1/sqrt(2*BigDecimal(Math.PI))) * exp(-pow(input, 2)/2)
   }

@@ -84,10 +84,11 @@ abstract class PreprocessActor(val receiveQueue: String, val sendQueue: String, 
                   val next = preprocess(id, days, symbols, param, queue, date, bucket, filename, crossName, addJob)
                   next match {
                     case Enqueue(q) =>
-                      val nPreInfo = PreProcessInfo(id, List(date), symbols, param, stringParam)
+                      val nPreInfo = PreProcessInfo(id, List(date), preSymbols, param, stringParam)
                       val extraQ = ExtraQueue(q)
                       extraQ.sendMessage(nPreInfo.asJson.toString)
                     case EndNote =>
+                      this.log(s"$id, $days, $symbols: ok")
                   }
                 }
             }

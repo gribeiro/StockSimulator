@@ -6,12 +6,13 @@ import com.stocksimulator.debug._
 import scala.collection.mutable.LinkedHashMap
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.LinkedHashSet
-
+import com.stocksimulator.abs.EventTC._
 
 object Market {
   implicit def market2Boolean(m: Market) = m()
 }
 abstract class Market(val components: List[MarketComponent] = List.empty[MarketComponent]) {
+  
   //Ticket id
   type tickResult = (Map[Stock, StockInfo], List[(Ticket, OrderResult)])
   val stocks: Set[Stock]
@@ -52,9 +53,9 @@ abstract class Market(val components: List[MarketComponent] = List.empty[MarketC
   }
   
     def executeOrder(datetime: DateTime, vol: Int, price: Double, instrument: Stock)(t: Ticket) = {
-     t.order.nature match {
-        case BuyNature => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
-        case SellNature => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+     event(t) match {
+        case Buy => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+        case Sell => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
       } 
 
   }

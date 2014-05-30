@@ -58,7 +58,7 @@ libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.0.6"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 
-libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
+libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.1.RC1" % "test"
 
 libraryDependencies += "io.jvm" %% "scala-uuid" % "0.1.2"
 

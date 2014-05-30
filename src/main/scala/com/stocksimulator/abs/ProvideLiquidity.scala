@@ -2,11 +2,9 @@ package com.stocksimulator.abs
 
 import scala.collection.mutable.HashMap
 
-trait Event
-object Buy extends Event
-object Sell extends Event
+import com.stocksimulator.abs.EventTC._
 
-class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy) {
+class StrategyProvideLiquidity(strategy: BuySellAdapter) extends BuySellAdopt(strategy) {
 
   private val pLiq = new HashMap[(Stock, Event), ProvideLiquidity]
 
@@ -20,45 +18,40 @@ class StrategyProvideLiquidity(strategy: Strategy) extends BuySellAdopt(strategy
     }
     pL(qtd, price)
   }
-  
-  def updateAll():Unit = pLiq.values.map(pl => pl.update())
-  
-  class ProvideLiquidity(symbol: Stock, e: Event) extends Function2[Int, Double, Unit] {
+
+  def updateAll(): Unit = pLiq.values.map(pl => pl.update())
+
+  class ProvideLiquidity(symbol: Stock, val e: Event) extends Function2[Int, Double, Unit] {
     private var lastQtd: Int = 0
     private var lastPrice: Double = 0
-    private var lastTicketStatus: TunnelTicketStatus = new Killed
-    
+    private var lastTicketStatus: TunnelTicketStatus = Killed
+
     def update() = {
       lastTicketStatus = getStatus(lastTicketStatus)
+      val newEvent = event(lastTicketStatus)
+      if (!natureCompare(e, newEvent)) throw new IncompatibleNatureException
     }
-    def apply(qtd: Int, price: Double):Unit = {
+
+    val (action, replace) = e match {
+      case Buy => (buy _, replaceBuy _)
+      case Sell => (sell _, replaceSell _)
+    }
+
+    def apply(qtd: Int, price: Double): Unit = {
       update()
-      if(lastPrice == price && lastQtd == qtd && !lastTicketStatus.isInstanceOf[Killed]) return
+      if (lastPrice == price && lastQtd == qtd && !(lastTicketStatus == Killed)) return
       lastPrice = price
       lastQtd = qtd
-    
-      e match {
-        case Buy =>
-         
-          lastTicketStatus match {
-            case k: Killed =>
-             lastTicketStatus = buy(symbol, qtd, price)
-            case w: Wait =>
-              appendWaitOrder(w, qtd, price, e, symbol)
-            case r: Ready =>
-              lastTicketStatus = replaceBuy(r.ticket, qtd, price)
-          }
-          
-        case Sell =>
-           lastTicketStatus match {
-            case k: Killed =>
-             lastTicketStatus = sell(symbol, qtd, price)
-            case w: Wait =>
-              appendWaitOrder(w, qtd, price, e, symbol)
-            case r: Ready =>
-              lastTicketStatus = replaceSell(r.ticket, qtd, price)
-          }
+
+      lastTicketStatus match {
+        case Killed =>
+          lastTicketStatus = action(symbol, qtd, price)
+        case w: Wait =>
+          appendWaitOrder(w, qtd, price, e, symbol)
+        case r: Ready =>
+          lastTicketStatus = replace(r.ticket, qtd, price)
       }
+
     }
   }
 }

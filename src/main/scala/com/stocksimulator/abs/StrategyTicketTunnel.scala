@@ -12,7 +12,7 @@ case class Wait(id: Int, ticket: Ticket) extends TunnelTicketStatus {
   def appendReplace(order: Order) = myOrder = Some(order)
   
 }
-case class Killed() extends TunnelTicketStatus
+case object Killed extends TunnelTicketStatus
 
 class StrategyTicketTunnel(market: Market) {
   private var lID = 0
@@ -33,9 +33,6 @@ class StrategyTicketTunnel(market: Market) {
 
   def check(wait: Wait): TunnelTicketStatus = {
     val id = wait.id
-    if(id==14) {
-      val stop =1
-    }
     if (lastId >= id) {
       val ticket = buffer(id)
       buffer -= id
@@ -45,11 +42,11 @@ class StrategyTicketTunnel(market: Market) {
           case None => Ready(ticket)
         }
         
-        } else new Killed
+        } else Killed
     } else wait
   }
   
   def check(ready: Ready): TunnelTicketStatus = {
-    if (checkTicketExistence(ready.ticket) && ready.ticket.order != null) ready else new Killed
+    if (checkTicketExistence(ready.ticket) && ready.ticket.order != null) ready else Killed
   }
 }
