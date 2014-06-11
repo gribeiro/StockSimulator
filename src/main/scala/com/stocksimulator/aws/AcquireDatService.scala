@@ -18,7 +18,7 @@ class AcquireDatService extends Service("acquireDatService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.preprocessorInputQueue
   val sendQueue = self.queueNames.runnerInputQueue
-  val bucketName = self.queueNames.bucketName
+  val bucketName = self.bucketNames.bucketName
   val errorQueueName = self.queueNames.errorQueueName
   val acquireQueueName = self.queueNames.reutersInputQueue
   def actorGen(system: ActorSystem) = {

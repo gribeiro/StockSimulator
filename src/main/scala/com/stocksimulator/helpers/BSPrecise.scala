@@ -7,6 +7,7 @@ import scala.collection.mutable.HashMap
 object BSPrecise {
   import spire.implicits._
   import spire.math._
+  import scalaz._, Scalaz._
   import Memoization._
   
   implicit def double2BD(x: Double) = BigDecimal(x)
@@ -143,7 +144,9 @@ for( d1 <- getD1(spot, strike, r, timeToExpiry, volatility, timeSqrt); d2 = getD
   }
 
 
-val cdf = memoize(this.precdf[BigDecimal] _)
+val cdf = ringedMemo(2000) {
+  x: BigDecimal => precdf(x)
+}
  
   def precdf[T: Numeric](_z: T) = {
     val z: BigDecimal = _z
@@ -183,6 +186,9 @@ val cdf = memoize(this.precdf[BigDecimal] _)
   }
  //implicit val teste = memoizeFun1(this.prendf[BigDecimal] _)
   
+  val ndf = ringedMemo(2000) {
+    x:BigDecimal => prendf(x)
+  }
   //val ndf = memoize(this.prendf[BigDecimal] _)
   def prendf[T: Numeric](_input: T) = {
     val input:BigDecimal = _input

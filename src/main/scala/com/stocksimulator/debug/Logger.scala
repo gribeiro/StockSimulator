@@ -65,8 +65,8 @@ object Log {
 
   def apply(s: Any, noTime: Boolean = false, ll: LogLevel = Info) = {
     if (active && level.contains(ll)) {
-      //println(s)
-      logActor ! LogMessage(s, noTime)
+      println(s)
+     // logActor ! LogMessage(s, noTime)
     }
   }
 }

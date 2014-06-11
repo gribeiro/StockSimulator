@@ -51,6 +51,7 @@ trait SQSUser {
 trait SQSReceiveQueue extends SQSUser {
   import Result._
   val receiveQueue: String
+  this.log(s"Queue Name: $receiveQueue")
   def queueOption = sqs.queue(receiveQueue)
   def tryQueue = queueOption.result("Queue not found")
   def removeMessage(m: awscala.sqs.Message) = {

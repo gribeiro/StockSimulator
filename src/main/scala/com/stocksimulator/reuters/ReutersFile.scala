@@ -135,7 +135,9 @@ object FileManager {
     }
 
     def save(fileName: String, fileContent: Array[FileFormat]) = {
-      val ricArray = fileContent.par.groupBy(_.ric).keySet.toArray
+     // val groupByRic = fileContent.groupBy(_.ric)
+      val ricArray = fileContent.groupBy(_.ric).keySet.toArray
+     
       val fileMonad = managed(new FileOutputStream(fileName))
       val bufferMonad = fileMonad.map(new DeflaterOutputStream(_)).map(new DataOutputStream(_))
       val loadData = ArrayBuffer.empty[FileFormat]

@@ -26,6 +26,7 @@ import scala.io.Source
 import scala.collection.mutable.ArrayBuffer
 import com.stocksimulator.ff._
 import com.stocksimulator.main.ConfigurationModule._
+
 object Bootstrap {
   import com.stocksimulator.debug.LogNames._
   sealed trait CommandLineOption
@@ -36,7 +37,8 @@ object Bootstrap {
   case object Preprocessor extends CommandLineOption
   case object Resulter extends CommandLineOption
   case object Reuters extends CommandLineOption
-  
+  case object TestObliterate extends CommandLineOption
+  case object Test extends CommandLineOption  
   case class DefferedGet[T](arr: Array[T], idx: Int, isEqualTo: Option[T] = None) {
     private val convertedArray = ArrayBuffer.empty[T]
     arr.foreach {
@@ -92,6 +94,8 @@ object Bootstrap {
         singleCase("preprocessor"),
         singleCase("result"),
         singleCase("reuters"),
+        singleCase("testObliterate"),
+        singleCase("test"),
         ("job", List("job", "arg1")))
 
       cases.map {
@@ -108,6 +112,10 @@ object Bootstrap {
           Job(map("arg1")).some
         case ("reuters", content) if(isCase(content)) =>
           Reuters.some
+        case ("testObliterate", content) if(isCase(content)) =>
+          TestObliterate.some
+        case ("test", content) if(isCase(content)) =>
+          Test.some
         case _ => None
       }.collectFirst {
         case Some(el) => el
@@ -127,46 +135,58 @@ object Bootstrap {
   def main(args: Array[String]): Unit = {
     import com.stocksimulator.aws._
     import com.stocksimulator.main.ConfigurationModule._
-  
     Log.setActive(true)
-
+    type Config = DefaultConfig
     val firstArgs = List(
       firstArg("local"),
       firstArg("job"),
       firstArg("worker"),
       firstArg("preprocessor"),
       firstArg("result"),
-      firstArg("reuters")
+      firstArg("reuters"),
+      firstArg("test"),
+      firstArg("testObliterate")
     )
 
     val keys = firstArgs ++ supportArgs(4)
-
-    this.log("Starting...")
+    
+    this.log("Starting.... ")
     CommandLineStatus(keys, args).getOption match {
       case Some(status) =>
 
         status match {
-          case Local(filename) => RunFromFileJson(filename)
+          case Local(filename) => 
+            RunFromFileJson(filename)
           case Job(filename) =>
             this.log("Sending job: " + filename)
-            val passo1 = new SendJobService with DefaultConfig
+            val passo1 = new SendJobService with Config
             val config = ConfigurationLoadJson.load(filename).get
             this.log("Config:" + config.toString())
             passo1(config)
           case Worker(qtd: Int) =>
             for(i <- 1 to qtd) {
-            val workerService = new RunnerService with DefaultConfig
+            val workerService = new RunnerService with Config
             workerService.run
             }
           case Preprocessor =>
-            val preprocessor = new AcquireDatService with DefaultConfig
+            val preprocessor = new AcquireDatService with Config
             preprocessor.run
           case Resulter =>
-            val resulter = new OutputService with DefaultConfig
+            val resulter = new OutputService with Config
             resulter.run
           case Reuters =>
-            val reutersService = new NewDatService with DefaultConfig
+            val reutersService = new NewDatService with Config
             reutersService.run
+          case TestObliterate =>
+            TestConfig.remove
+          case Test =>
+            val services = List(new AcquireDatService with TestConfig, new OutputService with TestConfig, new NewDatService with TestConfig, new RunnerService with TestConfig)
+            services.foreach {
+              service =>
+              Thread.sleep(1000L)
+              service.run
+            }
+            
         }
       case None =>
         this.log("Erro ao processar argumentos.")

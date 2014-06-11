@@ -20,6 +20,7 @@ import com.stocksimulator.parallel._
 import scala.collection.mutable.ListBuffer
 import com.stocksimulator.remote._
 import scala.collection.mutable.HashMap
+import com.stocksimulator.parallel.UmbraBootstrap
 import com.stocksimulator.parallel.CommonBootstrap
 import com.stocksimulator.parallel.BootstrapConf
 import com.stocksimulator.helpers.ParamGen._
@@ -36,22 +37,31 @@ abstract class BSSet(configuration: Configuration, date: String, filename: Strin
   protected val mc: ListBuffer[MarketComponent] = ListBuffer(ReutersMarketComponents.standardBookOrder(configuration.bookOrder))
   val conf = BootstrapConf(configuration.workers, configuration.name, inst, mc.toList, configuration.from, configuration.to)
   def generator: (Market, Parameters) => Strategy
-
+  val bootstrap: UmbraBootstrap
+  protected def javaFile = ""
 }
 
-class RemoteJavaBSSet(configuration: Configuration, date: String, filename: String, javafs: String, filters: Option[List[String]]) extends JavaBSSet(configuration, date, filename) {
+class RemoteJavaBSSet(configuration: Configuration, date: String, filename: String, javafs: String, filters: Option[List[String]])(implicit pc: PreContext) extends JavaBSSet(configuration, date, filename) {
+  
+  //implicit val runningContext: RunningContext = bootstrap.runningContext
   override def javaFile = javafs
-
+  
   override val varParamList = filters match {
     case Some(filter) => VarParam(configuration, filter)
     case None => VarParam(configuration)
   }
 
+  override implicit lazy val runningContext:RunningContext =  {
+   
+   val currentRc = bootstrap.runningContext
+   val rcBuilder = RunningContextModule.contextBuilder withRunningContext(currentRc) withId pc.id
+  rcBuilder build
+  }
 }
 
 class JavaBSSet(configuration: Configuration, val date: String, val filename: String) extends BSSet(configuration, date, filename) {
-  val bootstrap = new CommonBootstrap(conf, varParamList, date, filename)
-  implicit val runningContext:RunningContext = bootstrap.runningContext
+  lazy val bootstrap = new CommonBootstrap(conf, varParamList, date, filename)
+  implicit lazy val runningContext:RunningContext = bootstrap.runningContext
   def generator = CreateStrategyForAdapter(configuration.javaFilename, javaFile)
-  protected def javaFile = Source.fromFile(configuration.javaFilename + ".java", "utf-8").getLines mkString "\n"
+  override protected def javaFile = Source.fromFile(configuration.javaFilename + ".java", "utf-8").getLines mkString "\n"
 }

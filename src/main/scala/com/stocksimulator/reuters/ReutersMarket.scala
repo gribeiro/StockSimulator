@@ -17,7 +17,7 @@ import com.stocksimulator.abs.AutoDemotion._
 import ExecutionContext.Implicits.global
 import scala.util.Success
 import scala.util.Failure
-
+import org.joda.time._
 class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 100) extends Market(mc) {
   val stocks = feed.instruments
 
@@ -75,24 +75,24 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     val results = new ListBuffer[(Ticket, OrderResult)]
      //println(newInfo)
     if (buyBook.size != 0 || sellBook.size != 0 || tickets.size != 0) {
-      for ((stock, info) <- newInfo) yield {
+      for ((_, info) <- newInfo) yield {
         if (!info.hasAppeared) {
            
-          info.setHasAppeared(true)
+          info.setHasAppeared(true) //Side Effect
           info.unfold match {
             case q: Quote =>
              
-              for (t <- updateTicketsOnQuote(q, stock)) {
+              for (t <- updateTicketsOnQuote(q, q.iStock)) {
                 results += t
               }
-            case t: Trade => for (t <- updateTicketsOnTrade(t, stock)) {
+            case t: Trade => for (t <- updateTicketsOnTrade(t, t.iStock)) {
               results += t
             }
           }
+        } else {
+         // this.log("Warning: Duplicate info was retrieved!")
         }
       }
-    } else {
-      emptyResult
     }
 
    
@@ -115,9 +115,42 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     if (filterResult) (sendInfo, results.toList) else (emptyInfo, results.toList)
   }
 
+  //Warning!! Ugly side effects!!
+  
+  
+  
+  
+  private def executeObviousSellTrades(sellTickets: Iterable[Ticket], quote: Quote, stock: Stock) = {
+	val bidPrice = quote.bid.price
+    val askPrice = quote.ask.price
+    val bidVol = quote.bid.vol
+    val askVol = quote.ask.vol
+    val datetime = quote.datetime
+
+    val sellExec = executeOrder(datetime, bidVol, bidPrice, stock) _
+    val actionSellTickets = sellTickets ~<= bidPrice //sellTickets.filter(t => t.order.value <= bidPrice)
+    val sellOrderResults = actionSellTickets.map(sellExec)
+    actionSellTickets.map(removeTicket)
+    sellOrderResults
+  }
+  
+  private def executeObviousBuyTrades(buyTickets: Iterable[Ticket], quote: Quote, stock: Stock) = {
+    val bidPrice = quote.bid.price
+    val askPrice = quote.ask.price
+    val bidVol = quote.bid.vol
+    val askVol = quote.ask.vol
+    val datetime = quote.datetime
+    
+    val actionBuyTickets = buyTickets ~>= askPrice //buyTickets.filter(t => t.order.value >= askPrice)
+    val buyExec = executeOrder(datetime, askVol, askPrice, stock) _
+    val buyOrderResults = actionBuyTickets.map(buyExec) //actionBuyTickets.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
+    actionBuyTickets.map(removeTicket)
+
+    buyOrderResults
+  }
   private def updateTicketsOnQuote(quote: Quote, stock: Stock) = {
 
-    filters.foreach { comp => comp.onQuote(quote, stock) }
+    filters.foreach { comp => comp.onQuote(quote, stock) } // Calling Side Effect
     val tickets2 = tickets.getStock(stock)
 
     val buyTickets = tickets2.buys
@@ -128,59 +161,56 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     val bidVol = quote.bid.vol
     val askVol = quote.ask.vol
     val datetime = quote.datetime
-
-    val actionBuyTickets = buyTickets ~>= askPrice //buyTickets.filter(t => t.order.value >= askPrice)
-    val actionSellTickets = sellTickets ~<= bidPrice //sellTickets.filter(t => t.order.value <= bidPrice)
     
-    val buyExec = executeOrder(datetime, askVol, askPrice, stock) _
-    val sellExec = executeOrder(datetime, bidVol, bidPrice, stock) _
-    
-    val buyOrderResults = actionBuyTickets.map(buyExec) //actionBuyTickets.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
-    val sellOrderResults = actionSellTickets.map(sellExec)
-
+   val buyOrderResults = if(buyTickets.size > 0 ) executeObviousBuyTrades(buyTickets, quote, stock) else Iterable.empty[(Ticket, OrderResult)]
+   val sellOrderResults = if(sellTickets.size > 0) executeObviousSellTrades(sellTickets, quote, stock)  else Iterable.empty[(Ticket, OrderResult)]
+    //Side Effect #1
     //  val combinedResults = buyOrderResults ++ sellOrderResults
-    actionBuyTickets.map(removeTicket)
-    actionSellTickets.map(removeTicket)
-
+    
     //Book stuff
 
     val actionQueueBuy = buyTickets ~== bidPrice //buyTickets.filter(t => t.order.value == bidPrice)
     val actionQueueSell = sellTickets ~== askPrice //sellTickets.filter(t => t.order.value == askPrice)
 
     //adiciona no book - valor atual
-    val tempTicketBookBuy = new HashMap[Ticket, Book]
+    //val tempTicketBookBuy = new HashMap[Ticket, Book]
+    //Side Effect #2
     for (actionTicket <- actionQueueBuy) {
-      if (!buyBook.contains(actionTicket)) tempTicketBookBuy += actionTicket -> new Book(bidVol)
+      if (!buyBook.contains(actionTicket)) buyBook += actionTicket -> new Book(bidVol)
     }
 
-    buyBook ++= tempTicketBookBuy
+    //buyBook ++= tempTicketBookBuy
 
-    val tempTicketBookSell = new HashMap[Ticket, Book]
+    //val tempTicketBookSell = new HashMap[Ticket, Book]
+    //Side Effect #3
     for (actionTicket <- actionQueueSell) {
-      if (!sellBook.contains(actionTicket)) tempTicketBookSell += actionTicket -> new Book(askVol)
+      if (!sellBook.contains(actionTicket)) sellBook += actionTicket -> new Book(askVol)
     }
-    sellBook ++= tempTicketBookSell
+    //sellBook ++= tempTicketBookSell
 
     //adiciona no book - valor distante
 
     val actionFirstQueueBuy = buyTickets ~< bidPrice //buyTickets.filter(t => t.order.value < bidPrice)
     val actionFirstQueueSell = sellTickets ~> askPrice //sellTickets.filter(t => t.order.value > askPrice)
 
-    val tempTicketBookBuyFirst = new LinkedHashMap[Ticket, Book]
+    
+    //Side Effect #4
+    //val tempTicketBookBuyFirst = new LinkedHashMap[Ticket, Book]
     for (actionTicket <- actionFirstQueueBuy) {
-      tempTicketBookBuyFirst ++= bookOrder.buyOrder(buyBook, actionTicket)
+      buyBook ++= bookOrder.buyOrder(buyBook, actionTicket)
     }
 
-    buyBook ++= tempTicketBookBuyFirst
+    //buyBook ++= tempTicketBookBuyFirst
 
-    val tempTicketBookSellFirst = new LinkedHashMap[Ticket, Book]
+   // val tempTicketBookSellFirst = new LinkedHashMap[Ticket, Book]
+    //Side Effect #4
     for (actionTicket <- actionFirstQueueSell) {
-      tempTicketBookSellFirst ++= bookOrder.sellOrder(sellBook, actionTicket)
+      sellBook ++= bookOrder.sellOrder(sellBook, actionTicket)
     }
-    sellBook ++= tempTicketBookSellFirst
+    //sellBook ++= tempTicketBookSellFirst
 
     //***************** Cancel Logic
-
+//Side Effect #5
     cancelDetector.quoteTouch(stock, quote.ask.price, quote.ask.vol)
     cancelDetector.quoteTouch(stock, quote.bid.price, quote.bid.vol)
     //******** 
@@ -192,6 +222,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     val tZeroResultBuy = tZeroBuy ! (datetime, bidVol, bidPrice, stock) //tZeroBuy.map(t => t -> BuyOrderResult(datetime, math.min(t.order.quantity, bidVol), bidPrice))
     val tZeroResultSell = tZeroSell ! (datetime, askVol, askPrice, stock) //tZeroSell.map(t => t -> SellOrderResult(datetime, math.min(t.order.quantity, askVol), askPrice))
 
+    //Side Effect #6
     removeTickets(tZeroBuy)
     removeTickets(tZeroSell)
     val ret2 = new ListBuffer[(Ticket, OrderResult)]
@@ -214,6 +245,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
     ret2
   }
 
+  //Warning!! Ugly side effects!!
   private def updateTicketsOnTrade(trade: Trade, stock: Stock) = {
     filters.foreach { comp => comp.onTrade(trade, stock) }
     val tickets2 = tickets.getStock(stock)
@@ -271,8 +303,6 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
       buffer += s
     }
 
-    // val ret = tZeroResultBuy ++ tZeroResultSell //++ combinedResults
-    //ret.to[ListBuffer]
     buffer
   }
 

@@ -14,11 +14,30 @@ case class BootstrapConf(localWorkers: Int, name: String, inst: Set[Stock], comp
 
 
 object UmbraBootstrap {
+  import com.stocksimulator.helpers.Memoization._
   
+  val feedMemo = ringedMemo(10) {
+    x: ((String, Set[Stock], DateTime, DateTime)) => (new FileFeedTimeFilter(new FileFeed(x._1, x._2))).timeFiltering(x._3, x._4)
+  }
 }
 abstract class UmbraBootstrap(conf: BootstrapConf, params: Array[Parameters], date: String, filename: String) {
   self: ResultAccComponent =>
-  protected val buildRunningContext = RunningContextModule.contextBuilder withDateAndProvisionedRate(date) withInstruments(conf.inst)
+
+  val processedInst = conf.inst.map {
+    stock => stock.checkOption(date)
+  }
+  val from = loadTime(conf.from)
+  val to = loadTime(conf.to)
+
+  val filefeed = UmbraBootstrap.feedMemo(filename, processedInst, from, to)
+
+ val max = filefeed.allPrices.map {
+    f => (f._1, f._2)
+  } 
+  val min = filefeed.allPrices.map {
+    f => (f._1, f._3)
+  }
+  protected val buildRunningContext = RunningContextModule.contextBuilder withMaxMin(max, min) withDateAndProvisionedRate(date) withInstruments(conf.inst)
   val runningContext: RunningContext
   implicit val result2 = self.result
   def run[T <: Strategy](generator: (Market, Parameters) => T): Array[(Parameters, Parameters)]
@@ -32,12 +51,6 @@ abstract class UmbraBootstrap(conf: BootstrapConf, params: Array[Parameters], da
     datez2
   }
 
-  val processedInst = conf.inst.map {
-    stock => stock.checkOption(date)
-  }
-  val from = loadTime(conf.from)
-  val to = loadTime(conf.to)
-  val filefeed = (new FileFeedTimeFilter(new FileFeed(filename, processedInst))).timeFiltering(from, to)
 
   def createBundle[T <: Strategy](generator: (Market, Parameters) => T)(param: Parameters) = {
     val feed = filefeed
@@ -53,6 +66,7 @@ class CommonBootstrap(conf: BootstrapConf, params: Array[Parameters], date: Stri
   val runningContext:RunningContext = buildRunningContext
   def run[T <: Strategy](generator: (Market, Parameters) => T) = {
     this.log("Run started..")
+    
     val uniqueParams = params.toArray.distinct
     val genStrategy = createBundle(generator) _
     this.log("Job count after filter: " + uniqueParams.length)

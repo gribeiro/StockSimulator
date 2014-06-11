@@ -12,7 +12,7 @@ class NewDatService extends Service("newDatService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.reutersInputQueue
   val sendQueue = self.queueNames.runnerInputQueue
-  val bucketName = self.queueNames.bucketName
+  val bucketName = self.bucketNames.bucketName
   val errorQueueName = self.queueNames.errorQueueName
 
   def actorGen(system: ActorSystem) = {

@@ -15,12 +15,15 @@ import awscala.dynamodbv2.LocalSecondaryIndex
 import awscala.dynamodbv2.KeySchema
 import awscala.dynamodbv2.KeyType
 import awscala.dynamodbv2.Projection
+import com.stocksimulator.output.DataTransformModule._
+import com.stocksimulator.output.MySqlModule._
+import com.mongodb.casbah.commons.Imports.BasicDBList
 
 class OutputService extends Service("OutputService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.outputInputQueue
   val errorQueueName = self.queueNames.errorQueueName
-  val bucketName = self.queueNames.bucketName
+  val bucketName = self.bucketNames.bucketName
   def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[OutputActor], receiveQueue, bucketName, errorQueueName))
 }
 
@@ -31,10 +34,12 @@ object OutputFormated {
 }
 
 class OutputActor(val receiveQueue: String, val bucketName: String, errorQueue: String) extends PrimaryServiceActor(errorQueue) with SQSReceiveQueue with S3UserWithBucket {
+ // selff: ResultadosTblManage =>
   import org.apache.commons.codec.binary._
   import com.stocksimulator.remote.ByteArrayToObject
   import awscala.dynamodbv2.TableMeta
-
+  import com.stocksimulator.output.MongoToSql._ 
+ 
   def receive = {
 
     case "checkQueue" =>
@@ -45,19 +50,22 @@ class OutputActor(val receiveQueue: String, val bucketName: String, errorQueue: 
             val idAndPathOption = ResultPath.load(p.body)
 
             for(idAndPath <- idAndPathOption; s3Obj <- bucket.get(idAndPath.path)) {
-            val datBA = new String(org.apache.commons.io.IOUtils.toByteArray(s3Obj.content).map(_.toChar))
-            val body = datBA.map(_.toByte).toArray
-            val decoded = Base64.decodeBase64(body)
-            val mongo = ByteArrayToObject[BasicDBObject](decoded)
-
+            val mongo = readBase64(s3Obj.content)
             val pnl = mongo.get("PNL").asInstanceOf[Double]
             val sortino = mongo.get("sortino").asInstanceOf[Double]
-            this.log(idAndPath.id + ": " + pnl.toString)
             val sharpe = mongo.get("sharpe").asInstanceOf[Double]
+            val date = mongo.get("date").asInstanceOf[String]
+            val paramStr = mongo.get("inputStr").asInstanceOf[String]
             val id = mongo.get("sID").asInstanceOf[String]
             val mongoDB = SaveMongo(idAndPath.id, id, id)
+            
+            this.log(idAndPath.id + ": " + pnl.toString)
             mongoDB.withMongoObject(mongo)
-            val orders = mongo.get("Orders")
+            defaultSaveAllTables(idAndPath.path, mongo)
+            //val orders = mongo.get("Orders").asInstanceOf[Seq[BasicDBObject]]
+           // orders.foreach(x => this.log(x.get("Order"))) 
+            //val resultado = ResultadosTable(id, date, paramStr, idAndPath.path, pnl)
+            //this.resultTbl.save(resultado)
             this.log("Saving data to db...")
             removeMessage(p)
            }

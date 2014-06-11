@@ -46,7 +46,7 @@ class SimpleCallBack(mSecondsToRun: Int, callback: () => Unit) extends WindowTim
   }
 }
 abstract class Windowable[T, U](size: Int)(implicit tManifest: Manifest[T]) extends WindowTimeControl {
-  private val buffer: RingBuffer[T] = new RingBuffer[T](size)
+  protected val buffer: RingBuffer[T] = new RingBuffer[T](size)
   var myVal: U
   val mSecondsToRun: Int
   val mSecondsToAdd: Int

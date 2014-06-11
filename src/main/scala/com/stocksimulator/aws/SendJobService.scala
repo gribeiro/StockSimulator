@@ -5,6 +5,7 @@ import Argonaut._
 import scalaz._
 import Scalaz._
 import com.amazonaws.services.s3.model.ObjectMetadata
+import com.stocksimulator.debug.LogNames._
 case class PreProcessInfo(id: String, days: List[String], symbols: List[String], param: List[ConfigParam], stringParam: Option[List[StringParam]])
 object PreProcessInfo {
   implicit def paramCodec: CodecJson[PreProcessInfo] = casecodec5(PreProcessInfo.apply, PreProcessInfo.unapply)("id", "days", "symbols", "param", "stringParam")
@@ -20,9 +21,12 @@ class SendJobService {
  import org.joda.time._
  import com.stocksimulator.reuters.FileManager
  
-  val bucketName = self.queueNames.bucketName
+  val bucketName = self.bucketNames.bucketName
   val queueName = self.queueNames.preprocessorInputQueue
 
+  this.log(s"Queue: $queueName")
+  this.log(s"Bucket: $bucketName")
+  
   implicit def sqs = SL_SQS()
   implicit def s3 = SL_S3()
   val bucketOption = s3.bucket(bucketName)

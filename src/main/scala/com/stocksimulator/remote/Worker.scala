@@ -109,14 +109,14 @@ class RemoteJobActor(val workers: Int) extends Actor with BinaryHandler[Unit] wi
       sender ! JobAckSmall(job)
       for (config <- configOption) {
 
-        val runner = RunConfigurationRemote(javaFs, Some((parameter.toList)), filename)
+        //val runner = RunConfigurationRemote(javaFs, Some((parameter.toList)), filename)
         if (fileExists(filename)) {
-          runJob(job, config, runner)
+          //runJob(job, config, runner)
 
         } else {
-          val enuple = (job, config, runner, filename)
+          //val enuple = (job, config, runner, filename)
           sender ! FileRequest(filename)
-          waitingJobs += enuple
+          //waitingJobs += enuple
           
         }
       }

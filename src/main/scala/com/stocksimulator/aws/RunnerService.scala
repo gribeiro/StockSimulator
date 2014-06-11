@@ -22,6 +22,7 @@ import org.jboss.netty.handler.timeout.TimeoutException
 import scala.concurrent.ExecutionContext
 import scala.parallel._
 import com.amazonaws.services.s3.model.ObjectMetadata
+import scala.collection.mutable.HashMap
 
 case class ProcessSimulation(workInfo: WorkInfo, p: awscala.sqs.Message)
 
@@ -45,18 +46,23 @@ class RunnerService extends Service("RunnerService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.runnerInputQueue
   val sendQueue = self.queueNames.outputInputQueue
-  val bucketName = self.queueNames.bucketName
+  val bucketName = self.bucketNames.bucketName
   val errorQueue = self.queueNames.errorQueueName
 
   def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueue, bucketName, errorQueue))
 }
 
+object RunnerActor {
+  
+  val errorProne = (new HashMap[(String, List[String]), Boolean]).withDefaultValue(true)
+}
 class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueueName: String) extends PrimaryServiceActor(errorQueueName) with SQSSendReceiveQueue with S3UserWithBucket {
   import com.stocksimulator.output._
   import com.stocksimulator.remote.ObjectToByteArray
   import org.apache.commons.codec.binary._
   import com.stocksimulator.aws.Result._
-
+  import com.stocksimulator.abs.RunningContextModule._
+  
   case class SimplePath(path: List[String]) {
     override def toString() = {
       path mkString "/"
@@ -83,6 +89,7 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
     }
     
   }
+  
   def receive = {
     case "checkQueue" =>
       this.log("Bidding")
@@ -102,6 +109,8 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
 
               okMessage match {
                 case ProcessSimulation(WorkInfo(id, day, symbols, param, datFile), message) =>
+                  val xyz = RunnerActor.errorProne((day, symbols))
+                  if(xyz) {
                   val worked = for {
                     bucket <- bucketOption;
                     json <- bucket.get("jobs/" + id + ".json");
@@ -121,13 +130,17 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                       this.log(param + " " + conf)
                       val configOneDay = conf.copy(dates = List(day))
                       val md5 = Utils.md5Hash _
-
+                      this.log(configOneDay)
                       val s3Path = SimplePath(List("result", "1.3.4", md5(javaStr), md5(datFile), md5(param)))
                       val s3ResName = s3Path.toString
                       val nextMessage = sendStr(id, s3Path.toString)
+
                       try {
                        val tryConnection = if (!s3FileExists(s3ResName)) {
-                          val result = RunConfigurationRemote(javaStr, Some(List(param)), datFile)(configOneDay)
+                          val sid = id
+                          implicit val preContext = new PreContext {val id = sid}
+                          val runner = RunConfigurationRemote(javaStr, Some(List(param)), datFile)
+                          val result = runner(configOneDay)
                           this.log("Done..")
                           result.map { res =>
                             simulResult(res._1, res._2, message, id, nextMessage, s3Path)
@@ -144,7 +157,7 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                       } catch {
                         case e: ItWouldRunForeverException =>
                           error("Infinite loop would occur, maybe the instruments names are wrong.\n")
-
+                          RunnerActor.errorProne((day, symbols)) = false
                         case e: Exception =>
                           val stTr = e.getStackTrace() mkString "\n"
                           error("Exception occurred: " + e.getMessage() + stTr)
@@ -164,8 +177,9 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
                   worked match {
                     case Some(_) => this.log("No errors.")
                     case None => error("S3 Save exception.")
-                  }
-              }
+                  } 
+                  } else removeMessage(p)
+              } // Here
           }
 
       }

@@ -30,9 +30,9 @@ abstract class Market(val components: List[MarketComponent] = List.empty[MarketC
   def childBeforeTick()
   def beforeTick() = {
 	  tickets = tProvider.snapshot
-
 	  ticketsBeforeProcessing = tProvider.snapshot
   }
+
   def childTick(): tickResult
   
   def tick(): tickResult = {
@@ -54,7 +54,7 @@ abstract class Market(val components: List[MarketComponent] = List.empty[MarketC
   
     def executeOrder(datetime: DateTime, vol: Int, price: Double, instrument: Stock)(t: Ticket) = {
      event(t) match {
-        case Buy => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
+        case Buy => t -> BuyOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument )
         case Sell => t -> SellOrderResult(datetime, math.min(t.order.quantity, vol), price, instrument)
       } 
 

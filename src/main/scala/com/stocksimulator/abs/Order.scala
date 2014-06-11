@@ -27,7 +27,9 @@ abstract class OrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, 
 }
 case class BuyOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, _instrument: Stock) extends OrderResult(_dateTime, _quantity, _value, "Buy", _instrument)
 case class SellOrderResult(_dateTime: DateTime, _quantity: Int, _value: Double, _instrument: Stock) extends OrderResult(_dateTime, _quantity, _value, "Sell", _instrument)
-case object EmptyOrderResult extends OrderResult(DateTime.now, 0, 0, "Empty", Stock("N/A"))
+case object EmptyOrderResult extends OrderResult(DateTime.now, 0, 0, "Empty", Stock("N/A")) {
+  val requestDateTime = DateTime.now
+}
 
 abstract class GeneralTicket(val id: Int, val order:Order)
 case class Ticket(_id: Int, _order: Order) extends GeneralTicket(_id, _order)

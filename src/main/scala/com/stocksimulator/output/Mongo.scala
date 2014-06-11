@@ -20,6 +20,8 @@ import com.stocksimulator.main._
 import com.stocksimulator.abs.BuyOrderResult
 import com.stocksimulator.abs.SellOrderResult
 import com.stocksimulator.abs.Strategy
+import com.stocksimulator.abs.RunningContextModule._
+
 object PNL {
   val tabela = HashMap.empty[Stock, Double].withDefaultValue(1.0)
   tabela("WINc1") = 0.2

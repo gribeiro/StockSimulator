@@ -43,17 +43,16 @@ class Parameters {
       case _ => false
     }
   }
-  
-  override def hashCode(): Int ={
+
+  override def hashCode(): Int = {
     inputStr.hashCode()
   }
   def inputStr = {
-    val memOne = for ((k, v) <- mem; if( k.toList.head != '_')) yield k + "=" + v.toString()
+    val memOne = for ((k, v) <- mem; if (k.toList.head != '_')) yield k + "=" + v.toString()
     memOne.mkString("_")
   }
   override def toString(): String = mem.toString()
 }
-
 
 trait BuySellAdapter {
   def buy(st: Stock, qt: Int, amount: Double): TunnelTicketStatus
@@ -62,7 +61,7 @@ trait BuySellAdapter {
   def replaceSell(ticketToReplace: Ticket, qt: Int, amount: Double): TunnelTicketStatus
   def getStatus(tunnelTicket: TunnelTicketStatus): TunnelTicketStatus
   def cancelOrder(order: Ticket)
-  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) 
+  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock)
 }
 
 abstract class BuySellAdopt(bsAdap: BuySellAdapter) {
@@ -75,10 +74,9 @@ abstract class BuySellAdopt(bsAdap: BuySellAdapter) {
   protected def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) = bsAdap.appendWaitOrder(wait, qt, amount, e, stock)
 }
 
-
-
 object Strategy {
   import com.stocksimulator.helpers.GenerateDates._
+  import com.stocksimulator.helpers.Memoization._
   implicit def stockInfo2Double(sI: Option[StockInfo]): Double = {
     sI match {
       case Some(s) => midPrice(s)
@@ -87,8 +85,8 @@ object Strategy {
   }
   def parseDate(dateStr: String) = parse(dateStr)
   def midPrice(q: Quote) = {
-    if(q.bid.price != 0 && q.ask.price !=0) (q.bid.price + q.ask.price) / 2
-    else if(q.bid.price !=0) q.bid.price
+    if (q.bid.price != 0 && q.ask.price != 0) (q.bid.price + q.ask.price) / 2
+    else if (q.bid.price != 0) q.bid.price
     else q.ask.price
   }
   def midPrice(t: Trade) = t.priceVol.price
@@ -98,8 +96,7 @@ object Strategy {
       case q: Quote => midPrice(q)
     }
   }
-  
-  
+
 }
 
 abstract class Strategy(market: Market, private val param: Parameters)(implicit runningContext: RunningContext) extends BuySellAdapter {
@@ -108,11 +105,15 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
   implicit def ParamMaker2Double(pm: ParamMaker): Double = this.getParam(pm.name).asInstanceOf[Double]
   implicit def ParamMaker2String(pm: ParamMaker): String = this.getParam(pm.name).asInstanceOf[String]
 
-  
   lazy val stdRate = runningContext.stdRate
   lazy val date = runningContext.date
   lazy val instruments = runningContext.instruments
-  
+  lazy val id = runningContext.id
+
+  /*private def preMemFind(nOrder: Order):Option[(Ticket, OrderResult)] = {
+    Strategy.stratMem.get((date, instruments, nOrder))
+  }*/
+
   //lazy protected val dateObj = Strategy.parseDate(date)
   type report = (Ticket, OrderResult) => Unit
   type tInfo = Iterable[(Ticket, OrderResult)]
@@ -127,12 +128,11 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
       case None => None
     }
   }
-  
-  def getIntParam(s: String):Int = getParam(s).asInstanceOf[Double].intValue()
-  def getDoubleParam(s: String):Double = getParam(s).asInstanceOf[Double]
-  def getStringParam(s: String):String = getParam(s).asInstanceOf[String]
-  
-  
+
+  def getIntParam(s: String): Int = getParam(s).asInstanceOf[Double].intValue()
+  def getDoubleParam(s: String): Double = getParam(s).asInstanceOf[Double]
+  def getStringParam(s: String): String = getParam(s).asInstanceOf[String]
+
   private def putResult(key: String, obj: Object) {
     result.set(key, obj)
   }
@@ -153,14 +153,13 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
   private val sProvideLiquidity = new StrategyProvideLiquidity(this)
 
   private def provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double) = sProvideLiquidity.provideLiquidity(symbol: Stock, e: Event, qtd: Int, price: Double)
-  
+
   def provideSellLiquidity(symbol: Stock, qtd: Int, price: Double) = provideLiquidity(symbol, Sell, qtd, price)
   def provideBuyLiquidity(symbol: Stock, qtd: Int, price: Double) = provideLiquidity(symbol, Buy, qtd, price)
-  
+
   val windows = new WindowCaller[Double]
   def callback(): Unit
   private val strategyCallback = new SimpleCallBack(5000, callback)
-
 
   def midPrice(s: StockInfo) = Strategy.midPrice(s)
 
@@ -187,111 +186,124 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
         case Some(sI) => midPrice(sI)
         case _ => 0
       }
-      })
+    })
     windows <-- newWin
     newWin
   }
-  
-  
-  def last(s: Stock):Double = marketLast.get(s) 
-  
-  def createProxyMAvg(windowSize: Int, elapsed: Int)(fun:() => Double) = {
-   def register(mv: MovingAvg): MovingAvg = {
-     windows <-- mv
-     mv
-   }
-   val newWin = new MovingAvg(windowSize, elapsed,                                                                                                                                                         fun)
-   register(newWin)
- }
 
- def createRatioFor2SymbolsMAvg(principal: Stock, ref1: Stock, ref2: Stock, windowSize: Int, elapsed: Int) = {
+  def last(s: Stock): Double = marketLast.get(s)
 
-  val newWin = new MovingAvg(windowSize, elapsed, () => {
-    val principalPrice: Double = marketLast.get(principal)
-    val ref1Price: Double = marketLast.get(ref1)
-    val ref2Price: Double = marketLast.get(ref2)
+  def createProxyMAvg(windowSize: Int, elapsed: Int)(fun: () => Double) = {
+    def register(mv: MovingAvg): MovingAvg = {
+      windows <-- mv
+      mv
+    }
+    val newWin = new MovingAvg(windowSize, elapsed, fun)
+    register(newWin)
+  }
 
-    val referencia = ref1Price * ref2Price
-    val result = principalPrice over referencia
+  def createRatioFor2SymbolsMAvg(principal: Stock, ref1: Stock, ref2: Stock, windowSize: Int, elapsed: Int) = {
 
-    result
+    val newWin = new MovingAvg(windowSize, elapsed, () => {
+      val principalPrice: Double = marketLast.get(principal)
+      val ref1Price: Double = marketLast.get(ref1)
+      val ref2Price: Double = marketLast.get(ref2)
+
+      val referencia = ref1Price * ref2Price
+      val result = principalPrice over referencia
+
+      result
     })
-  windows <-- newWin
-  newWin
-}
+    windows <-- newWin
+    newWin
+  }
 
-def createOptionMAvgs(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
- val optionInfoB = stock2.optionInfo.get
+  def createOptionMAvgs(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int, transform: (Double) => Double) = {
+    import scalaz._, Scalaz._
 
- val greekCalls = BSPrecise.bsGreeksCall[BigDecimal](optionInfoB.strike, stdRate, optionInfoB.ratio) _
- def greeks(which: Int) = {
-  val precoA:Double = marketLast.get(stock1)
-  val precoB:Double = marketLast.get(stock2)
-  val bsVol = greekCalls(precoB, precoA)
+    val optionInfoB = stock2.optionInfo.get
+
+    val greekCalls = BSPrecise.bsGreeksCall[BigDecimal](optionInfoB.strike, stdRate, optionInfoB.ratio) _
+
+    val greekMem = Memo.mutableHashMapMemo {
+      x: (Double, Double) => greekCalls(x._1, x._2)
+    }
+    def greeks(which: Int) = {
+      val precoA: Double = marketLast.get(stock1)
+      val precoB: Double = marketLast.get(stock2)
+      val bsVol = greekMem(precoB, transform(precoA))
       //this.log()
-   /*  this.log("optionInfoB: " + optionInfoB)
+      /*  this.log("optionInfoB: " + optionInfoB)
      this.log("precoA: " + precoA)
      this.log("precoB: " + precoB)
      this.log("bsVol:" + bsVol(0))*/
-     bsVol(which).doubleValue
+      bsVol(which).doubleValue
 
-   }
-   val volWin = new MovingAvg(windowSize, elapsed, () => {greeks(0)})
-   windows <-- volWin
+    }
+    val volWin = new MovingAvg(windowSize, elapsed, () => { greeks(0) })
+    windows <-- volWin
 
+    val deltaWin = new MovingAvg(windowSize, elapsed, () => { greeks(1) })
+    windows <-- deltaWin
+    (volWin, deltaWin)
+  }
+  def createRatioMAvgForOption(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int, volWin: MovingAvg, transform: (Double) => Double) = {
+    import scalaz._, Scalaz._
+    val optionInfoB = stock2.optionInfo.get
+    val priceGet = BSPrecise.priceEuropeanBlackScholesCall(optionInfoB.strike, stdRate, optionInfoB.ratio) _
 
-   val deltaWin = new MovingAvg(windowSize, elapsed, () => {greeks(1)})
-   windows <-- deltaWin
-   (volWin, deltaWin)
- }
- def createRatioMAvgForOption(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int, volWin: MovingAvg) = {
-   val optionInfoB = stock2.optionInfo.get
-   val priceGet = BSPrecise.priceEuropeanBlackScholesCall(optionInfoB.strike, stdRate, optionInfoB.ratio) _
-   val newWin = new MovingAvg(windowSize, elapsed, () => {
+    def memoFun[K, V] = Memo.mutableHashMapMemo[K, V] //ringedMemo[K,V](2000)
+    val precoAMem = memoFun {
+      x: (Double, Double) => priceGet(x._1, x._2)
+    }
 
+    /*   val priceGetMemoized = memoFun {
+     x: Double => precoAMem(x)
+   }*/
 
-    val mediaVol = volWin.lastVal()
-    val precoA:Double = marketLast.get(stock1)
-    val precoB:Double = marketLast.get(stock2)
+    val newWin = new MovingAvg(windowSize, elapsed, () => {
 
+      val mediaVol = volWin.lastVal()
+      val precoA: Double = marketLast.get(stock1)
+      val precoB: Double = marketLast.get(stock2)
 
-    val precoTeorico = priceGet(precoA, mediaVol)
+      val precoTeorico = precoAMem((transform(precoA), mediaVol))
       //this.log(precoTeorico)
       //this.log(mediaVol.toString())
       precoTeorico match {
-        case Some(price) if(volWin.isAvailable) =>
+        case Some(price) if (volWin.isAvailable) =>
           //this.log(mediaVol + "")
           //this.log(price.toString())
-          price.doubleValue over precoA
-          case _ => precoB over precoA
-        }
+          price.doubleValue
+        case _ => precoB
+      }
 
-        })
-   windows <-- newWin
-   newWin
- }
-
- def createRatioMAvg(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
-
-
-  val newWin = new MovingAvg(windowSize, elapsed, () => {
-    val precoA:Double = marketLast.get(stock1)
-    val precoB:Double = marketLast.get(stock2)
-
-    val result = precoA over precoB
-
-    result
     })
-  windows <-- newWin
-  newWin
-}
+    windows <-- newWin
+    newWin
+  }
 
-def init(): Parameters = {
+  def createRatioMAvg(stock1: Stock, stock2: Stock, windowSize: Int, elapsed: Int) = {
 
-  onStart()
+    val newWin = new MovingAvg(windowSize, elapsed, () => {
+      val precoA: Double = marketLast.get(stock1)
+      val precoB: Double = marketLast.get(stock2)
+
+      val result = precoA over precoB
+
+      result
+    })
+    windows <-- newWin
+    newWin
+  }
+
+  def init(): Parameters = {
+
+    onStart()
 
     //!market
     windows <-- strategyCallback
+    this.log(s"Strategy id: $id")
     while (market) {
 
       val tick = !market
@@ -309,19 +321,19 @@ def init(): Parameters = {
 
         //if(millis > 0) onQuotes() <-- Ja tem o filtro contador, nao precisa mais. <-- Setar WATCH SYMBOL
         sProvideLiquidity.updateAll()
-        
+        for (ab <- ticketInfo) {
+        updatePosition(List(ab))
+        publicReports(List(ab))
+        }
         onQuotes()
 
         marketLast = marketInfo
       }
       //this.log(position)
-      for (ab <- ticketInfo) {
-        updatePosition(List(ab))
-        publicReports(List(ab))
-      }
+      
 
     }
-    
+
     this.log("Strategy: Allocating result..")
     putResult("position", position)
     putResult("marketLast", marketLast)
@@ -330,6 +342,7 @@ def init(): Parameters = {
     putResult("date", dateStr)
     Log("Market Last: " + marketLast)
     onStop()
+    result.mem.foreach(x => Log(x.toString))
     result
   }
 
@@ -341,18 +354,21 @@ def init(): Parameters = {
   }
 
   def getPosition(st: Stock) = {
-    if (position.contains(st)) {
+   
+    position.getOrElse(st, Position(0,0))
+    /* if (position.contains(st)) {
       position(st)
-      } else {
-        val nPos = Position(0, 0)
-        position.put(st, nPos)
-        nPos
-      }
-    }
+    } else {
+      val nPos = Position(0, 0)
+      position.put(st, nPos)
+      nPos
+    }*/
+  }
 
-    private def sendOrder(order: Order) = {
+  private def sendOrder(order: Order) = {
     // Log(order)
     //Log(position)
+
     val tunnelReport = tunnel.sendOrder(order)
     tunnelReport
   }
@@ -360,8 +376,8 @@ def init(): Parameters = {
   def getStatus(tunnelTicket: TunnelTicketStatus) = {
     tunnelTicket match {
       case a: Wait =>
-      val ret = tunnel.check(a)
-      ret
+        val ret = tunnel.check(a)
+        ret
       case r: Ready => tunnel.check(r)
       case x => x
     }
@@ -384,76 +400,78 @@ def init(): Parameters = {
     if (ticketNature == orderNature) {
       orderNature match {
         case Sell =>
-        val orderToSend = SellReplaceOrder(ticketToReplace, newOrder.asInstanceOf[SellOrder])
-        sendOrder(orderToSend)
+          val orderToSend = SellReplaceOrder(ticketToReplace, newOrder.asInstanceOf[SellOrder])
+          sendOrder(orderToSend)
         case Buy =>
-        val orderToSend = BuyReplaceOrder(ticketToReplace, newOrder.asInstanceOf[BuyOrder])
-        sendOrder(orderToSend)
+          val orderToSend = BuyReplaceOrder(ticketToReplace, newOrder.asInstanceOf[BuyOrder])
+          sendOrder(orderToSend)
       }
-      } else Killed
-    }
+    } else Killed
+  }
 
-    def replaceBuy(ticketToReplace: Ticket, qt: Int, amount: Double) = {
-      val buyOrder = BuyOrder(lastTick, ticketToReplace.order.stock, qt, amount)
-      replace(ticketToReplace, buyOrder)
-    }
+  def replaceBuy(ticketToReplace: Ticket, qt: Int, amount: Double) = {
+    val buyOrder = BuyOrder(lastTick, ticketToReplace.order.stock, qt, amount)
+    replace(ticketToReplace, buyOrder)
+  }
 
-    def replaceSell(ticketToReplace: Ticket, qt: Int, amount: Double) = {
-      val sellOrder = SellOrder(lastTick, ticketToReplace.order.stock, qt, amount)
-      replace(ticketToReplace, sellOrder)
-    }
+  def replaceSell(ticketToReplace: Ticket, qt: Int, amount: Double) = {
+    val sellOrder = SellOrder(lastTick, ticketToReplace.order.stock, qt, amount)
+    replace(ticketToReplace, sellOrder)
+  }
 
-    def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) = {
-      e match {
-        case Sell =>
+  def appendWaitOrder(wait: Wait, qt: Int, amount: Double, e: Event, stock: Stock) = {
+    e match {
+      case Sell =>
         val order = SellReplaceOrder(wait.ticket, SellOrder(lastTick, stock, qt, amount))
         wait.appendReplace(order)
-        case Buy =>
+      case Buy =>
         val order = BuyReplaceOrder(wait.ticket, BuyOrder(lastTick, stock, qt, amount))
         wait.appendReplace(order)
+    }
+  }
+
+  def sell(st: Stock, qt: Int, amount: Double) = {
+    val sellOrder = SellOrder(lastTick, st, qt, amount)
+    sendOrder(sellOrder)
+  }
+
+  def cancelOrder(ticket: Ticket) = {
+    market.cancelOrder(ticket)
+  }
+  private def onReport(ticketInfo: tInfo, buyReport: report, sellReport: report) = {
+    ticketInfo match {
+      case List((orderTicket, result: BuyOrderResult)) => {
+
+     
+        buyReport(orderTicket, result)
       }
-    }
-
-    def sell(st: Stock, qt: Int, amount: Double) = {
-      val sellOrder = SellOrder(lastTick, st, qt, amount)
-      sendOrder(sellOrder)
-    }
-
-    def cancelOrder(ticket: Ticket) = {
-      market.cancelOrder(ticket)
-    }
-    private def onReport(ticketInfo: tInfo, buyReport: report, sellReport: report) = {
-      ticketInfo match {
-        case List((orderTicket, result: BuyOrderResult)) => {
-
-          putResult("BuyOrder" + orderTicket.id.toString(), result)
-          buyReport(orderTicket, result)
-        }
-        case List((orderTicket, result: SellOrderResult)) => {
-          putResult("SellOrder" + orderTicket.id.toString(), result)
-          sellReport(orderTicket, result)
-        }
-        case _ => {}
+      case List((orderTicket, result: SellOrderResult)) => {
+        
+        
+        
+        sellReport(orderTicket, result)
       }
+      case _ => {}
     }
+  }
 
-    private def updatePosition(ticketInfo: tInfo) = {
-      def update(signal: Int)(orderTicket: Ticket, result: OrderResult) = {
-        val order = orderTicket.order
-        val stock = order.stock
+  private def updatePosition(ticketInfo: tInfo) = {
+    def update(signal: Int)(orderTicket: Ticket, result: OrderResult) = {
+      val order = orderTicket.order
+      val stock = order.stock
 
-        val qtd = result.quantity
-        val price = result.value
+      val qtd = result.quantity
+      val price = result.value
 
-        val actualPosition = getPosition(stock)
-        val newPosition = Position(actualPosition.quantity + (qtd * signal), actualPosition.pnl - qtd * (price * signal))
+      val actualPosition = getPosition(stock)
+      val newPosition = Position(actualPosition.quantity + (qtd * signal), actualPosition.pnl - qtd * (price * signal))
       //Log(newPosition)
       position(stock) = newPosition
     }
     onReport(ticketInfo, update(1), update(-1))
 
   }
-
+  var posTeste = new HashMap[Stock, Int]
   private def publicReports(ticketInfo: tInfo) = {
     def assessInfo(buy: Boolean)(orderTicket: Ticket, result: OrderResult) = {
       val order = orderTicket.order
@@ -461,9 +479,17 @@ def init(): Parameters = {
 
       val qtd = result.quantity
       val price = result.value
-      if (buy) onBuyReport(stock, qtd, price) else onSellReport(stock, qtd, price)
+      if (buy) {
+        putResult("BuyOrder" + orderTicket.id.toString(), result)
+        onBuyReport(stock, qtd, price)
+        posTeste(stock) = posTeste.get(stock).getOrElse(0) + qtd
+      } else { 
+        putResult("SellOrder" + orderTicket.id.toString(), result)
+        onSellReport(stock, qtd, price) 
+        posTeste(stock) = posTeste.get(stock).getOrElse(0) - qtd
+        }
     }
-
+    this.log(posTeste)
     onReport(ticketInfo, assessInfo(true), assessInfo(false))
   }
 

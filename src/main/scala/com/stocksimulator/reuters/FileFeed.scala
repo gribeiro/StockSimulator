@@ -12,13 +12,32 @@ abstract class FeedFromMemory extends Feed {
   def length = memory.length
 }
 
-class ConstructFeed(protected val memory: Array[Map[Stock, StockInfo]], val instruments: Set[Stock]) extends FeedFromMemory
+class ConstructFeed(protected val memory: Array[Map[Stock, StockInfo]], val instruments: Set[Stock]) extends FeedFromMemory {
+
+  
+  val allPrices = memory.flatten.groupBy(_._1).map {
+    f => 
+      
+      val b = f._2.map {
+      g => g._2 match {
+         case q: Quote => (q.bid.price + q.ask.price)*1/2
+         case t: Trade => t.priceVol.price
+       }
+    }
+    val max = b.max
+    val min = b.min
+    (f._1, max, min)
+  }
+  //val max = allPrices.map(a => ))
+  //val min = allPrices.minBy(_._2)
+}
 
 class FileFeed(filename: String, val instruments: Set[Stock]) extends FeedFromMemory {
   protected val memory = FileManager(filename)
 }
 
 class FileFeedTimeFilter(ff: FileFeed) extends TimeFilter[Feed] {
+  
  def timeFiltering(from: DateTime, to: DateTime) = {
    val instruments = ff.instruments
    val memory = ff.filter {

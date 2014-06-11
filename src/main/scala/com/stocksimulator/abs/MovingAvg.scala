@@ -32,7 +32,7 @@ class MovingAvg(windowSize: Int, elapsed: Int, update: () => Double) extends Mov
 	      //present
 	      fut
 	  }
-	  
+	  //swait.foreach(println(_))
 	  wait.filter(_ != 0).sum/values.size
 	  } else 0
 	//  this.log(res.toString())

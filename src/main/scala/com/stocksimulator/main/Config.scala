@@ -14,6 +14,7 @@ import com.stocksimulator.debug._
 import com.stocksimulator.debug.LogNames._
 import ConfigurationModule._
 import com.stocksimulator.main.BSTypeClass._
+import com.stocksimulator.abs.RunningContextModule._
 
 case class SaveMongo(collNamePre: String, id: String, sId: String)(implicit mConf: MongoConfig) extends SaveResult {
   private val collName = collNamePre.replace('$', '_')
@@ -122,7 +123,7 @@ object ConfigurationModule {
     }
   }
 
-  case class RunConfigurationRemote(javafs: String, filter: Option[List[String]] = None, override val filename:String) extends RunConfiguration[RemoteJavaBSSet] {
+  case class RunConfigurationRemote(javafs: String, filter: Option[List[String]] = None, override val filename:String)(implicit val pc: PreContext) extends RunConfiguration[RemoteJavaBSSet] {
     override val remote = true
     def BSSGen(conf: Configuration, date: String, file: String) = new RemoteJavaBSSet(conf, date, file, javafs, filter)
     def apply(conf: Configuration) = runBSS(conf)
