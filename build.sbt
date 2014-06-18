@@ -6,7 +6,7 @@ assemblySettings
 
 name := "StockSimulator"
 
-version := "1.3.5"
+version := "1.3.10"
 
 scalaVersion := "2.10.4"
 
@@ -61,6 +61,8 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.1.RC1" % "test"
 
 libraryDependencies += "io.jvm" %% "scala-uuid" % "0.1.2"
+
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.31"	
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
