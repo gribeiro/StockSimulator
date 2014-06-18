@@ -101,7 +101,7 @@ object MySqlModule {
   }
   
   trait Table
-  case class ResultadosTable(sid: String, datetime: Long, params: String, s3Obj: String, pnl: Double) extends Table
+  case class ResultadosTable(sid: String, datetime: Long, params: String, s3Obj: String, pnl: Double, sharpe: Double) extends Table
   case class OrdersTable(resLocId: Int, instrument: String, datetime: Long, volume: Int, price: Double) extends Table
   case class JobsTable(sid: String, date: Long) extends Table
   
@@ -170,6 +170,7 @@ object MySqlModule {
             prep.setTimestamp(3, timestamp)
             prep.setInt(4, tblElem.volume)
             prep.setDouble(5, tblElem.price)
+            //prep.setDouble(6, tblElem.sharpe)
         }
       }
     }
@@ -199,7 +200,7 @@ object MySqlModule {
       }
       def save(tblElem: ResultadosTable): Option[Int] = {
 
-        val query = s"INSERT INTO $tableName (sid, date, params, s3Obj, pnl) values (?, ?, ?, ?, ?)"
+        val query = s"INSERT INTO $tableName (sid, date, params, s3Obj, pnl, sharpe) values (?, ?, ?, ?, ?, ?)"
         self.connProvider.withPreparedStatementReturnLastIntKey(query) {
           prepStat =>
             prepStat.setString(1, tblElem.sid)
@@ -207,6 +208,7 @@ object MySqlModule {
             prepStat.setString(3, tblElem.params)
             prepStat.setString(4, tblElem.s3Obj)
             prepStat.setDouble(5, tblElem.pnl)
+            prepStat.setDouble(6, tblElem.sharpe)
         }
       }
 

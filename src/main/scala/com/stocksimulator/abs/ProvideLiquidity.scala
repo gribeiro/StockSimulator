@@ -5,7 +5,7 @@ import scala.collection.mutable.HashMap
 import com.stocksimulator.abs.EventTC._
 import com.stocksimulator.abs.RunningContextModule._
 
-class StrategyProvideLiquidity(strategy: BuySellAdapter)(implicit rc: RunningContext) extends BuySellAdopt(strategy) {
+class StrategyProvideLiquidity(strategy: BuySellAdapter) extends BuySellAdopt(strategy) {
 
   private val pLiq = new HashMap[(Stock, Event), ProvideLiquidity]
 
@@ -31,9 +31,9 @@ class StrategyProvideLiquidity(strategy: BuySellAdapter)(implicit rc: RunningCon
       case f if(f._1 == symbol) => f._2
     }.get
     
-    val max = extract(rc.max)
+    //val max = extract(rc.max)
     
-    val min = extract(rc.min)
+    //val min = extract(rc.min)
     
     
     def update() = {
@@ -50,7 +50,7 @@ class StrategyProvideLiquidity(strategy: BuySellAdapter)(implicit rc: RunningCon
     def apply(qtd: Int, price: Double): Unit = {
       update()
      //
-      if (price > max || price < min || (lastPrice == price && lastQtd == qtd && !(lastTicketStatus == Killed))) return
+      if ((lastPrice == price && lastQtd == qtd && !(lastTicketStatus == Killed))) return
       lastPrice = price
       lastQtd = qtd
 

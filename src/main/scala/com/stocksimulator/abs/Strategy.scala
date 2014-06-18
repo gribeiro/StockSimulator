@@ -18,8 +18,9 @@ import com.stocksimulator.abs.EventTC._
 import com.stocksimulator.abs.RunningContextModule._
 import akka.util.Timeout
 import scala.concurrent.duration._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent._
-
+import com.stocksimulator.abs.EventTC._
 import akka.util.Timeout
 case class Position(quantity: Int, pnl: Double)
 
@@ -147,7 +148,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
   private val myTickets = new ListBuffer[Ticket]
   private val stocks = market.stocks
   private val position = new HashMap[Stock, Position]
-  private var marketLast: mInfo = Map.empty[Stock, StockInfo]
+  private var marketLast: Map[Stock, StockInfo] = Map.empty[Stock, StockInfo]
   protected var lastTick: DateTime = new DateTime(0)
 
   private val sProvideLiquidity = new StrategyProvideLiquidity(this)
@@ -296,7 +297,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
     windows <-- newWin
     newWin
   }
-
+ val nonDup = ArrayBuffer.empty[(DateTime, Double, Event)]
   def init(): Parameters = {
 
     onStart()
@@ -322,8 +323,15 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
         //if(millis > 0) onQuotes() <-- Ja tem o filtro contador, nao precisa mais. <-- Setar WATCH SYMBOL
         sProvideLiquidity.updateAll()
         for (ab <- ticketInfo) {
+          
+        val nElem = (ab._1.order.dateTime, ab._1.order.value, event(ab._1.order))
+        if(!nonDup.contains(nElem)) {
+          nonDup += nElem
+        
+
         updatePosition(List(ab))
         publicReports(List(ab))
+        }
         }
         onQuotes()
 
@@ -342,7 +350,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
     putResult("date", dateStr)
     Log("Market Last: " + marketLast)
     onStop()
-    result.mem.foreach(x => Log(x.toString))
+    //result.mem.foreach(x => Log(x.toString))
     result
   }
 
@@ -438,7 +446,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
   def cancelOrder(ticket: Ticket) = {
     market.cancelOrder(ticket)
   }
-  private def onReport(ticketInfo: tInfo, buyReport: report, sellReport: report) = {
+  private def onReport(ticketInfo: Iterable[(Ticket, OrderResult)], buyReport: report, sellReport: report) = {
     ticketInfo match {
       case List((orderTicket, result: BuyOrderResult)) => {
 
@@ -455,7 +463,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
     }
   }
 
-  private def updatePosition(ticketInfo: tInfo) = {
+  private def updatePosition(ticketInfo: Iterable[(Ticket, OrderResult)]) = {
     def update(signal: Int)(orderTicket: Ticket, result: OrderResult) = {
       val order = orderTicket.order
       val stock = order.stock
@@ -472,7 +480,7 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
 
   }
   var posTeste = new HashMap[Stock, Int]
-  private def publicReports(ticketInfo: tInfo) = {
+  private def publicReports(ticketInfo: Iterable[(Ticket, OrderResult)]) = {
     def assessInfo(buy: Boolean)(orderTicket: Ticket, result: OrderResult) = {
       val order = orderTicket.order
       val stock = order.stock
@@ -489,11 +497,14 @@ abstract class Strategy(market: Market, private val param: Parameters)(implicit 
         posTeste(stock) = posTeste.get(stock).getOrElse(0) - qtd
         }
     }
-    this.log(posTeste)
+    for((k,v) <- posTeste) {
+      val strToP = List("POS", k.name, v) mkString " "
+      println(strToP)
+    }
     onReport(ticketInfo, assessInfo(true), assessInfo(false))
   }
 
-  private def updateMarketInfo(marketInfo: mInfo) = {
+  private def updateMarketInfo(marketInfo: Map[Stock, StockInfo]) = {
 
   }
 }

@@ -9,7 +9,7 @@ object LogNames {
     def log(message: Object) = {
       val klass = t.getClass()
       val messageStr = message.toString()
-      Log(s"[$klass] $messageStr ")
+      Log(s"$messageStr")
     }
   }
 }

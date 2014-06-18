@@ -5,6 +5,7 @@ import com.stocksimulator.debug.LogNames._
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.ArrayBuffer
 
 import io.jvm.uuid._
 import scala.collection.mutable.HashSet
@@ -13,6 +14,7 @@ import com.stocksimulator.helpers.ImplicitClasses
 import com.stocksimulator.abs.TicketProvider
 import scala.concurrent._
 import scala.concurrent.duration._
+import com.stocksimulator.abs.EventTC._
 import com.stocksimulator.abs.AutoDemotion._
 import ExecutionContext.Implicits.global
 import scala.util.Success
@@ -66,7 +68,7 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
   }
 
   def isActive(): Boolean = timeControl
-
+  val nDup = ArrayBuffer.empty[(Stock, DateTime, Event)]
   private def performTick(oldInfo2: Map[Stock, StockInfoHA]): (Map[Stock, StockInfo], List[(Ticket, OrderResult)]) = {
 
     val (buyTickets, sellTickets) = tickets.buyAndSellPartition
@@ -100,15 +102,30 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
       case (stock, stockInfoHA) =>
         stock -> stockInfoHA.demote
     }
-    if(results.size > 0) {		
-
+   for(oneResult <- results) {		
+    val rEvent = event(oneResult._1.order) 
+    val strEvent = rEvent match {
+      case Buy => "COMPRA"
+      case _ => "VENDA"
+    }
+    val rStock = oneResult._1.order.stock
+    val rPrice = oneResult._1.order.value
+    val rVol = oneResult._1.order.quantity
+    val rDt = oneResult._1.order.dateTime
+    
+    
+    val nDupChk = (rStock, rDt, rEvent)
+    if(!nDup.contains(nDupChk)) {
+      nDup += nDupChk
+      val printStr = List(strEvent, rStock.name, "PREÇO", rPrice, "QTD", rVol) mkString " "
+      println(printStr)
+    }
     //def ticketVal(t: Iterable[Ticket]) = t.head.order.value
-    this.log("Tick atual:" + sendInfo)
-    if(buyTickets.size > 0) Log("Ordem de compra: " + buyTickets)
-    if(sellTickets.size > 0) Log("Ordem de venda: " + sellTickets)
-    this.log("Order Result: "+  results)
-    this.log("\n")
-
+    //this.log("Tick atual:" + sendInfo)
+    //if(buyTickets.size > 0) Log("Ordem de compra: " + buyTickets)
+    //if(sellTickets.size > 0) Log("Ordem de venda: " + sellTickets)
+    
+    
     }
     val filterResult = if (results.size > 0) (filters.foldLeft(true) { _ && _.filter() }) || components.size == 0 else true
   
@@ -116,7 +133,6 @@ class ReutersMarket(feed: Feed, mc: List[MarketComponent], marketDelay: Int = 10
   }
 
   //Warning!! Ugly side effects!!
-  
   
   
   

@@ -105,7 +105,7 @@ def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject) = {
               (new DateTime(year.toInt, month.toInt, day.toInt, hour.toInt, minute.toInt, second.toInt)).getMillis()
             }
          
-            val resultado = ResultadosTable(id, dateParsed.get, paramStr, s3Path, pnl)
+            val resultado = ResultadosTable(id, dateParsed.get, paramStr, s3Path, pnl, sharpe)
             val newSqlId = this.resultTbl.save(resultado).get
            (mongo, previousKeys + ('MakeResultTable -> newSqlId))
       }
