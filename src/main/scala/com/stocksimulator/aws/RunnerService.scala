@@ -45,18 +45,18 @@ object PreProcessInfo {
 class RunnerService extends Service("RunnerService") {
   self: ConfigComponent =>
   val receiveQueue = self.queueNames.runnerInputQueue
-  val sendQueue = self.queueNames.outputInputQueue
+  val sendQueueNames = List(self.queueNames.outputInputQueue, self.queueNames.mysqlInputQueue)
   val bucketName = self.bucketNames.bucketName
   val errorQueue = self.queueNames.errorQueueName
 
-  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueue, bucketName, errorQueue))
+  def actorGen(system: ActorSystem) = system.actorOf(Props(classOf[RunnerActor], receiveQueue, sendQueueNames, bucketName, errorQueue))
 }
 
 object RunnerActor {
   
   val errorProne = (new HashMap[(String, List[String]), Boolean]).withDefaultValue(true)
 }
-class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketName: String, errorQueueName: String) extends PrimaryServiceActor(errorQueueName) with SQSSendReceiveQueue with S3UserWithBucket {
+class RunnerActor(val receiveQueue: String, val sendQueueNames: List[String], val bucketName: String, errorQueueName: String) extends PrimaryServiceActor(errorQueueName) with SQSMultiSendReceiveQueue with S3UserWithBucket {
   import com.stocksimulator.output._
   import com.stocksimulator.remote.ObjectToByteArray
   import org.apache.commons.codec.binary._
@@ -64,17 +64,15 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
   import com.stocksimulator.abs.RunningContextModule._
   
   case class SimplePath(path: List[String]) {
-    override def toString() = {
-      path mkString "/"
-    }
+    override def toString() = path mkString "/"
   }
 
   private def sendStr(id: String, resName: String): String = {
     ResultPath(id, resName).asJson.toString
   }
   def putAlreadyCalculated(message: awscala.sqs.Message, nextMessage: String) = {
-    for (queue <- queueOption; outputQ <- sendQueueOption) yield {
-      outputQ.add(nextMessage)
+    for (queue <- queueOption) yield {
+      for (outputQs <- sendQueues; outputQ <- outputQs) yield outputQ.add(nextMessage)
       queue.remove(message)
     }
   }
@@ -82,9 +80,9 @@ class RunnerActor(val receiveQueue: String, val sendQueue: String, val bucketNam
     val output = (new MongoOutput(a, b, id, id)).output
     val binary = ObjectToByteArray(output)
     val stringB64 = new String(Base64.encodeBase64(binary))
-    for (queue <- queueOption; outputQ <- sendQueueOption; bucket <- bucketOption) yield {
+    for (queue <- queueOption; bucket <- bucketOption) yield {
       bucket.putObject(s3Path.toString, stringB64.toCharArray().map(_.toByte), new ObjectMetadata)
-      outputQ.add(nextMessage)
+      for (outputQs <- sendQueues; outputQ <- outputQs) yield outputQ.add(nextMessage)
       queue.remove(message)
     }
     

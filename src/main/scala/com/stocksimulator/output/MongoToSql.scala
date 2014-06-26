@@ -20,10 +20,12 @@ import org.joda.time._
   }
 }
 
-def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject) = {
+def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject, idx: String) = {
  type SqlConn = MySqlConnectionDefault 
   val svATbl = new SaveAllTables {
-    def mkResTbl = new MakeResultTable with SqlConn with ResultadosTblManageDefault {val s3Path = s3Location}
+    def mkResTbl = new MakeResultTable with SqlConn with ResultadosTblManageDefault {
+      val s3Path = s3Location
+      val id = idx}
     def mkOrdTbl = new MakeOrdersTable with SqlConn with OrdersTblManageDefault {}
     def mkJobsTbl = new MakeJobsTable with SqlConn with JobsTblManageDefault {}
     
@@ -65,6 +67,7 @@ def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject) = {
      }
  }
  
+ 
  trait MakeOrdersTable extends TableMakingTrail {
    self: OrdersTblManage =>
    import scala.concurrent._
@@ -92,13 +95,14 @@ def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject) = {
  trait MakeResultTable extends TableMakingTrail {
     self: ResultadosTblManage =>
       val s3Path: String
+      val id: String
       def apply(mongo: BasicDBObject, previousKeys: Map[Symbol, Int]) = {
          val pnl = mongo.get("PNL").asInstanceOf[Double]
             val sortino = mongo.get("sortino").asInstanceOf[Double]
             val sharpe = mongo.get("sharpe").asInstanceOf[Double]
             //val date = mongo.get("date").asInstanceOf[String]
             val paramStr = mongo.get("inputStr").asInstanceOf[String]
-            val id = mongo.get("sID").asInstanceOf[String]
+            //val id = mongo.get("sID").asInstanceOf[String]
             val dateParsed = for {
               regex(year, month, day, hour, minute, second) <- regex findFirstIn id
             } yield {
@@ -106,6 +110,7 @@ def defaultSaveAllTables(s3Location: String, mongo: BasicDBObject) = {
             }
          
             val resultado = ResultadosTable(id, dateParsed.get, paramStr, s3Path, pnl, sharpe)
+            println(resultado)
             val newSqlId = this.resultTbl.save(resultado).get
            (mongo, previousKeys + ('MakeResultTable -> newSqlId))
       }

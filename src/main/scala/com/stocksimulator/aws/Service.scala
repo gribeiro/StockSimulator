@@ -12,7 +12,7 @@ import com.stocksimulator.debug.LogNames._
 abstract class Service(name: String) {
     val config = ParCommon.config
 	val system = ActorSystem(name, config)
-  def run() = {
+  def run: Unit = {
 	
 	  val actor = actorGen(system)
   }
@@ -96,7 +96,14 @@ trait SQSSendQueue extends SQSUser {
   val tryOutputQueue = sendQueueOption.result("Output Queue not found!")
 }
 
+trait SQSMultiSendQueue extends SQSUser {
+  val sendQueueNames: List[String]
+  def sendQueues = sendQueueNames.map(p => sqs.queue(p))
+  def sendMessageToAllQueues(message: String) = for(queueOption <- sendQueues; queue <- queueOption) queue.add(message)
+}
+
 trait SQSSendReceiveQueue extends SQSReceiveQueue with SQSSendQueue
+trait SQSMultiSendReceiveQueue extends SQSReceiveQueue with SQSMultiSendQueue
 
 case class ExtraQueue(val sendQueue: String) extends SQSSendQueue {
   

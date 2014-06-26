@@ -12,6 +12,7 @@ trait ConfigComponent {
     val runnerInputQueue: String
     val outputInputQueue: String
     val reutersInputQueue: String
+    val mysqlInputQueue: String
   }
 
   trait BucketNames {
@@ -26,6 +27,7 @@ trait ConfigComponent {
     lazy val runnerInputQueue = pre + "simul-jobs"
     lazy val outputInputQueue = pre + "simul-result"
     lazy val reutersInputQueue = pre + "simul-reuters"
+    lazy val mysqlInputQueue = pre + "simul-mysql"
   }
 
   class ProvidedBucketNames extends BucketNames {
@@ -72,7 +74,8 @@ object TestConfig {
   protected val runnerTestName = "workerTest42"
   protected val outputTestName = "outputTest42"
   protected val reutersTestName = "reutersTest42"
-  protected val listAllQueues = List(errorTestName, preprocessorTestName, runnerTestName, outputTestName, reutersTestName)
+  protected val mysqlTestName = "mysqlTest42"
+  protected val listAllQueues = List(errorTestName, preprocessorTestName, runnerTestName, outputTestName, reutersTestName, mysqlTestName)
 
   protected def doSQS[T] = ProviderComponent.doSQS[T](new DefaultProvider) _
 
@@ -119,11 +122,13 @@ trait TestConfig extends DefaultConfig {
     private val runnerTestName = TestConfig.runnerTestName
     private val outputTestName = TestConfig.outputTestName
     private val reutersTestName = TestConfig.reutersTestName
-
+    private val mysqlTestName = TestConfig.mysqlTestName
+    
     override lazy val errorQueueName: String = errorTestName
     override lazy val preprocessorInputQueue: String = preprocessorTestName
     override lazy val runnerInputQueue: String = runnerTestName
     override lazy val outputInputQueue: String = outputTestName
     override lazy val reutersInputQueue: String = reutersTestName
+    override lazy val mysqlInputQueue: String = mysqlTestName
   }
 }

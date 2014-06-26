@@ -39,6 +39,8 @@ object Bootstrap {
   case object Reuters extends CommandLineOption
   case object TestObliterate extends CommandLineOption
   case object Test extends CommandLineOption  
+  case object MySQL extends CommandLineOption
+  
   case class DefferedGet[T](arr: Array[T], idx: Int, isEqualTo: Option[T] = None) {
     private val convertedArray = ArrayBuffer.empty[T]
     arr.foreach {
@@ -96,6 +98,7 @@ object Bootstrap {
         singleCase("reuters"),
         singleCase("testObliterate"),
         singleCase("test"),
+        singleCase("mysql"),
         ("job", List("job", "arg1")))
 
       cases.map {
@@ -116,6 +119,8 @@ object Bootstrap {
           TestObliterate.some
         case ("test", content) if(isCase(content)) =>
           Test.some
+        case ("mysql", content) if(isCase(content)) =>
+          MySQL.some
         case _ => None
       }.collectFirst {
         case Some(el) => el
@@ -145,6 +150,7 @@ object Bootstrap {
       firstArg("result"),
       firstArg("reuters"),
       firstArg("test"),
+      firstArg("mysql"),
       firstArg("testObliterate")
     )
 
@@ -171,8 +177,10 @@ object Bootstrap {
           case Preprocessor =>
             val preprocessor = new AcquireDatService with Config
             preprocessor.run
+          case MySQL =>
+            (new MySQLOutputService with Config).run
           case Resulter =>
-            val resulter = new OutputService with Config
+            val resulter = new MongoOutputService with Config
             resulter.run
           case Reuters =>
             val reutersService = new NewDatService with Config
@@ -180,7 +188,7 @@ object Bootstrap {
           case TestObliterate =>
             TestConfig.remove
           case Test =>
-            val services = List(new AcquireDatService with TestConfig, new OutputService with TestConfig, new NewDatService with TestConfig, new RunnerService with TestConfig)
+            val services:List[Service] = List(new AcquireDatService with TestConfig, new MongoOutputService with TestConfig, new MySQLOutputService with TestConfig, new NewDatService with TestConfig, new RunnerService with TestConfig)
             services.foreach {
               service =>
               Thread.sleep(1000L)
